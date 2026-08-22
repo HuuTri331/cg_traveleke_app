@@ -1,0 +1,166 @@
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import {
+  LayoutDashboard,
+  Building2,
+  BedDouble,
+  Layers,
+  PlaneTakeoff,
+  X,
+  Sparkles,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+export interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
+  const pathname = usePathname();
+
+  const menuSections = [
+    {
+      title: 'Quản Lý Lưu Trú',
+      items: [
+        {
+          label: 'Tổng Quan',
+          href: '/dashboard',
+          icon: <LayoutDashboard className="h-5 w-5" />,
+        },
+        {
+          label: 'Khách Sạn',
+          href: '/hotels',
+          icon: <Building2 className="h-5 w-5" />,
+          badge: 'Hot',
+        },
+        {
+          label: 'Phòng Khách Sạn',
+          href: '/rooms',
+          icon: <BedDouble className="h-5 w-5" />,
+        },
+        {
+          label: 'Loại Phòng',
+          href: '/room-types',
+          icon: <Layers className="h-5 w-5" />,
+        },
+      ],
+    },
+  ];
+
+  return (
+    <>
+      {/* Mobile overlay backdrop */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs xl:hidden transition-opacity duration-300 animate-in fade-in"
+          onClick={onClose}
+        />
+      )}
+
+      {/* Sidebar Container with smooth slide in/out on both desktop and mobile */}
+      <aside
+        className={cn(
+          'fixed top-0 bottom-0 left-0 z-50 flex w-[280px] flex-col justify-between border-r border-gray-200 bg-white px-4 py-5 transition-transform duration-300 ease-in-out dark:border-gray-800 dark:bg-gray-900 shadow-xl xl:shadow-none',
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        )}
+      >
+        {/* Top Header / Logo */}
+        <div className="flex items-center justify-between pb-5 border-b border-gray-100 dark:border-gray-800">
+          <Link href="/hotels" className="flex items-center gap-3 group">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500 text-white shadow-md shadow-brand-500/30 group-hover:scale-105 transition-transform">
+              <PlaneTakeoff className="h-5 w-5" />
+            </div>
+            <div>
+              <span className="text-base font-black tracking-tight text-gray-900 dark:text-white flex items-center gap-1.5">
+                Traveleke
+                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-brand-50 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400 font-bold">
+                  Admin
+                </span>
+              </span>
+              <p className="text-[10px] text-gray-400 font-medium">Hệ thống quản lý khách sạn</p>
+            </div>
+          </Link>
+
+          <button
+            onClick={onClose}
+            aria-label="Đóng menu"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 xl:hidden dark:hover:bg-gray-800 cursor-pointer transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Navigation Menu */}
+        <div className="flex-1 overflow-y-auto py-4 custom-scrollbar space-y-4">
+          {menuSections.map((section, idx) => (
+            <div key={idx}>
+              <h3 className="mb-2 px-3 text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                {section.title}
+              </h3>
+              <ul className="space-y-1">
+                {section.items.map((item) => {
+                  const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={() => {
+                          if (window.innerWidth < 1280) onClose();
+                        }}
+                        className={cn(
+                          'group flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all duration-200',
+                          isActive
+                            ? 'bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400 shadow-xs font-bold'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800/60 dark:hover:text-white'
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={cn(
+                              'transition-colors',
+                              isActive
+                                ? 'text-brand-500 dark:text-brand-400'
+                                : 'text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300'
+                            )}
+                          >
+                            {item.icon}
+                          </span>
+                          <span>{item.label}</span>
+                        </div>
+
+                        {item.badge && (
+                          <span className="rounded-full bg-brand-500 px-2 py-0.5 text-[9px] font-bold text-white uppercase tracking-wider">
+                            {item.badge}
+                          </span>
+                        )}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {/* Bottom Banner */}
+        <div className="pt-3 border-t border-gray-100 dark:border-gray-800">
+          <div className="rounded-xl bg-gradient-to-br from-brand-50 to-indigo-50/50 p-3.5 dark:from-white/3 dark:to-white/5 border border-brand-100/50 dark:border-gray-800 text-center">
+            <div className="mx-auto flex h-7 w-7 items-center justify-center rounded-lg bg-brand-500 text-white mb-1.5 shadow-xs">
+              <Sparkles className="h-3.5 w-3.5" />
+            </div>
+            <h4 className="text-xs font-bold text-gray-900 dark:text-white">
+              Traveleke Admin
+            </h4>
+            <p className="text-[10px] text-gray-500 dark:text-gray-400">
+              Quản lý khách sạn & phòng nghỉ
+            </p>
+          </div>
+        </div>
+      </aside>
+    </>
+  );
+}
