@@ -13,12 +13,14 @@ import {
 } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { Dropdown } from '../ui/Dropdown';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 
 export interface HeaderProps {
   onToggleSidebar: () => void;
 }
 
 export function Header({ onToggleSidebar }: HeaderProps) {
+  const { user, logout } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
 
   const notifications = [
@@ -113,16 +115,17 @@ export function Header({ onToggleSidebar }: HeaderProps) {
         <Dropdown
           trigger={
             <button className="flex items-center gap-3 rounded-xl p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer">
-              <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-brand-600 to-indigo-400 text-white font-bold text-sm shadow-md ring-2 ring-brand-500/20">
-                AD
+              <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-brand-600 to-indigo-400 text-white font-bold text-sm shadow-md ring-2 ring-brand-500/20 uppercase">
+                {user?.fullName ? user.fullName.slice(0, 2) : 'AD'}
                 <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white dark:ring-gray-900" />
               </div>
               <div className="hidden lg:flex flex-col text-left">
                 <span className="text-xs font-bold text-gray-800 dark:text-white leading-tight">
-                  Quản Trị Viên
+                  {user?.fullName || 'Người Dùng'}
                 </span>
                 <span className="text-[10px] text-gray-500 dark:text-gray-400 flex items-center gap-1 font-medium">
-                  <ShieldCheck className="h-3 w-3 text-brand-500" /> Hệ thống
+                  <ShieldCheck className="h-3 w-3 text-brand-500" />
+                  {user?.role === 'ADMIN' ? 'Quản Trị Viên' : 'Nhân Viên'}
                 </span>
               </div>
             </button>
@@ -142,7 +145,7 @@ export function Header({ onToggleSidebar }: HeaderProps) {
               label: 'Đăng xuất',
               icon: <LogOut className="h-4 w-4" />,
               variant: 'danger',
-              onClick: () => alert('Đăng xuất khỏi hệ thống thành công!'),
+              onClick: () => logout(),
             },
           ]}
         />

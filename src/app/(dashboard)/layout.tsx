@@ -3,7 +3,9 @@
 import React, { useState } from 'react';
 import { Sidebar } from '@/components/dashboard/Sidebar';
 import { Header } from '@/components/dashboard/Header';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { cn } from '@/lib/utils';
+import { PlaneTakeoff } from 'lucide-react';
 
 export default function DashboardLayout({
   children,
@@ -11,6 +13,25 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { isLoading, isAuthenticated } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
+        <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-500 text-white shadow-xl shadow-brand-500/30 animate-pulse">
+          <PlaneTakeoff className="h-7 w-7" />
+        </div>
+        <div className="mt-4 flex items-center gap-2 text-slate-400 text-xs font-semibold">
+          <div className="h-3 w-3 rounded-full border-2 border-brand-500 border-t-transparent animate-spin" />
+          <span>Đang xác thực phiên làm việc...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50/70 dark:bg-gray-950 flex flex-col font-sans transition-colors duration-200">

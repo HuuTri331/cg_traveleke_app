@@ -1,0 +1,149 @@
+'use client';
+
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import { authApi } from '@/services/api/auth.api';
+import { LoginDto, UserProfile } from '@/types/auth';
+
+interface AuthContextType {
+  user: UserProfile | null;
+  token: string | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
+  isAdmin: boolean;
+  isEmployee: boolean;
+  login: (dto: LoginDto) => Promise<void>;
+  logout: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<UserProfile | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Khởi tạo trạng thái xác thực khi mở web
+  const initAuth = useCallback(async () => {
+    try {
+      const storedToken = localStorage.getItem('traveleke_token');
+      const storedUser = localStorage.getItem('traveleke_user');
+
+      if (storedToken) {
+        setToken(storedToken);
+        if (storedUser) {
+          try {
+            setUser(JSON.parse(storedUser));
+          } catch {
+            // bỏ qua parse error
+          }
+        }
+
+        // Fetch fresh profile từ server
+        try {
+          const profile = await authApi.getMe();
+          setUser(profile);
+          localStorage.setItem('traveleke_user', JSON.stringify(profile));
+        } catch {
+          // Token hết hạn hoặc không hợp lệ
+          localStorage.removeItem('traveleke_token');
+          localStorage.removeItem('traveleke_user');
+          setToken(null);
+          setUser(null);
+        }
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    initAuth();
+  }, [initAuth]);
+
+  // Kiểm tra route bảo vệ và chuyển hướng nếu chưa đăng nhập
+  useEffect(() => {
+    if (!isLoading) {
+      const isLoginPage = pathname === '/login';
+      const hasToken = !!token;
+
+      if (!hasToken && !isLoginPage) {
+        router.push('/login');
+      } else if (hasToken && isLoginPage) {
+        router.push('/hotels');
+      }
+    }
+  }, [isLoading, token, pathname, router]);
+
+  const login = async (dto: LoginDto) => {
+    setIsLoading(true);
+    try {
+      const data = await authApi.login(dto);
+      localStorage.setItem('traveleke_token', data.access_token);
+      localStorage.setItem('traveleke_user', JSON.stringify(data.user));
+      setToken(data.access_token);
+      setUser(data.user);
+      router.push('/hotels');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logout = async () => {
+    setIsLoading(true);
+    try {
+      await authApi.logout();
+    } finally {
+      localStorage.removeItem('traveleke_token');
+      localStorage.removeItem('traveleke_user');
+      setToken(null);
+      setUser(null);
+      setIsLoading(false);
+      router.push('/login');
+    }
+  };
+
+  const refreshProfile = async () => {
+    try {
+      const profile = await authApi.getMe();
+      setUser(profile);
+      localStorage.setItem('traveleke_user', JSON.stringify(profile));
+    } catch {
+      // Ignored
+    }
+  };
+
+  const isAuthenticated = !!token && !!user;
+  const isAdmin = user?.role === 'ADMIN';
+  const isEmployee = user?.role === 'EMPLOYEE' || user?.role === 'ADMIN';
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        token,
+        isLoading,
+        isAuthenticated,
+        isAdmin,
+        isEmployee,
+        login,
+        logout,
+        refreshProfile,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}

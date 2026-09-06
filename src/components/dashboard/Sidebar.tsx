@@ -11,7 +11,10 @@ import {
   PlaneTakeoff,
   X,
   Sparkles,
+  Users,
+  ShieldCheck,
 } from 'lucide-react';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { cn } from '@/lib/utils';
 
 export interface SidebarProps {
@@ -21,6 +24,7 @@ export interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const { user, isAdmin } = useAuth();
 
   const menuSections = [
     {
@@ -49,6 +53,22 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         },
       ],
     },
+    // Chỉ hiển thị mục Quản Lý Nhân Sự nếu là ADMIN
+    ...(isAdmin
+      ? [
+          {
+            title: 'Quản Lý Hệ Thống',
+            items: [
+              {
+                label: 'Quản Lý Nhân Viên',
+                href: '/staff',
+                icon: <Users className="h-5 w-5" />,
+                badge: 'Admin',
+              },
+            ],
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -77,8 +97,15 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <div>
               <span className="text-base font-black tracking-tight text-gray-900 dark:text-white flex items-center gap-1.5">
                 Traveleke
-                <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-brand-50 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400 font-bold">
-                  Admin
+                <span
+                  className={cn(
+                    'text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase',
+                    isAdmin
+                      ? 'bg-amber-50 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'
+                      : 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400'
+                  )}
+                >
+                  {isAdmin ? 'Admin' : 'Nhân Viên'}
                 </span>
               </span>
               <p className="text-[10px] text-gray-400 font-medium">Hệ thống quản lý khách sạn</p>
@@ -133,7 +160,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         </div>
 
                         {item.badge && (
-                          <span className="rounded-full bg-brand-500 px-2 py-0.5 text-[9px] font-bold text-white uppercase tracking-wider">
+                          <span
+                            className={cn(
+                              'rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider',
+                              item.badge === 'Admin'
+                                ? 'bg-amber-500 text-white'
+                                : 'bg-brand-500 text-white'
+                            )}
+                          >
                             {item.badge}
                           </span>
                         )}
@@ -146,18 +180,21 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           ))}
         </div>
 
-        {/* Bottom Banner */}
+        {/* Bottom User Info / Banner */}
         <div className="pt-3 border-t border-gray-100 dark:border-gray-800">
-          <div className="rounded-xl bg-gradient-to-br from-brand-50 to-indigo-50/50 p-3.5 dark:from-white/3 dark:to-white/5 border border-brand-100/50 dark:border-gray-800 text-center">
-            <div className="mx-auto flex h-7 w-7 items-center justify-center rounded-lg bg-brand-500 text-white mb-1.5 shadow-xs">
-              <Sparkles className="h-3.5 w-3.5" />
+          <div className="rounded-xl bg-gradient-to-br from-brand-50 to-indigo-50/50 p-3.5 dark:from-white/3 dark:to-white/5 border border-brand-100/50 dark:border-gray-800 flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg bg-brand-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs uppercase">
+              {user?.fullName ? user.fullName.slice(0, 2) : 'TK'}
             </div>
-            <h4 className="text-xs font-bold text-gray-900 dark:text-white">
-              Traveleke Admin
-            </h4>
-            <p className="text-[10px] text-gray-500 dark:text-gray-400">
-              Quản lý khách sạn & phòng nghỉ
-            </p>
+            <div className="min-w-0 flex-1">
+              <h4 className="text-xs font-bold text-gray-900 dark:text-white truncate">
+                {user?.fullName || 'Người Dùng'}
+              </h4>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 flex items-center gap-1 font-medium truncate">
+                <ShieldCheck className="h-3 w-3 text-brand-500 shrink-0" />
+                {isAdmin ? 'Quản Trị Viên' : 'Nhân Viên Vận Hành'}
+              </p>
+            </div>
           </div>
         </div>
       </aside>
