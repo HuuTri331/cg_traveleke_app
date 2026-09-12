@@ -1,0 +1,26 @@
+/* CSS Module riêng biệt cho module quản lý Khách Sạn theo đúng yêu cầu cấu trúc */
+.hotelCard {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hotelCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+}
+
+.imagePreviewThumbnail {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.75rem;
+  aspect-ratio: 16 / 9;
+}
+
+.primaryBadgeGlow {
+  box-shadow: 0 0 12px rgba(70, 95, 255, 0.4);
+}
+
+.starRatingContainer {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
