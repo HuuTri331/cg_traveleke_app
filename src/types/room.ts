@@ -70,3 +70,35 @@ export interface QueryRoomParams {
   adults?: number;
   children?: number;
 }
+
+export interface RoomSearchParams {
+  keyword?: string;
+
+  hotelId?: number;
+
+  minPrice?: number;
+  maxPrice?: number;
+
+  maxAdults?: number;
+  maxChildren?: number;
+
+  bedType?: string;
+
+  minRating?: number;
+
+  status?: RoomStatus;
+
+  page?: number;
+  limit?: number;
+}
+
+export interface RoomSearchResponse {
+  data: Room[];
+
+  meta: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
