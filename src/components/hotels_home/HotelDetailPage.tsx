@@ -2,10 +2,12 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Header from '@/components/common/HeaderCommon';
 import Footer from '@/components/common/FooterCommon';
 import { hotelDetailApi, type HotelDetail } from '@/services/api/hotel-detail.api';
 import type { Room } from '@/types/room';
+import { useCustomerAuth } from '@/features/auth/context/CustomerAuthContext';
 
 const BACKEND_URL = 'http://localhost:3001';
 
@@ -140,13 +142,46 @@ function GalleryModal({ images, startIndex, onClose }: GalleryModalProps) {
 
 interface RoomCardProps {
   room: Room;
+  hotel: HotelDetail;
 }
 
-function RoomCard({ room }: RoomCardProps) {
+function RoomCard({ room, hotel }: RoomCardProps) {
+  const router = useRouter();
+  const { isCustomerAuthenticated } = useCustomerAuth();
   const [imgError, setImgError] = useState(false);
   const imageUrl = !imgError ? getRoomImageUrl(room.coverImageUrl) : '/images/room-placeholder.png';
   const priceNum = parseFloat(room.pricePerNight);
   const originalPrice = priceNum * 1.2;
+
+  const handleBookRoom = () => {
+    const bookingData = {
+      hotelId: hotel.id,
+      hotelName: hotel.name,
+      hotelAddress: hotel.address,
+      hotelStar: hotel.starRating,
+      hotelImage: hotel.images?.[0]?.imageUrl || null,
+      roomId: room.id,
+      roomName: room.name,
+      roomPrice: room.pricePerNight,
+      bedCount: room.bedCount,
+      bedType: room.bedType,
+      maxAdults: room.maxAdults,
+      availableRooms: room.availableRooms,
+      checkInTime: hotel.checkInTime || '14:00:00',
+      checkOutTime: hotel.checkOutTime || '12:00:00',
+    };
+
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('traveleke_pending_order', JSON.stringify(bookingData));
+    }
+
+    const targetUrl = `/process-order?roomId=${room.id}&hotelId=${hotel.id}`;
+    if (!isCustomerAuthenticated) {
+      router.push(`/customer-login?redirect=${encodeURIComponent(targetUrl)}`);
+    } else {
+      router.push(targetUrl);
+    }
+  };
 
   return (
     <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden hover:shadow-md transition-shadow">
@@ -244,12 +279,13 @@ function RoomCard({ room }: RoomCardProps) {
 
               {/* Book */}
               <div className="sm:text-center mt-4 sm:mt-0">
-                <Link
-                  href={`/booking/${room.id}`}
-                  className="inline-flex items-center justify-center w-full sm:w-auto rounded-xl bg-blue-500 px-6 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-500/30 hover:bg-blue-600 transition-colors"
+                <button
+                  type="button"
+                  onClick={handleBookRoom}
+                  className="inline-flex items-center justify-center w-full sm:w-auto rounded-xl bg-blue-500 px-6 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-500/30 hover:bg-blue-600 transition-colors cursor-pointer"
                 >
-                  Chọn
-                </Link>
+                  Đặt ngay
+                </button>
                 {room.availableRooms <= 5 && room.availableRooms > 0 && (
                   <p className="mt-1.5 text-[11px] font-bold text-red-500">
                     Còn {room.availableRooms} phòng!
@@ -601,7 +637,7 @@ export default function HotelDetailPage({ hotelId }: HotelDetailPageProps) {
         ) : (
           <div className="space-y-5">
             {rooms.map(room => (
-              <RoomCard key={room.id} room={room} />
+              <RoomCard key={room.id} room={room} hotel={hotel} />
             ))}
           </div>
         )}

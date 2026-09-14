@@ -10,7 +10,7 @@ interface CustomerAuthContextType {
   customerToken: string | null;
   isCustomerLoading: boolean;
   isCustomerAuthenticated: boolean;
-  customerLogin: (dto: LoginDto) => Promise<void>;
+  customerLogin: (dto: LoginDto, redirectPath?: string) => Promise<void>;
   customerLogout: () => Promise<void>;
   refreshCustomerProfile: () => Promise<void>;
 }
@@ -71,7 +71,7 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
 
   useEffect(() => { initCustomerAuth(); }, [initCustomerAuth]);
 
-  const customerLogin = async (dto: LoginDto) => {
+  const customerLogin = async (dto: LoginDto, redirectPath?: string) => {
     setIsCustomerLoading(true);
     try {
       const res = await apiClient.post<{ data: { access_token: string; user: UserProfile } }>('/auth/login', dto);
@@ -86,7 +86,7 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
       localStorage.setItem(USER_KEY, JSON.stringify(user));
       setCustomerToken(access_token);
       setCustomer(user);
-      router.push('/home');
+      router.push(redirectPath || '/home');
     } finally {
       setIsCustomerLoading(false);
     }

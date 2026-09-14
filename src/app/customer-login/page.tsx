@@ -29,8 +29,10 @@ function CustomerLoginForm() {
       return;
     }
 
+    const redirectParam = searchParams.get('redirect') || '';
+
     try {
-      await customerLogin({ email: email.trim(), password });
+      await customerLogin({ email: email.trim(), password }, redirectParam || undefined);
     } catch (err: any) {
       const errorData = err?.response?.data;
       const isUnverified =

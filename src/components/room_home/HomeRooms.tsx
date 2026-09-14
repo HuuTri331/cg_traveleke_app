@@ -2,6 +2,8 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useCustomerAuth } from '@/features/auth/context/CustomerAuthContext';
 
 import Header from '@/components/common/HeaderCommon';
 import Footer from '@/components/common/FooterCommon';
@@ -40,6 +42,9 @@ const getImageUrl = (
 export default function HomeRooms({
   hotelId,
 }: HomeRoomsProps) {
+  const router = useRouter();
+  const { isCustomerAuthenticated } = useCustomerAuth();
+
   // ============================================================
   // ROOM DATA
   // ============================================================
@@ -286,6 +291,36 @@ export default function HomeRooms({
         top: 0,
         behavior: 'smooth',
       });
+    }
+  };
+
+  const handleBookRoom = (room: Room) => {
+    const bookingData = {
+      hotelId: room.hotelId || hotelId || null,
+      hotelName: (room as any).hotel?.name || 'Khách sạn',
+      hotelAddress: (room as any).hotel?.address || '',
+      hotelStar: (room as any).hotel?.starRating || 5,
+      hotelImage: (room as any).hotel?.images?.[0]?.imageUrl || getImageUrl(room.images?.[0]?.imageUrl),
+      roomId: room.id,
+      roomName: room.name,
+      roomPrice: room.pricePerNight,
+      bedCount: room.bedCount || 1,
+      bedType: room.bedType || 'Tiêu chuẩn',
+      maxAdults: room.maxAdults || 2,
+      availableRooms: room.availableRooms || 1,
+      checkInTime: '14:00:00',
+      checkOutTime: '12:00:00',
+    };
+
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('traveleke_pending_order', JSON.stringify(bookingData));
+    }
+
+    const targetUrl = `/process-order?roomId=${room.id}${room.hotelId || hotelId ? `&hotelId=${room.hotelId || hotelId}` : ''}`;
+    if (!isCustomerAuthenticated) {
+      router.push(`/customer-login?redirect=${encodeURIComponent(targetUrl)}`);
+    } else {
+      router.push(targetUrl);
     }
   };
 
@@ -760,14 +795,13 @@ export default function HomeRooms({
                           </div>
                         </div>
 
-                        {/* BOOK BUTTON */}
-
-                        <Link
-                          href={`/booking/${room.id}`}
-                          className="mt-5 flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700"
+                        <button
+                          type="button"
+                          onClick={() => handleBookRoom(room)}
+                          className="mt-5 flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700 cursor-pointer"
                         >
                           Đặt phòng
-                        </Link>
+                        </button>
                       </div>
                     </article>
                   ))}
