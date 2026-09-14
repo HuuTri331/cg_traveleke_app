@@ -36,7 +36,8 @@ apiClient.interceptors.response.use(
           error.config?.url?.includes('/auth/login') ||
           error.config?.url?.includes('/auth/register') ||
           error.config?.url?.includes('/auth/verify-email') ||
-          error.config?.url?.includes('/auth/resend-verification');
+          error.config?.url?.includes('/auth/resend-verification') ||
+          error.config?.url?.includes('/auth/validate-email');
 
         const isCustomerRoute =
           typeof window !== 'undefined' &&
@@ -74,6 +75,9 @@ apiClient.interceptors.response.use(
       customError.response = error.response;
       customError.requiresVerification = error.response.data.requiresVerification;
       customError.email = error.response.data.email;
+      customError.locked = error.response.data.locked;
+      customError.tier = error.response.data.tier;
+      customError.lockedUntil = error.response.data.lockedUntil;
     }
     return Promise.reject(customError);
   }

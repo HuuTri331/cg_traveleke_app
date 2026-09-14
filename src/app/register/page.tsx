@@ -1,13 +1,19 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import logo from '@/assets/image/logo.png';
 import { apiClient } from '@/services/api/client';
 
-const BACKEND_URL = 'http://localhost:3001';
+const LOCKOUT_KEY = 'traveleke_register_lockout';
+
+interface StoredLockout {
+  lockedUntil: number;
+  tier: 1 | 2;
+  message: string;
+}
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -33,9 +39,127 @@ export default function RegisterPage() {
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isValidatingEmail, setIsValidatingEmail] = useState(false);
   const [step, setStep] = useState<1 | 2>(1);
 
+  // Lockout / Anti-spam state
+  const [isLocked, setIsLocked] = useState(false);
+  const [lockoutTier, setLockoutTier] = useState<1 | 2>(1);
+  const [lockoutMessage, setLockoutMessage] = useState('');
+  const [remainingSeconds, setRemainingSeconds] = useState(0);
+
+  // 1. Kiểm tra trạng thái khóa từ localStorage khi mở trang
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const storedStr = localStorage.getItem(LOCKOUT_KEY);
+    if (!storedStr) return;
+
+    try {
+      const stored: StoredLockout = JSON.parse(storedStr);
+      const now = Date.now();
+      if (stored.lockedUntil > now) {
+        setIsLocked(true);
+        setLockoutTier(stored.tier || 1);
+        setLockoutMessage(stored.message || 'Bạn tạm thời bị khóa do vi phạm nhập email không có thật.');
+        setRemainingSeconds(Math.ceil((stored.lockedUntil - now) / 1000));
+      } else {
+        localStorage.removeItem(LOCKOUT_KEY);
+      }
+    } catch {
+      localStorage.removeItem(LOCKOUT_KEY);
+    }
+  }, []);
+
+  // 2. Bộ đếm ngược thời gian khóa từng giây
+  useEffect(() => {
+    if (!isLocked || remainingSeconds <= 0) {
+      if (isLocked && remainingSeconds <= 0) {
+        setIsLocked(false);
+        setError('');
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem(LOCKOUT_KEY);
+        }
+      }
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setRemainingSeconds((prev) => {
+        if (prev <= 1) {
+          setIsLocked(false);
+          setError('');
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem(LOCKOUT_KEY);
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isLocked, remainingSeconds]);
+
+  // Hàm định dạng thời gian đếm ngược (MM:SS hoặc HH:MM:SS)
+  const formatRemainingTime = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    if (h > 0) {
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
+
+  // Kích hoạt khóa khi phát hiện vi phạm từ API
+  const applyLockout = useCallback((tier: 1 | 2, lockedUntil: number, message: string) => {
+    setIsLocked(true);
+    setLockoutTier(tier);
+    setLockoutMessage(message);
+    const remaining = Math.max(1, Math.ceil((lockedUntil - Date.now()) / 1000));
+    setRemainingSeconds(remaining);
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(
+        LOCKOUT_KEY,
+        JSON.stringify({ lockedUntil, tier, message })
+      );
+    }
+  }, []);
+
+  // 3. Kiểm tra email trực tiếp với backend (chặn từ ngữ thô tục / email ảo / DNS MX)
+  const checkEmailValidity = async (targetEmail: string): Promise<boolean> => {
+    if (isLocked) return false;
+    const trimmed = targetEmail.trim();
+    if (!trimmed || !trimmed.includes('@')) return false;
+
+    setIsValidatingEmail(true);
+    try {
+      await apiClient.post('/auth/validate-email', { email: trimmed });
+      return true;
+    } catch (err: any) {
+      const data = err?.response?.data;
+      if (data?.locked || err?.locked) {
+        const tier = (data?.tier || err?.tier || 1) as 1 | 2;
+        const until = data?.lockedUntil || err?.lockedUntil || (Date.now() + (tier === 2 ? 36000000 : 600000));
+        const msg = data?.message || err?.message || 'Gmail không có thực! Bạn bị tạm khóa.';
+        applyLockout(tier, until, msg);
+      } else {
+        setError(data?.message || err.message || 'Email không hợp lệ.');
+      }
+      return false;
+    } finally {
+      setIsValidatingEmail(false);
+    }
+  };
+
+  const handleEmailBlur = async () => {
+    if (!email.trim() || isLocked) return;
+    await checkEmailValidity(email);
+  };
+
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isLocked) return;
     const file = e.target.files?.[0];
     if (!file) return;
     setAvatarFile(file);
@@ -44,9 +168,12 @@ export default function RegisterPage() {
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Chuyển từ Bước 1 sang Bước 2
+  const handleNextStep = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (isLocked) return;
 
     if (!fullName.trim() || !email.trim() || !password || !confirmPassword) {
       setError('Vui lòng điền đầy đủ thông tin bắt buộc.');
@@ -61,6 +188,20 @@ export default function RegisterPage() {
       return;
     }
 
+    // Kiểm tra tính hợp lệ của email với máy chủ
+    const isValid = await checkEmailValidity(email);
+    if (!isValid) return;
+
+    setStep(2);
+  };
+
+  // Submit toàn bộ form
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (isLocked) return;
+
     setIsLoading(true);
     try {
       const formData = new FormData();
@@ -73,7 +214,7 @@ export default function RegisterPage() {
       if (gender) formData.append('gender', gender);
       if (avatarFile) formData.append('avatar', avatarFile);
 
-      const res = await apiClient.post('/auth/register', formData, {
+      await apiClient.post('/auth/register', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
@@ -83,11 +224,19 @@ export default function RegisterPage() {
       setTimeout(() => {
         router.push(`/verify-email?email=${encodeURIComponent(email.trim())}`);
       }, 1400);
-    } catch (err: unknown) {
-      const msg =
-        (err as any)?.response?.data?.message ||
-        (err instanceof Error ? err.message : 'Đăng ký thất bại, vui lòng thử lại.');
-      setError(Array.isArray(msg) ? msg.join('. ') : msg);
+    } catch (err: any) {
+      const data = err?.response?.data;
+      if (data?.locked || err?.locked) {
+        const tier = (data?.tier || err?.tier || 1) as 1 | 2;
+        const until = data?.lockedUntil || err?.lockedUntil || (Date.now() + (tier === 2 ? 36000000 : 600000));
+        const msg = data?.message || err?.message || 'Phát hiện email không có thực!';
+        applyLockout(tier, until, msg);
+      } else {
+        const msg =
+          data?.message ||
+          (err instanceof Error ? err.message : 'Đăng ký thất bại, vui lòng thử lại.');
+        setError(Array.isArray(msg) ? msg.join('. ') : msg);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -99,8 +248,9 @@ export default function RegisterPage() {
     { value: 'OTHER', label: '🧑 Khác' },
   ];
 
-  const inputClass =
-    'w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100';
+  const inputClass = `w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 ${
+    isLocked ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-gray-50'
+  }`;
 
   const labelClass = 'block text-sm font-semibold text-gray-700 mb-1.5';
 
@@ -126,9 +276,9 @@ export default function RegisterPage() {
 
           <div className="mt-10 space-y-4 text-left">
             {[
-              { icon: '✅', text: 'Đặt phòng nhanh chóng & dễ dàng' },
+              { icon: '🛡️', text: 'Hệ thống bảo mật & chống spam tối tân' },
+              { icon: '🏨', text: 'Đặt phòng nhanh chóng & dễ dàng' },
               { icon: '🎯', text: 'Giá tốt nhất được đảm bảo' },
-              { icon: '📱', text: 'Quản lý chuyến đi mọi lúc, mọi nơi' },
               { icon: '💬', text: 'Hỗ trợ khách hàng 24/7' },
             ].map((b) => (
               <div key={b.text} className="flex items-center gap-3 text-white">
@@ -149,8 +299,31 @@ export default function RegisterPage() {
               <Image src={logo} alt="Traveleke" className="h-12 w-auto object-contain mb-3" priority />
             </Link>
             <h2 className="text-2xl font-extrabold text-gray-900">Tạo tài khoản mới</h2>
-            <p className="mt-1 text-sm text-gray-500">Điền thông tin để bắt đầu hành trình</p>
+            <p className="mt-1 text-sm text-gray-500">Điền thông tin chính xác để kích hoạt tài khoản</p>
           </div>
+
+          {/* BANNER KHÓA PHÒNG NGỪA SPAM (10 PHÚT HOẶC 10 GIỜ) */}
+          {isLocked && (
+            <div className="mb-6 rounded-2xl border-2 border-red-400 bg-red-50/95 p-5 text-red-900 shadow-md animate-pulse">
+              <div className="flex items-start gap-3.5">
+                <span className="text-3xl shrink-0">🚫</span>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="font-extrabold text-sm uppercase tracking-wider text-red-700 bg-red-100 px-2.5 py-0.5 rounded-full">
+                      {lockoutTier === 2 ? 'KHÓA PHẠT 10 GIỜ' : 'TẠM KHÓA 10 PHÚT'}
+                    </span>
+                  </div>
+                  <p className="text-sm font-bold leading-relaxed text-red-900 mt-1">
+                    {lockoutMessage}
+                  </p>
+                  <div className="mt-3.5 flex items-center gap-2 font-mono text-xs sm:text-sm font-bold bg-white border border-red-200 rounded-xl px-3.5 py-2 text-red-700 shadow-inner w-fit">
+                    <span>⏳ Thời gian mở khóa còn lại:</span>
+                    <span className="text-red-600 text-base">{formatRemainingTime(remainingSeconds)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Step indicator */}
           <div className="mb-6 flex items-center gap-3">
@@ -161,8 +334,8 @@ export default function RegisterPage() {
             Bước {step} / 2 — {step === 1 ? 'Thông tin tài khoản' : 'Thông tin cá nhân & Avatar'}
           </p>
 
-          {/* Alerts */}
-          {error && (
+          {/* Regular Alerts */}
+          {error && !isLocked && (
             <div className="mb-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               <span className="shrink-0">⚠️</span>
               <span>{error}</span>
@@ -175,39 +348,78 @@ export default function RegisterPage() {
             </div>
           )}
 
-          <form onSubmit={step === 1 ? (e) => { e.preventDefault(); setError(''); if (!fullName.trim() || !email.trim() || !password || !confirmPassword) { setError('Vui lòng điền đầy đủ thông tin bắt buộc.'); return; } if (password !== confirmPassword) { setError('Mật khẩu xác nhận không khớp.'); return; } if (password.length < 6) { setError('Mật khẩu phải có ít nhất 6 ký tự.'); return; } setStep(2); } : handleSubmit}
-            className="space-y-4">
+          <form onSubmit={step === 1 ? handleNextStep : handleSubmit} className="space-y-4">
             {step === 1 ? (
               <>
                 {/* Full name */}
                 <div>
-                  <label className={labelClass}>Họ và tên <span className="text-red-500">*</span></label>
+                  <label className={labelClass}>
+                    Họ và tên <span className="text-red-500">*</span>
+                  </label>
                   <div className="relative">
                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">👤</span>
-                    <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Nguyễn Văn A"
-                      className={`${inputClass} pl-10`} required />
+                    <input
+                      type="text"
+                      disabled={isLocked}
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="Nguyễn Văn A"
+                      className={`${inputClass} pl-10`}
+                      required
+                    />
                   </div>
                 </div>
 
-                {/* Email */}
+                {/* Email with real-time validation */}
                 <div>
-                  <label className={labelClass}>Email <span className="text-red-500">*</span></label>
+                  <label className={labelClass}>
+                    Email Gmail chính thống <span className="text-red-500">*</span>
+                  </label>
                   <div className="relative">
                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">📧</span>
-                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com"
-                      className={`${inputClass} pl-10`} required />
+                    <input
+                      type="email"
+                      disabled={isLocked}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      onBlur={handleEmailBlur}
+                      placeholder="you@gmail.com"
+                      className={`${inputClass} pl-10 ${isValidatingEmail ? 'pr-10' : ''}`}
+                      required
+                    />
+                    {isValidatingEmail && (
+                      <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+                      </div>
+                    )}
                   </div>
+                  <p className="mt-1 text-[11px] text-gray-400">
+                    Hệ thống sẽ tự động đối soát DNS và từ chối mọi email không tồn tại hoặc thô tục.
+                  </p>
                 </div>
 
                 {/* Password */}
                 <div>
-                  <label className={labelClass}>Mật khẩu <span className="text-red-500">*</span></label>
+                  <label className={labelClass}>
+                    Mật khẩu <span className="text-red-500">*</span>
+                  </label>
                   <div className="relative">
                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">🔒</span>
-                    <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Ít nhất 6 ký tự"
-                      className={`${inputClass} pl-10 pr-12`} required />
-                    <button type="button" onClick={() => setShowPassword(p => !p)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      disabled={isLocked}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Ít nhất 6 ký tự"
+                      className={`${inputClass} pl-10 pr-12`}
+                      required
+                    />
+                    <button
+                      type="button"
+                      disabled={isLocked}
+                      onClick={() => setShowPassword((p) => !p)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
                       {showPassword ? '🙈' : '👁️'}
                     </button>
                   </div>
@@ -215,13 +427,26 @@ export default function RegisterPage() {
 
                 {/* Confirm password */}
                 <div>
-                  <label className={labelClass}>Xác nhận mật khẩu <span className="text-red-500">*</span></label>
+                  <label className={labelClass}>
+                    Xác nhận mật khẩu <span className="text-red-500">*</span>
+                  </label>
                   <div className="relative">
                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">🔒</span>
-                    <input type={showConfirmPassword ? 'text' : 'password'} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Nhập lại mật khẩu"
-                      className={`${inputClass} pl-10 pr-12`} required />
-                    <button type="button" onClick={() => setShowConfirmPassword(p => !p)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      disabled={isLocked}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Nhập lại mật khẩu"
+                      className={`${inputClass} pl-10 pr-12`}
+                      required
+                    />
+                    <button
+                      type="button"
+                      disabled={isLocked}
+                      onClick={() => setShowConfirmPassword((p) => !p)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
                       {showConfirmPassword ? '🙈' : '👁️'}
                     </button>
                   </div>
@@ -230,9 +455,26 @@ export default function RegisterPage() {
                   )}
                 </div>
 
-                <button type="submit"
-                  className="w-full rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition-all hover:from-blue-600 hover:to-indigo-700">
-                  Tiếp theo →
+                {/* Next Step Button */}
+                <button
+                  type="submit"
+                  disabled={isLocked || isValidatingEmail}
+                  className={`w-full rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg transition-all ${
+                    isLocked
+                      ? 'bg-gray-400 cursor-not-allowed shadow-none'
+                      : 'bg-gradient-to-r from-blue-500 to-indigo-600 shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-700'
+                  }`}
+                >
+                  {isLocked ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <span>🔒</span>
+                      <span>Đã bị khóa: Thử lại sau ({formatRemainingTime(remainingSeconds)})</span>
+                    </span>
+                  ) : isValidatingEmail ? (
+                    <span>Đang kiểm tra Gmail...</span>
+                  ) : (
+                    'Tiếp theo →'
+                  )}
                 </button>
               </>
             ) : (
@@ -240,30 +482,44 @@ export default function RegisterPage() {
                 {/* Avatar upload */}
                 <div className="flex flex-col items-center gap-3">
                   <div className="relative">
-                    <div className="h-24 w-24 overflow-hidden rounded-full bg-gradient-to-tr from-blue-100 to-indigo-100 flex items-center justify-center border-4 border-white shadow-md cursor-pointer"
-                      onClick={() => fileInputRef.current?.click()}>
+                    <button
+                      type="button"
+                      disabled={isLocked}
+                      onClick={() => fileInputRef.current?.click()}
+                      className={`h-24 w-24 overflow-hidden rounded-full bg-gradient-to-tr from-blue-100 to-indigo-100 flex items-center justify-center border-4 border-white shadow-md transition ${
+                        isLocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:scale-105'
+                      }`}
+                    >
                       {avatarPreview ? (
                         <img src={avatarPreview} alt="Avatar" className="h-full w-full object-cover" />
                       ) : (
                         <span className="text-4xl">👤</span>
                       )}
-                    </div>
-                    <button type="button" onClick={() => fileInputRef.current?.click()}
-                      className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-blue-500 text-white shadow-md hover:bg-blue-600 transition-colors text-xs font-bold">
-                      +
                     </button>
+                    {avatarPreview && !isLocked && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAvatarFile(null);
+                          setAvatarPreview(null);
+                        }}
+                        className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow"
+                      >
+                        ✕
+                      </button>
+                    )}
                   </div>
-                  <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
-                  <button type="button" onClick={() => fileInputRef.current?.click()}
-                    className="text-sm text-blue-500 font-semibold hover:text-blue-700">
-                    {avatarPreview ? '✏️ Đổi ảnh đại diện' : '📷 Tải lên ảnh đại diện (tùy chọn)'}
-                  </button>
-                  {avatarPreview && (
-                    <button type="button" onClick={() => { setAvatarFile(null); setAvatarPreview(null); }}
-                      className="text-xs text-red-400 hover:text-red-600">
-                      Xoá ảnh
-                    </button>
-                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    disabled={isLocked}
+                    className="hidden"
+                    onChange={handleAvatarChange}
+                  />
+                  <span className="text-xs text-gray-500">
+                    Ảnh đại diện avatar (tuỳ chọn, tối đa 5MB)
+                  </span>
                 </div>
 
                 {/* Phone */}
@@ -271,8 +527,14 @@ export default function RegisterPage() {
                   <label className={labelClass}>Số điện thoại</label>
                   <div className="relative">
                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">📱</span>
-                    <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="0912 345 678"
-                      className={`${inputClass} pl-10`} />
+                    <input
+                      type="tel"
+                      disabled={isLocked}
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="0901234567"
+                      className={`${inputClass} pl-10`}
+                    />
                   </div>
                 </div>
 
@@ -281,63 +543,91 @@ export default function RegisterPage() {
                   <label className={labelClass}>Địa chỉ</label>
                   <div className="relative">
                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">📍</span>
-                    <input type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="123 Đường ABC, TP. Hồ Chí Minh"
-                      className={`${inputClass} pl-10`} />
+                    <input
+                      type="text"
+                      disabled={isLocked}
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      placeholder="Số nhà, tên đường, quận/huyện, TP"
+                      className={`${inputClass} pl-10`}
+                    />
                   </div>
                 </div>
 
-                {/* DOB & Gender row */}
-                <div className="grid grid-cols-2 gap-4">
+                {/* Date of birth & Gender */}
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className={labelClass}>Ngày sinh</label>
-                    <input type="date" value={dateOfBirth} onChange={e => setDateOfBirth(e.target.value)}
-                      max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]}
-                      className={inputClass} />
+                    <input
+                      type="date"
+                      disabled={isLocked}
+                      value={dateOfBirth}
+                      onChange={(e) => setDateOfBirth(e.target.value)}
+                      className={inputClass}
+                    />
                   </div>
                   <div>
                     <label className={labelClass}>Giới tính</label>
-                    <select value={gender} onChange={e => setGender(e.target.value as any)}
-                      className={inputClass}>
-                      <option value="">-- Chọn --</option>
-                      {genderOptions.map(o => (
-                        <option key={o.value} value={o.value}>{o.label}</option>
+                    <select
+                      disabled={isLocked}
+                      value={gender}
+                      onChange={(e) => setGender(e.target.value as any)}
+                      className={inputClass}
+                    >
+                      <option value="">Chọn giới tính</option>
+                      {genderOptions.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
                       ))}
                     </select>
                   </div>
                 </div>
 
-                {/* Terms */}
-                <p className="text-xs text-gray-500 leading-relaxed">
-                  Bằng cách đăng ký, bạn đồng ý với{' '}
-                  <a href="#" className="text-blue-500 font-semibold hover:underline">Điều khoản dịch vụ</a>{' '}
-                  và{' '}
-                  <a href="#" className="text-blue-500 font-semibold hover:underline">Chính sách bảo mật</a>{' '}
-                  của Traveleke.
-                </p>
-
-                <div className="flex gap-3">
-                  <button type="button" onClick={() => { setStep(1); setError(''); }}
-                    className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
+                {/* Actions */}
+                <div className="flex gap-3 pt-2">
+                  <button
+                    type="button"
+                    disabled={isLocked || isLoading}
+                    onClick={() => setStep(1)}
+                    className="flex-1 rounded-xl border border-gray-200 py-3.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 disabled:opacity-50"
+                  >
                     ← Quay lại
                   </button>
-                  <button type="submit" disabled={isLoading}
-                    className="flex-1 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition-all hover:from-blue-600 hover:to-indigo-700 disabled:opacity-50">
-                    {isLoading ? (
+
+                  <button
+                    type="submit"
+                    disabled={isLocked || isLoading}
+                    className={`flex-2 w-full rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg transition-all ${
+                      isLocked
+                        ? 'bg-gray-400 cursor-not-allowed shadow-none'
+                        : 'bg-gradient-to-r from-blue-500 to-indigo-600 shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-700'
+                    }`}
+                  >
+                    {isLocked ? (
                       <span className="flex items-center justify-center gap-2">
-                        <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                        Đang tạo tài khoản...
+                        <span>🔒</span>
+                        <span>Đã bị khóa ({formatRemainingTime(remainingSeconds)})</span>
                       </span>
-                    ) : '🎉 Tạo tài khoản'}
+                    ) : isLoading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        <span>Đang đăng ký & gửi mail...</span>
+                      </span>
+                    ) : (
+                      'Hoàn tất đăng ký 🎉'
+                    )}
                   </button>
                 </div>
               </>
             )}
           </form>
 
+          {/* Login link */}
           <p className="mt-6 text-center text-sm text-gray-500">
             Đã có tài khoản?{' '}
-            <Link href="/customer-login" className="font-bold text-blue-500 hover:text-blue-700">
-              Đăng nhập →
+            <Link href="/customer-login" className="font-semibold text-blue-600 hover:underline">
+              Đăng nhập ngay
             </Link>
           </p>
         </div>
