@@ -57,6 +57,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Fetch fresh profile từ server
         try {
           const profile = await authApi.getMe();
+          if (profile.role === 'CUSTOMER') {
+            // Không lưu thông tin customer vào admin session
+            localStorage.removeItem('traveleke_token');
+            localStorage.removeItem('traveleke_user');
+            setToken(null);
+            setUser(null);
+            return;
+          }
           setUser(profile);
           localStorage.setItem('traveleke_user', JSON.stringify(profile));
         } catch {
@@ -86,12 +94,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const hasToken = !!token;
 
       if (isStaffProtected) {
+        const customerToken = typeof window !== 'undefined' ? localStorage.getItem('traveleke_customer_token') : null;
+        const isCustomer = user?.role === 'CUSTOMER' || !!customerToken;
+
         // Nếu là khách hàng hoặc chưa có token nhân viên, cấm truy cập
         if (!hasToken || user?.role === 'CUSTOMER') {
-          router.replace(user?.role === 'CUSTOMER' ? '/home' : '/login');
+          // Khách hàng đã đăng nhập cố tình vô trang admin -> đá về trang chủ khách hàng (/home)
+          // Chưa đăng nhập gì cả cố tình vào -> đá về trang đăng nhập admin (/login)
+          router.replace(isCustomer ? '/home' : '/login');
         }
       } else if (hasToken && isLoginPage) {
-        router.replace('/hotels');
+        router.replace('/dashboard');
       }
     }
   }, [isLoading, token, user, pathname, router]);
@@ -100,11 +113,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     try {
       const data = await authApi.login(dto);
+
+      if (data.user.role === 'CUSTOMER') {
+        throw new Error('Tài khoản khách hàng không có quyền truy cập bảng quản trị. Vui lòng đăng nhập tại trang người dùng.');
+      }
+
       localStorage.setItem('traveleke_token', data.access_token);
       localStorage.setItem('traveleke_user', JSON.stringify(data.user));
       setToken(data.access_token);
       setUser(data.user);
-      router.push('/hotels');
+      router.push('/dashboard');
     } finally {
       setIsLoading(false);
     }

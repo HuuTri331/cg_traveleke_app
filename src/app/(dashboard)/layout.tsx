@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { PlaneTakeoff } from 'lucide-react';
 
 import { Sidebar } from '@/components/dashboard/Sidebar';
@@ -13,8 +14,22 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { isLoading, isAuthenticated, user } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (!isAuthenticated || user?.role === 'CUSTOMER') {
+        const customerToken = typeof window !== 'undefined' ? localStorage.getItem('traveleke_customer_token') : null;
+        if (customerToken || user?.role === 'CUSTOMER') {
+          router.replace('/home');
+        } else {
+          router.replace('/login');
+        }
+      }
+    }
+  }, [isLoading, isAuthenticated, user, router]);
 
   if (isLoading) {
     return (

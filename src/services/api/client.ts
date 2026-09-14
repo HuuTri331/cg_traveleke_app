@@ -10,13 +10,35 @@ export const apiClient = axios.create({
   timeout: 15000,
 });
 
-// Request interceptor: Tự động đính kèm token xác thực vào Header
+// Request interceptor: Tự động đính kèm token xác thực vào Header tương ứng theo ngữ cảnh
 apiClient.interceptors.request.use(
   (config) => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('traveleke_token');
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
+      // 1. Nếu caller đã truyền Authorization tường minh (như CustomerAuthContext), giữ nguyên
+      if (config.headers?.Authorization) {
+        return config;
+      }
+
+      const currentPath = window.location.pathname;
+      const isCustomerPath =
+        currentPath.startsWith('/home') ||
+        currentPath.startsWith('/hotels_home') ||
+        currentPath.startsWith('/room_home') ||
+        currentPath.startsWith('/process-order') ||
+        currentPath.startsWith('/booking') ||
+        currentPath.startsWith('/booking-history') ||
+        currentPath.startsWith('/customer-');
+
+      if (isCustomerPath) {
+        const customerToken = localStorage.getItem('traveleke_customer_token');
+        if (customerToken && config.headers) {
+          config.headers.Authorization = `Bearer ${customerToken}`;
+        }
+      } else {
+        const staffToken = localStorage.getItem('traveleke_token');
+        if (staffToken && config.headers) {
+          config.headers.Authorization = `Bearer ${staffToken}`;
+        }
       }
     }
     return config;
@@ -39,15 +61,20 @@ apiClient.interceptors.response.use(
           error.config?.url?.includes('/auth/resend-verification') ||
           error.config?.url?.includes('/auth/validate-email');
 
-        const isCustomerRoute =
+        const isCustomerPath =
           typeof window !== 'undefined' &&
-          (window.location.pathname.startsWith('/customer-login') ||
+          (window.location.pathname.startsWith('/home') ||
+            window.location.pathname.startsWith('/hotels_home') ||
+            window.location.pathname.startsWith('/room_home') ||
+            window.location.pathname.startsWith('/process-order') ||
+            window.location.pathname.startsWith('/booking') ||
+            window.location.pathname.startsWith('/customer-login') ||
             window.location.pathname.startsWith('/register') ||
             window.location.pathname.startsWith('/verify-email'));
 
         if (
           !isAuthEndpoint &&
-          !isCustomerRoute &&
+          !isCustomerPath &&
           typeof window !== 'undefined' &&
           !window.location.pathname.startsWith('/login')
         ) {

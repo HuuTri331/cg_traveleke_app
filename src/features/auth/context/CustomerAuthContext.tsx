@@ -79,7 +79,7 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
 
       // Block staff/admin from logging into customer portal
       if (user.role === 'ADMIN' || user.role === 'EMPLOYEE') {
-        throw new Error('Tài khoản nhân viên / admin không thể đăng nhập tại đây. Vui lòng sử dụng trang quản trị.');
+        throw new Error('Thông tin đăng nhập không hợp lệ tại cổng khách hàng vì đây là tài khoản của nhân viên/quản trị viên khách sạn. Vui lòng sử dụng trang đăng nhập quản trị.');
       }
 
       localStorage.setItem(TOKEN_KEY, access_token);

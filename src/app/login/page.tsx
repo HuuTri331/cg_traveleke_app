@@ -7,10 +7,7 @@ import {
   Mail,
   Eye,
   EyeOff,
-  ShieldCheck,
-  UserCheck,
   ArrowRight,
-  Sparkles,
   AlertCircle,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
@@ -45,12 +42,6 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleQuickLogin = (demoEmail: string, demoPass: string) => {
-    setEmail(demoEmail);
-    setPassword(demoPass);
-    setErrorMsg(null);
   };
 
   return (
@@ -157,32 +148,6 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-
-          {/* Quick Demo Login Section */}
-          <div className="mt-7 pt-6 border-t border-slate-800/80">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 text-center mb-3 flex items-center justify-center gap-1.5">
-              <Sparkles className="h-3 w-3 text-amber-400" /> Chọn nhanh tài khoản mẫu để test
-            </p>
-            <div className="grid grid-cols-2 gap-2.5">
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('admin@traveleke.vn', 'Admin@2026')}
-                className="flex items-center justify-center gap-1.5 p-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold transition-all cursor-pointer"
-              >
-                <ShieldCheck className="h-4 w-4 text-amber-400 shrink-0" />
-                <span>Admin (Toàn quyền)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickLogin('nhanvien@traveleke.vn', 'Admin@2026')}
-                className="flex items-center justify-center gap-1.5 p-2.5 rounded-xl border border-indigo-500/30 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 text-xs font-semibold transition-all cursor-pointer"
-              >
-                <UserCheck className="h-4 w-4 text-indigo-400 shrink-0" />
-                <span>Nhân Viên (Vận hành)</span>
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Footer info */}

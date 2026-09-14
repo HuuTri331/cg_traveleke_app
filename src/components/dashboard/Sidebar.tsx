@@ -13,6 +13,7 @@ import {
   Sparkles,
   Users,
   ShieldCheck,
+  CalendarCheck,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { cn } from '@/lib/utils';
@@ -34,6 +35,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           label: 'Tổng Quan',
           href: '/dashboard',
           icon: <LayoutDashboard className="h-5 w-5" />,
+        },
+        {
+          label: 'Đơn Đặt Khách Sạn',
+          href: '/bookings',
+          icon: <CalendarCheck className="h-5 w-5" />,
+          badge: 'Mới',
         },
         {
           label: 'Khách Sạn',
