@@ -77,14 +77,12 @@ export default function RegisterPage() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      const { access_token, user } = res.data?.data ?? {};
-      if (access_token && user) {
-        localStorage.setItem('traveleke_customer_token', access_token);
-        localStorage.setItem('traveleke_customer_user', JSON.stringify(user));
-      }
-
-      setSuccessMsg('Đăng ký thành công! Chào mừng bạn đến với Traveleke 🎉');
-      setTimeout(() => router.push('/home'), 1500);
+      setSuccessMsg(
+        'Đăng ký tài khoản thành công! Chúng tôi đã gửi liên kết xác thực đến email của bạn. Đang chuyển hướng...',
+      );
+      setTimeout(() => {
+        router.push(`/verify-email?email=${encodeURIComponent(email.trim())}`);
+      }, 1400);
     } catch (err: unknown) {
       const msg =
         (err as any)?.response?.data?.message ||

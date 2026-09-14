@@ -11,7 +11,7 @@ interface CustomerAuthContextType {
   isCustomerLoading: boolean;
   isCustomerAuthenticated: boolean;
   customerLogin: (dto: LoginDto) => Promise<void>;
-  customerLogout: () => void;
+  customerLogout: () => Promise<void>;
   refreshCustomerProfile: () => Promise<void>;
 }
 
@@ -92,11 +92,22 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
     }
   };
 
-  const customerLogout = () => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    setCustomerToken(null);
-    setCustomer(null);
+  const customerLogout = async () => {
+    try {
+      if (customerToken) {
+        await apiClient.post('/auth/logout', {}, {
+          headers: { Authorization: `Bearer ${customerToken}` },
+        });
+      }
+    } catch {
+      // Bỏ qua lỗi backend khi logout, luôn xoá phiên ở client
+    } finally {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      setCustomerToken(null);
+      setCustomer(null);
+      router.push('/customer-login');
+    }
   };
 
   const refreshCustomerProfile = async () => {

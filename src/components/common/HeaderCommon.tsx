@@ -213,19 +213,22 @@ export default function HeaderCommon() {
                       </div>
                     </div>
 
-                    <a href="#" className={dropdownItemClass}>
+                    <Link href="/home" className={dropdownItemClass} onClick={() => setIsUserMenuOpen(false)}>
                       <span>👤</span>
-                      <span>Thông tin cá nhân</span>
-                    </a>
-                    <a href="#" className={dropdownItemClass}>
+                      <span>Profile (Hồ sơ cá nhân)</span>
+                    </Link>
+                    <Link href="/booking-history" className={dropdownItemClass} onClick={() => setIsUserMenuOpen(false)}>
                       <span>📋</span>
                       <span>Đặt chỗ của tôi</span>
-                    </a>
+                    </Link>
                     <div className="border-t border-gray-100">
                       <button
                         type="button"
-                        onClick={() => { customerLogout(); setIsUserMenuOpen(false); }}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-left text-red-500 transition-colors hover:bg-red-50"
+                        onClick={async () => {
+                          setIsUserMenuOpen(false);
+                          await customerLogout();
+                        }}
+                        className="flex w-full items-center gap-3 px-4 py-3 text-left text-red-500 transition-colors hover:bg-red-50 font-medium"
                       >
                         <span>🚪</span>
                         <span>Đăng xuất</span>

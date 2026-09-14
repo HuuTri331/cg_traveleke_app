@@ -19,6 +19,17 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const STAFF_PROTECTED_ROUTES = [
+  '/dashboard',
+  '/hotels',
+  '/rooms',
+  '/room-types',
+  '/bookings',
+  '/staff',
+  '/schedules',
+  '/tours',
+];
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -65,19 +76,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initAuth();
   }, [initAuth]);
 
-  // Kiểm tra route bảo vệ và chuyển hướng nếu chưa đăng nhập
+  // Kiểm tra route bảo vệ: chỉ chặn các route của Admin/Nhân viên
   useEffect(() => {
     if (!isLoading) {
+      const isStaffProtected = STAFF_PROTECTED_ROUTES.some(
+        (r) => pathname === r || pathname.startsWith(r + '/'),
+      );
       const isLoginPage = pathname === '/login';
       const hasToken = !!token;
 
-      if (!hasToken && !isLoginPage) {
-        router.push('/login');
+      if (isStaffProtected) {
+        // Nếu là khách hàng hoặc chưa có token nhân viên, cấm truy cập
+        if (!hasToken || user?.role === 'CUSTOMER') {
+          router.replace(user?.role === 'CUSTOMER' ? '/home' : '/login');
+        }
       } else if (hasToken && isLoginPage) {
-        router.push('/hotels');
+        router.replace('/hotels');
       }
     }
-  }, [isLoading, token, pathname, router]);
+  }, [isLoading, token, user, pathname, router]);
 
   const login = async (dto: LoginDto) => {
     setIsLoading(true);

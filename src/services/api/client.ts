@@ -32,7 +32,24 @@ apiClient.interceptors.response.use(
 
     if (error.response) {
       if (error.response.status === 401) {
-        if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+        const isAuthEndpoint =
+          error.config?.url?.includes('/auth/login') ||
+          error.config?.url?.includes('/auth/register') ||
+          error.config?.url?.includes('/auth/verify-email') ||
+          error.config?.url?.includes('/auth/resend-verification');
+
+        const isCustomerRoute =
+          typeof window !== 'undefined' &&
+          (window.location.pathname.startsWith('/customer-login') ||
+            window.location.pathname.startsWith('/register') ||
+            window.location.pathname.startsWith('/verify-email'));
+
+        if (
+          !isAuthEndpoint &&
+          !isCustomerRoute &&
+          typeof window !== 'undefined' &&
+          !window.location.pathname.startsWith('/login')
+        ) {
           localStorage.removeItem('traveleke_token');
           localStorage.removeItem('traveleke_user');
           window.location.href = '/login';
@@ -52,6 +69,12 @@ apiClient.interceptors.response.use(
       errorMessage = error.message;
     }
 
-    return Promise.reject(new Error(errorMessage));
+    const customError = new Error(errorMessage) as any;
+    if (error.response?.data) {
+      customError.response = error.response;
+      customError.requiresVerification = error.response.data.requiresVerification;
+      customError.email = error.response.data.email;
+    }
+    return Promise.reject(customError);
   }
 );
