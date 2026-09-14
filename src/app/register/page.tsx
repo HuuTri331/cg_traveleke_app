@@ -1,0 +1,349 @@
+'use client';
+
+import { useState, useRef } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import logo from '@/assets/image/logo.png';
+import { apiClient } from '@/services/api/client';
+
+const BACKEND_URL = 'http://localhost:3001';
+
+export default function RegisterPage() {
+  const router = useRouter();
+
+  // Form state
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [gender, setGender] = useState<'MALE' | 'FEMALE' | 'OTHER' | ''>('');
+
+  // Avatar
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // UI state
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [step, setStep] = useState<1 | 2>(1);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarFile(file);
+    const reader = new FileReader();
+    reader.onload = () => setAvatarPreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!fullName.trim() || !email.trim() || !password || !confirmPassword) {
+      setError('Vui lòng điền đầy đủ thông tin bắt buộc.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Mật khẩu xác nhận không khớp. Vui lòng kiểm tra lại.');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Mật khẩu phải có ít nhất 6 ký tự.');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('fullName', fullName.trim());
+      formData.append('email', email.trim());
+      formData.append('password', password);
+      if (phone.trim()) formData.append('phone', phone.trim());
+      if (address.trim()) formData.append('address', address.trim());
+      if (dateOfBirth) formData.append('dateOfBirth', dateOfBirth);
+      if (gender) formData.append('gender', gender);
+      if (avatarFile) formData.append('avatar', avatarFile);
+
+      const res = await apiClient.post('/auth/register', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      const { access_token, user } = res.data?.data ?? {};
+      if (access_token && user) {
+        localStorage.setItem('traveleke_customer_token', access_token);
+        localStorage.setItem('traveleke_customer_user', JSON.stringify(user));
+      }
+
+      setSuccessMsg('Đăng ký thành công! Chào mừng bạn đến với Traveleke 🎉');
+      setTimeout(() => router.push('/home'), 1500);
+    } catch (err: unknown) {
+      const msg =
+        (err as any)?.response?.data?.message ||
+        (err instanceof Error ? err.message : 'Đăng ký thất bại, vui lòng thử lại.');
+      setError(Array.isArray(msg) ? msg.join('. ') : msg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const genderOptions = [
+    { value: 'MALE', label: '👨 Nam' },
+    { value: 'FEMALE', label: '👩 Nữ' },
+    { value: 'OTHER', label: '🧑 Khác' },
+  ];
+
+  const inputClass =
+    'w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100';
+
+  const labelClass = 'block text-sm font-semibold text-gray-700 mb-1.5';
+
+  return (
+    <div className="min-h-screen flex bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      {/* Left panel */}
+      <div className="hidden lg:flex lg:w-5/12 flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-indigo-600 to-blue-700 p-12">
+        <div className="absolute -top-24 -right-24 h-80 w-80 rounded-full bg-white/10" />
+        <div className="absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-white/10" />
+
+        <div className="relative z-10 text-center">
+          <div className="mb-8 inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-white/20 backdrop-blur-sm">
+            <span className="text-4xl">🌏</span>
+          </div>
+          <h1 className="text-4xl font-extrabold text-white leading-tight mb-4">
+            Bắt đầu hành trình
+            <br />
+            <span className="text-blue-200">của bạn!</span>
+          </h1>
+          <p className="text-blue-100 text-lg max-w-sm mx-auto leading-relaxed">
+            Tạo tài khoản miễn phí và khám phá thế giới cùng Traveleke.
+          </p>
+
+          <div className="mt-10 space-y-4 text-left">
+            {[
+              { icon: '✅', text: 'Đặt phòng nhanh chóng & dễ dàng' },
+              { icon: '🎯', text: 'Giá tốt nhất được đảm bảo' },
+              { icon: '📱', text: 'Quản lý chuyến đi mọi lúc, mọi nơi' },
+              { icon: '💬', text: 'Hỗ trợ khách hàng 24/7' },
+            ].map((b) => (
+              <div key={b.text} className="flex items-center gap-3 text-white">
+                <span className="text-xl shrink-0">{b.icon}</span>
+                <span className="text-sm font-medium">{b.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Right panel */}
+      <div className="flex flex-1 items-center justify-center px-6 py-8 overflow-y-auto">
+        <div className="w-full max-w-lg">
+          {/* Logo */}
+          <div className="mb-6 flex flex-col items-center">
+            <Link href="/home">
+              <Image src={logo} alt="Traveleke" className="h-12 w-auto object-contain mb-3" priority />
+            </Link>
+            <h2 className="text-2xl font-extrabold text-gray-900">Tạo tài khoản mới</h2>
+            <p className="mt-1 text-sm text-gray-500">Điền thông tin để bắt đầu hành trình</p>
+          </div>
+
+          {/* Step indicator */}
+          <div className="mb-6 flex items-center gap-3">
+            <div className={`flex-1 h-1.5 rounded-full transition-colors ${step >= 1 ? 'bg-blue-500' : 'bg-gray-200'}`} />
+            <div className={`flex-1 h-1.5 rounded-full transition-colors ${step >= 2 ? 'bg-blue-500' : 'bg-gray-200'}`} />
+          </div>
+          <p className="mb-6 text-xs text-gray-400 font-semibold uppercase tracking-wider">
+            Bước {step} / 2 — {step === 1 ? 'Thông tin tài khoản' : 'Thông tin cá nhân & Avatar'}
+          </p>
+
+          {/* Alerts */}
+          {error && (
+            <div className="mb-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <span className="shrink-0">⚠️</span>
+              <span>{error}</span>
+            </div>
+          )}
+          {successMsg && (
+            <div className="mb-4 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+              <span className="shrink-0">✅</span>
+              <span>{successMsg}</span>
+            </div>
+          )}
+
+          <form onSubmit={step === 1 ? (e) => { e.preventDefault(); setError(''); if (!fullName.trim() || !email.trim() || !password || !confirmPassword) { setError('Vui lòng điền đầy đủ thông tin bắt buộc.'); return; } if (password !== confirmPassword) { setError('Mật khẩu xác nhận không khớp.'); return; } if (password.length < 6) { setError('Mật khẩu phải có ít nhất 6 ký tự.'); return; } setStep(2); } : handleSubmit}
+            className="space-y-4">
+            {step === 1 ? (
+              <>
+                {/* Full name */}
+                <div>
+                  <label className={labelClass}>Họ và tên <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">👤</span>
+                    <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Nguyễn Văn A"
+                      className={`${inputClass} pl-10`} required />
+                  </div>
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label className={labelClass}>Email <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">📧</span>
+                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com"
+                      className={`${inputClass} pl-10`} required />
+                  </div>
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label className={labelClass}>Mật khẩu <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">🔒</span>
+                    <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder="Ít nhất 6 ký tự"
+                      className={`${inputClass} pl-10 pr-12`} required />
+                    <button type="button" onClick={() => setShowPassword(p => !p)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                      {showPassword ? '🙈' : '👁️'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Confirm password */}
+                <div>
+                  <label className={labelClass}>Xác nhận mật khẩu <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">🔒</span>
+                    <input type={showConfirmPassword ? 'text' : 'password'} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="Nhập lại mật khẩu"
+                      className={`${inputClass} pl-10 pr-12`} required />
+                    <button type="button" onClick={() => setShowConfirmPassword(p => !p)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                      {showConfirmPassword ? '🙈' : '👁️'}
+                    </button>
+                  </div>
+                  {confirmPassword && password !== confirmPassword && (
+                    <p className="mt-1.5 text-xs text-red-500 font-medium">⚠️ Mật khẩu không khớp</p>
+                  )}
+                </div>
+
+                <button type="submit"
+                  className="w-full rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition-all hover:from-blue-600 hover:to-indigo-700">
+                  Tiếp theo →
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Avatar upload */}
+                <div className="flex flex-col items-center gap-3">
+                  <div className="relative">
+                    <div className="h-24 w-24 overflow-hidden rounded-full bg-gradient-to-tr from-blue-100 to-indigo-100 flex items-center justify-center border-4 border-white shadow-md cursor-pointer"
+                      onClick={() => fileInputRef.current?.click()}>
+                      {avatarPreview ? (
+                        <img src={avatarPreview} alt="Avatar" className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="text-4xl">👤</span>
+                      )}
+                    </div>
+                    <button type="button" onClick={() => fileInputRef.current?.click()}
+                      className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-blue-500 text-white shadow-md hover:bg-blue-600 transition-colors text-xs font-bold">
+                      +
+                    </button>
+                  </div>
+                  <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarChange} className="hidden" />
+                  <button type="button" onClick={() => fileInputRef.current?.click()}
+                    className="text-sm text-blue-500 font-semibold hover:text-blue-700">
+                    {avatarPreview ? '✏️ Đổi ảnh đại diện' : '📷 Tải lên ảnh đại diện (tùy chọn)'}
+                  </button>
+                  {avatarPreview && (
+                    <button type="button" onClick={() => { setAvatarFile(null); setAvatarPreview(null); }}
+                      className="text-xs text-red-400 hover:text-red-600">
+                      Xoá ảnh
+                    </button>
+                  )}
+                </div>
+
+                {/* Phone */}
+                <div>
+                  <label className={labelClass}>Số điện thoại</label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">📱</span>
+                    <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="0912 345 678"
+                      className={`${inputClass} pl-10`} />
+                  </div>
+                </div>
+
+                {/* Address */}
+                <div>
+                  <label className={labelClass}>Địa chỉ</label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">📍</span>
+                    <input type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="123 Đường ABC, TP. Hồ Chí Minh"
+                      className={`${inputClass} pl-10`} />
+                  </div>
+                </div>
+
+                {/* DOB & Gender row */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>Ngày sinh</label>
+                    <input type="date" value={dateOfBirth} onChange={e => setDateOfBirth(e.target.value)}
+                      max={new Date(new Date().setFullYear(new Date().getFullYear() - 13)).toISOString().split('T')[0]}
+                      className={inputClass} />
+                  </div>
+                  <div>
+                    <label className={labelClass}>Giới tính</label>
+                    <select value={gender} onChange={e => setGender(e.target.value as any)}
+                      className={inputClass}>
+                      <option value="">-- Chọn --</option>
+                      {genderOptions.map(o => (
+                        <option key={o.value} value={o.value}>{o.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Terms */}
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  Bằng cách đăng ký, bạn đồng ý với{' '}
+                  <a href="#" className="text-blue-500 font-semibold hover:underline">Điều khoản dịch vụ</a>{' '}
+                  và{' '}
+                  <a href="#" className="text-blue-500 font-semibold hover:underline">Chính sách bảo mật</a>{' '}
+                  của Traveleke.
+                </p>
+
+                <div className="flex gap-3">
+                  <button type="button" onClick={() => { setStep(1); setError(''); }}
+                    className="flex-1 rounded-xl border border-gray-200 py-3 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors">
+                    ← Quay lại
+                  </button>
+                  <button type="submit" disabled={isLoading}
+                    className="flex-1 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition-all hover:from-blue-600 hover:to-indigo-700 disabled:opacity-50">
+                    {isLoading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                        Đang tạo tài khoản...
+                      </span>
+                    ) : '🎉 Tạo tài khoản'}
+                  </button>
+                </div>
+              </>
+            )}
+          </form>
+
+          <p className="mt-6 text-center text-sm text-gray-500">
+            Đã có tài khoản?{' '}
+            <Link href="/customer-login" className="font-bold text-blue-500 hover:text-blue-700">
+              Đăng nhập →
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

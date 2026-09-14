@@ -1,4 +1,4 @@
-import HomeRooms from '@/components/room_home/HomeRooms';
+import HotelDetailPage from '@/components/hotels_home/HotelDetailPage';
 
 interface PageProps {
   params: Promise<{
@@ -6,10 +6,7 @@ interface PageProps {
   }>;
 }
 
-export default async function Page({
-  params,
-}: PageProps) {
+export default async function Page({ params }: PageProps) {
   const { id } = await params;
-
-  return <HomeRooms hotelId={id} />;
+  return <HotelDetailPage hotelId={id} />;
 }

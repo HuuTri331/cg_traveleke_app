@@ -3,11 +3,12 @@ import './globals.css';
 
 import { ToastProvider } from '@/components/ui/Toast';
 import { AuthProvider } from '@/features/auth/context/AuthContext';
+import { CustomerAuthProvider } from '@/features/auth/context/CustomerAuthContext';
 
 export const metadata: Metadata = {
-  title: 'Traveleke Admin - Bảng Điều Khiển Quản Trị Khách Sạn & Tour',
+  title: 'Traveleke - Đặt Phòng Khách Sạn & Tour Du Lịch',
   description:
-    'Hệ thống quản lý khách sạn, phòng nghỉ, tour du lịch và phân công nhân viên.',
+    'Nền tảng đặt phòng khách sạn, tour du lịch và lập kế hoạch du lịch cá nhân ứng dụng AI.',
 };
 
 export default function RootLayout({
@@ -19,7 +20,9 @@ export default function RootLayout({
     <html lang="vi" suppressHydrationWarning>
       <body className="min-h-screen bg-gray-50 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
         <AuthProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <CustomerAuthProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </CustomerAuthProvider>
         </AuthProvider>
       </body>
     </html>
