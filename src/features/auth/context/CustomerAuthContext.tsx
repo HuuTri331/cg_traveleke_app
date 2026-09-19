@@ -43,7 +43,11 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
       if (storedToken) {
         setCustomerToken(storedToken);
         if (storedUser) {
-          try { setCustomer(JSON.parse(storedUser)); } catch { /* ignore */ }
+          try {
+            const parsed = JSON.parse(storedUser);
+            setCustomer(parsed);
+            setIsCustomerLoading(false);
+          } catch { /* ignore */ }
         }
         try {
           const profile = await fetchCustomerProfile(storedToken);

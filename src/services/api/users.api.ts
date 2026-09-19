@@ -63,4 +63,21 @@ export const usersApi = {
   deleteStaff: async (id: string): Promise<void> => {
     await apiClient.delete(`/users/${id}`);
   },
+
+  /**
+   * Lấy danh sách tất cả khách hàng (Admin & Employee)
+   */
+  getAllCustomers: async (): Promise<UserProfile[]> => {
+    const res = await apiClient.get<ApiResponse<UserProfile[]>>('/users/customers');
+    return res.data.data;
+  },
+
+  /**
+   * Khoá / Mở khoá tài khoản khách hàng (Admin & Employee)
+   */
+  updateCustomerStatus: async (id: string, dto: UpdateStatusDto): Promise<UserProfile> => {
+    const res = await apiClient.patch<ApiResponse<UserProfile>>(`/users/customers/${id}/status`, dto);
+    return res.data.data;
+  },
 };
+

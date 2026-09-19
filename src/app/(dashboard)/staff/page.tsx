@@ -225,13 +225,19 @@ export default function StaffManagementPage() {
     );
   }
 
+  const getStaffRole = (s: UserProfile): 'ADMIN' | 'EMPLOYEE' => {
+    if (s.role === 'ADMIN' || s.roles?.some((r) => r.name === 'ADMIN')) return 'ADMIN';
+    return 'EMPLOYEE';
+  };
+
   // Filter staff list
   const filteredStaff = staffList.filter((s) => {
     const matchesSearch =
       s.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (s.phone && s.phone.includes(searchQuery));
-    const matchesRole = roleFilter === 'ALL' || s.role === roleFilter;
+    const currentRole = getStaffRole(s);
+    const matchesRole = roleFilter === 'ALL' || currentRole === roleFilter;
     const matchesStatus = statusFilter === 'ALL' || s.status === statusFilter;
     return matchesSearch && matchesRole && matchesStatus;
   });
@@ -352,7 +358,8 @@ export default function StaffManagementPage() {
               ) : (
                 filteredStaff.map((staff) => {
                   const isCurrent = staff.id === currentUser?.id;
-                  const isStaffAdmin = staff.role === 'ADMIN';
+                  const currentStaffRole = getStaffRole(staff);
+                  const isStaffAdmin = currentStaffRole === 'ADMIN';
 
                   return (
                     <tr
@@ -467,7 +474,7 @@ export default function StaffManagementPage() {
                           <button
                             onClick={() => {
                               setSelectedStaff(staff);
-                              setNewRole(staff.role === 'ADMIN' ? 'EMPLOYEE' : 'ADMIN');
+                              setNewRole(currentStaffRole === 'ADMIN' ? 'EMPLOYEE' : 'ADMIN');
                               setShowRoleModal(true);
                             }}
                             disabled={isCurrent}

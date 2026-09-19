@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import logo from '@/assets/image/logo.png';
 import { apiClient } from '@/services/api/client';
+import { DatePicker } from '@/components/ui/DatePicker';
 
 const LOCKOUT_KEY = 'traveleke_register_lockout';
 
@@ -243,9 +244,8 @@ export default function RegisterPage() {
   };
 
   const genderOptions = [
-    { value: 'MALE', label: '👨 Nam' },
-    { value: 'FEMALE', label: '👩 Nữ' },
-    { value: 'OTHER', label: '🧑 Khác' },
+    { value: 'MALE', label: 'Nam' },
+    { value: 'FEMALE', label: 'Nữ' },
   ];
 
   const inputClass = `w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 ${
@@ -263,27 +263,46 @@ export default function RegisterPage() {
 
         <div className="relative z-10 text-center">
           <div className="mb-8 inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-white/20 backdrop-blur-sm">
-            <span className="text-4xl">🌏</span>
+            <span className="text-4xl">✈️</span>
           </div>
           <h1 className="text-4xl font-extrabold text-white leading-tight mb-4">
-            Bắt đầu hành trình
+            Khám phá thế giới
             <br />
-            <span className="text-blue-200">của bạn!</span>
+            <span className="text-blue-200">cùng Traveleke!</span>
           </h1>
           <p className="text-blue-100 text-lg max-w-sm mx-auto leading-relaxed">
-            Tạo tài khoản miễn phí và khám phá thế giới cùng Traveleke.
+            Tạo tài khoản để tận hưởng không gian nghỉ dưỡng sang trọng và những hành trình tour độc đáo nhất.
           </p>
 
           <div className="mt-10 space-y-4 text-left">
             {[
-              { icon: '🛡️', text: 'Hệ thống bảo mật & chống spam tối tân' },
-              { icon: '🏨', text: 'Đặt phòng nhanh chóng & dễ dàng' },
-              { icon: '🎯', text: 'Giá tốt nhất được đảm bảo' },
-              { icon: '💬', text: 'Hỗ trợ khách hàng 24/7' },
+              {
+                icon: '🏨',
+                title: 'Nghỉ dưỡng đẳng cấp',
+                desc: 'Hàng ngàn khách sạn & resort cao cấp với tiện nghi chuẩn quốc tế.',
+              },
+              {
+                icon: '🏖️',
+                title: 'Tour du lịch độc đáo',
+                desc: 'Lịch trình linh hoạt, trải nghiệm bản sắc văn hóa và điểm đến hàng đầu.',
+              },
+              {
+                icon: '🎯',
+                title: 'Đặc quyền thành viên',
+                desc: 'Ưu đãi giá tốt nhất được đảm bảo, tích lũy điểm thưởng và giữ chỗ tức thì.',
+              },
+              {
+                icon: '🛎️',
+                title: 'Dịch vụ tận tâm 24/7',
+                desc: 'Đội ngũ chăm sóc chu đáo, luôn sẵn sàng đồng hành trên từng chuyến đi.',
+              },
             ].map((b) => (
-              <div key={b.text} className="flex items-center gap-3 text-white">
-                <span className="text-xl shrink-0">{b.icon}</span>
-                <span className="text-sm font-medium">{b.text}</span>
+              <div key={b.title} className="flex items-start gap-3.5 text-white">
+                <span className="text-2xl shrink-0 mt-0.5">{b.icon}</span>
+                <div>
+                  <div className="text-sm font-bold text-white">{b.title}</div>
+                  <div className="text-xs text-blue-100/90 leading-relaxed">{b.desc}</div>
+                </div>
               </div>
             ))}
           </div>
@@ -558,12 +577,12 @@ export default function RegisterPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className={labelClass}>Ngày sinh</label>
-                    <input
-                      type="date"
+                    <DatePicker
                       disabled={isLocked}
                       value={dateOfBirth}
-                      onChange={(e) => setDateOfBirth(e.target.value)}
-                      className={inputClass}
+                      onChange={(val) => setDateOfBirth(val)}
+                      maxDate={new Date().toISOString().split('T')[0]}
+                      placeholder="dd/mm/yyyy"
                     />
                   </div>
                   <div>

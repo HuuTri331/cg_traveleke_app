@@ -29,7 +29,7 @@ export function Button({
     secondary:
       'bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700',
     outline:
-      'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-750 shadow-xs',
+      'border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 hover:text-gray-900 hover:border-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white shadow-xs',
     danger:
       'bg-red-500 text-white hover:bg-red-600 focus:ring-2 focus:ring-red-500/20 shadow-xs',
     ghost:

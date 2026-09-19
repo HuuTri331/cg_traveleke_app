@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/common/HeaderCommon';
@@ -55,86 +55,118 @@ interface GalleryModalProps {
 }
 
 function GalleryModal({ images, startIndex, onClose }: GalleryModalProps) {
-  const [current, setCurrent] = useState(startIndex);
+  const safeInitial = Math.max(0, Math.min(startIndex, Math.max(0, images.length - 1)));
+  const [current, setCurrent] = useState(safeInitial);
+
+  // Sync index when opening or when startIndex changes
+  useEffect(() => {
+    const valid = Math.max(0, Math.min(startIndex, Math.max(0, images.length - 1)));
+    setCurrent(valid);
+  }, [startIndex, images.length]);
+
+  const nextImage = () => {
+    if (images.length <= 1) return;
+    setCurrent((c) => (c + 1) % images.length);
+  };
+
+  const prevImage = () => {
+    if (images.length <= 1) return;
+    setCurrent((c) => (c - 1 + images.length) % images.length);
+  };
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') setCurrent(c => Math.max(0, c - 1));
-      if (e.key === 'ArrowRight') setCurrent(c => Math.min(images.length - 1, c + 1));
+      if (e.key === 'ArrowLeft') prevImage();
+      if (e.key === 'ArrowRight') nextImage();
       if (e.key === 'Escape') onClose();
     };
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
   }, [images.length, onClose]);
 
+  const currentImg = images[current] || images[0] || '/images/hotel-placeholder.png';
+
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"
       onClick={onClose}
     >
-      <div className="relative w-full max-w-4xl mx-4" onClick={e => e.stopPropagation()}>
-        {/* Close */}
+      <div className="relative w-full max-w-4xl mx-auto" onClick={(e) => e.stopPropagation()}>
+        {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute -top-12 right-0 text-white text-sm font-semibold hover:text-gray-300 flex items-center gap-2"
+          className="absolute -top-10 right-0 text-white text-sm font-semibold hover:text-gray-300 flex items-center gap-1.5 cursor-pointer"
         >
           <span>✕</span> Đóng (ESC)
         </button>
 
-        {/* Main image */}
-        <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-gray-900">
+        {/* Main image container */}
+        <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-gray-950 flex items-center justify-center shadow-2xl border border-white/10">
           <img
-            src={images[current]}
+            src={currentImg}
             alt={`Ảnh ${current + 1}`}
-            className="h-full w-full object-contain"
-            onError={e => { (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png'; }}
+            className="h-full w-full object-contain select-none"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
+            }}
           />
 
-          {/* Counter */}
-          <div className="absolute bottom-4 right-4 rounded-full bg-black/60 px-3 py-1 text-sm font-semibold text-white">
+          {/* Counter pill */}
+          <div className="absolute bottom-4 right-4 rounded-full bg-black/70 backdrop-blur-sm px-3.5 py-1 text-xs font-bold text-white shadow">
             {current + 1} / {images.length}
           </div>
 
-          {/* Prev */}
-          {current > 0 && (
+          {/* Prev Button (Loops to last image if at beginning) */}
+          {images.length > 1 && (
             <button
-              onClick={() => setCurrent(c => c - 1)}
-              className="absolute left-4 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors text-xl"
+              type="button"
+              onClick={prevImage}
+              className="absolute left-4 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/85 hover:scale-105 transition-all text-2xl cursor-pointer select-none"
+              title="Ảnh trước (vòng lặp)"
             >
               ‹
             </button>
           )}
 
-          {/* Next */}
-          {current < images.length - 1 && (
+          {/* Next Button (Loops to first image if at end) */}
+          {images.length > 1 && (
             <button
-              onClick={() => setCurrent(c => c + 1)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors text-xl"
+              type="button"
+              onClick={nextImage}
+              className="absolute right-4 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/85 hover:scale-105 transition-all text-2xl cursor-pointer select-none"
+              title="Ảnh tiếp theo (vòng lặp)"
             >
               ›
             </button>
           )}
         </div>
 
-        {/* Thumbnails */}
-        <div className="mt-4 flex gap-2 overflow-x-auto pb-2">
-          {images.map((img, idx) => (
-            <button
-              key={idx}
-              onClick={() => setCurrent(idx)}
-              className={`shrink-0 h-16 w-24 overflow-hidden rounded-xl transition-all ${
-                idx === current ? 'ring-2 ring-blue-500 opacity-100' : 'opacity-60 hover:opacity-100'
-              }`}
-            >
-              <img
-                src={img}
-                alt={`thumb-${idx}`}
-                className="h-full w-full object-cover"
-                onError={e => { (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png'; }}
-              />
-            </button>
-          ))}
-        </div>
+        {/* Thumbnails strip */}
+        {images.length > 1 && (
+          <div className="mt-3.5 flex gap-2 overflow-x-auto pb-1 scrollbar-none justify-center">
+            {images.map((img, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setCurrent(idx)}
+                className={`shrink-0 h-14 w-20 sm:h-16 sm:w-24 overflow-hidden rounded-xl transition-all cursor-pointer ${
+                  idx === current
+                    ? 'ring-2 ring-blue-500 scale-105 opacity-100'
+                    : 'opacity-50 hover:opacity-100 hover:scale-100'
+                }`}
+              >
+                <img
+                  src={img}
+                  alt={`thumb-${idx}`}
+                  className="h-full w-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
+                  }}
+                />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -331,21 +363,49 @@ export default function HotelDetailPage({ hotelId }: HotelDetailPageProps) {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  // Build gallery images
-  const galleryImages: string[] = [];
-  if (hotel?.coverImageUrl) galleryImages.push(getImageUrl(hotel.coverImageUrl));
-  if (hotel?.images && Array.isArray(hotel.images)) {
-    hotel.images
-      .sort((a, b) => a.sortOrder - b.sortOrder)
-      .forEach(img => {
-        const url = getImageUrl(img.imageUrl);
-        if (!galleryImages.includes(url)) galleryImages.push(url);
+  // Build gallery images: Combine hotel's own images + images from all of its rooms
+  const galleryImages = useMemo(() => {
+    const list: string[] = [];
+
+    const addUrl = (rawUrl?: string | null) => {
+      if (!rawUrl) return;
+      const url = getImageUrl(rawUrl);
+      if (url && !list.includes(url)) {
+        list.push(url);
+      }
+    };
+
+    // 1. Hotel cover image
+    addUrl(hotel?.coverImageUrl);
+
+    // 2. Hotel album images
+    if (hotel?.images && Array.isArray(hotel.images)) {
+      [...hotel.images]
+        .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+        .forEach((img) => addUrl(img.imageUrl));
+    }
+
+    // 3. Room images from each room belonging to this hotel
+    if (rooms && Array.isArray(rooms)) {
+      rooms.forEach((room) => {
+        addUrl(room.coverImageUrl);
+        if (room.images && Array.isArray(room.images)) {
+          [...room.images]
+            .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+            .forEach((img) => addUrl(img.imageUrl));
+        }
       });
-  }
-  if (galleryImages.length === 0) galleryImages.push('/images/hotel-placeholder.png');
+    }
+
+    if (list.length === 0) {
+      list.push('/images/hotel-placeholder.png');
+    }
+    return list;
+  }, [hotel, rooms]);
 
   const openGallery = (index: number) => {
-    setGalleryStartIndex(index);
+    const validIdx = Math.max(0, Math.min(index, galleryImages.length - 1));
+    setGalleryStartIndex(validIdx);
     setGalleryOpen(true);
   };
 
@@ -398,58 +458,207 @@ export default function HotelDetailPage({ hotelId }: HotelDetailPageProps) {
           <span className="text-gray-900 font-semibold truncate max-w-xs">{hotel.name}</span>
         </nav>
 
-        {/* Gallery grid */}
-        <div className="grid grid-cols-4 grid-rows-2 gap-2 rounded-2xl overflow-hidden h-[420px] sm:h-[520px]">
-          {/* Main large photo */}
+        {/* Dynamic Gallery Grid based strictly on actual image count */}
+        {galleryImages.length === 1 && (
           <div
-            className="col-span-2 row-span-2 relative cursor-pointer group"
+            className="rounded-2xl overflow-hidden h-[360px] sm:h-[480px] relative cursor-pointer group"
             onClick={() => openGallery(0)}
           >
             <img
               src={galleryImages[0]}
               alt={hotel.name}
               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-              onError={e => { (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png'; }}
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
+              }}
             />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
           </div>
+        )}
 
-          {/* Secondary photos */}
-          {[1, 2, 3].map((idx) => (
+        {galleryImages.length === 2 && (
+          <div className="grid grid-cols-2 gap-2 rounded-2xl overflow-hidden h-[360px] sm:h-[480px]">
+            {galleryImages.slice(0, 2).map((img, idx) => (
+              <div
+                key={idx}
+                className="relative cursor-pointer group overflow-hidden h-full"
+                onClick={() => openGallery(idx)}
+              >
+                <img
+                  src={img}
+                  alt={`${hotel.name} - ${idx + 1}`}
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
+                  }}
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {galleryImages.length === 3 && (
+          <div className="grid grid-cols-3 grid-rows-2 gap-2 rounded-2xl overflow-hidden h-[360px] sm:h-[480px]">
             <div
-              key={idx}
-              className="relative cursor-pointer group overflow-hidden"
-              onClick={() => openGallery(idx)}
+              className="col-span-2 row-span-2 relative cursor-pointer group overflow-hidden"
+              onClick={() => openGallery(0)}
             >
               <img
-                src={galleryImages[idx] || galleryImages[0]}
-                alt={`${hotel.name} - ${idx + 1}`}
+                src={galleryImages[0]}
+                alt={hotel.name}
                 className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                onError={e => { (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png'; }}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
+                }}
               />
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
             </div>
-          ))}
+            {galleryImages.slice(1, 3).map((img, idx) => (
+              <div
+                key={idx + 1}
+                className="relative cursor-pointer group overflow-hidden col-span-1 row-span-1"
+                onClick={() => openGallery(idx + 1)}
+              >
+                <img
+                  src={img}
+                  alt={`${hotel.name} - ${idx + 2}`}
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
+                  }}
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+              </div>
+            ))}
+          </div>
+        )}
 
-          {/* Last photo with "See All Photos" overlay */}
-          <div
-            className="relative cursor-pointer group overflow-hidden"
-            onClick={() => openGallery(4)}
-          >
-            <img
-              src={galleryImages[4] || galleryImages[0]}
-              alt={`${hotel.name} - more`}
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-              onError={e => { (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png'; }}
-            />
-            <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-1 group-hover:bg-black/60 transition-colors">
-              <span className="text-2xl">🖼️</span>
-              <span className="text-white text-xs font-bold text-center leading-tight">
-                Xem tất cả<br />{galleryImages.length} ảnh
-              </span>
+        {galleryImages.length === 4 && (
+          <div className="grid grid-cols-4 grid-rows-2 gap-2 rounded-2xl overflow-hidden h-[380px] sm:h-[500px]">
+            <div
+              className="col-span-2 row-span-2 relative cursor-pointer group overflow-hidden"
+              onClick={() => openGallery(0)}
+            >
+              <img
+                src={galleryImages[0]}
+                alt={hotel.name}
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
+                }}
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+            </div>
+            <div
+              className="col-span-2 row-span-1 relative cursor-pointer group overflow-hidden"
+              onClick={() => openGallery(1)}
+            >
+              <img
+                src={galleryImages[1]}
+                alt={`${hotel.name} - 2`}
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
+                }}
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+            </div>
+            <div
+              className="col-span-1 row-span-1 relative cursor-pointer group overflow-hidden"
+              onClick={() => openGallery(2)}
+            >
+              <img
+                src={galleryImages[2]}
+                alt={`${hotel.name} - 3`}
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
+                }}
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+            </div>
+            <div
+              className="col-span-1 row-span-1 relative cursor-pointer group overflow-hidden"
+              onClick={() => openGallery(3)}
+            >
+              <img
+                src={galleryImages[3]}
+                alt={`${hotel.name} - 4`}
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
+                }}
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
             </div>
           </div>
-        </div>
+        )}
+
+        {galleryImages.length >= 5 && (
+          <div className="grid grid-cols-4 grid-rows-2 gap-2 rounded-2xl overflow-hidden h-[420px] sm:h-[520px]">
+            {/* Main large photo */}
+            <div
+              className="col-span-2 row-span-2 relative cursor-pointer group overflow-hidden"
+              onClick={() => openGallery(0)}
+            >
+              <img
+                src={galleryImages[0]}
+                alt={hotel.name}
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
+                }}
+              />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+            </div>
+
+            {/* Photos 1, 2, 3 */}
+            {[1, 2, 3].map((idx) => (
+              <div
+                key={idx}
+                className="relative cursor-pointer group overflow-hidden"
+                onClick={() => openGallery(idx)}
+              >
+                <img
+                  src={galleryImages[idx]}
+                  alt={`${hotel.name} - ${idx + 1}`}
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
+                  }}
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+              </div>
+            ))}
+
+            {/* Photo 4 */}
+            <div
+              className="relative cursor-pointer group overflow-hidden"
+              onClick={() => openGallery(4)}
+            >
+              <img
+                src={galleryImages[4]}
+                alt={`${hotel.name} - 5`}
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
+                }}
+              />
+              {/* Only show "+... ảnh" overlay if total photos strictly > 5 */}
+              {galleryImages.length > 5 && (
+                <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-1 group-hover:bg-black/60 transition-colors">
+                  <span className="text-xl">🖼️</span>
+                  <span className="text-white text-xs font-bold text-center leading-tight">
+                    Xem tất cả<br />+{galleryImages.length - 4} ảnh
+                  </span>
+                </div>
+              )}
+              {galleryImages.length === 5 && (
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ===== HOTEL NAME + PRICE HEADER ===== */}

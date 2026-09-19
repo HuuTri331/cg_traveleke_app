@@ -14,6 +14,9 @@ import {
   Users,
   ShieldCheck,
   CalendarCheck,
+  Compass,
+  CalendarDays,
+  UserCheck,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { cn } from '@/lib/utils';
@@ -29,7 +32,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   const menuSections = [
     {
-      title: 'Quản Lý Lưu Trú',
+      title: 'Quản Lý Lưu Trú & Vận Hành',
       items: [
         {
           label: 'Tổng Quan',
@@ -43,10 +46,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           badge: 'Mới',
         },
         {
+          label: 'Khách Hàng',
+          href: '/customers',
+          icon: <UserCheck className="h-5 w-5" />,
+        },
+        {
           label: 'Khách Sạn',
           href: '/hotels',
           icon: <Building2 className="h-5 w-5" />,
-          badge: 'Hot',
         },
         {
           label: 'Phòng Khách Sạn',
@@ -60,7 +67,22 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         },
       ],
     },
-    // Chỉ hiển thị mục Quản Lý Nhân Sự nếu là ADMIN
+    {
+      title: 'Dịch Vụ Du Lịch',
+      items: [
+        {
+          label: 'Tour Du Lịch',
+          href: '/tours',
+          icon: <Compass className="h-5 w-5" />,
+        },
+        {
+          label: 'Lịch Trình Di Chuyển',
+          href: '/schedules',
+          icon: <CalendarDays className="h-5 w-5" />,
+        },
+      ],
+    },
+    // Chỉ hiển thị mục Quản Lý Hệ Thống nếu là ADMIN
     ...(isAdmin
       ? [
           {
@@ -70,7 +92,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 label: 'Quản Lý Nhân Viên',
                 href: '/staff',
                 icon: <Users className="h-5 w-5" />,
-                badge: 'Admin',
+              },
+              {
+                label: 'Phân Công Khách Sạn',
+                href: '/hotel-staff',
+                icon: <UserCheck className="h-5 w-5" />,
               },
             ],
           },

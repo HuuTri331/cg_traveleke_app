@@ -83,7 +83,7 @@ export default function HeaderCommon() {
         {/* ===== TOP HEADER ===== */}
         <div className="flex items-center justify-between gap-6">
           {/* Logo */}
-          <Link href="/home" className="shrink-0">
+          <Link href="/" className="shrink-0">
             <Image
               src={logo}
               alt="Traveleke Logo"

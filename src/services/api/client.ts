@@ -25,7 +25,8 @@ apiClient.interceptors.request.use(
         currentPath.startsWith('/hotels_home') ||
         currentPath.startsWith('/room_home') ||
         currentPath.startsWith('/process-order') ||
-        currentPath.startsWith('/booking') ||
+        currentPath.startsWith('/booking/') ||
+        currentPath === '/booking' ||
         currentPath.startsWith('/booking-history') ||
         currentPath.startsWith('/customer-');
 
@@ -67,7 +68,9 @@ apiClient.interceptors.response.use(
             window.location.pathname.startsWith('/hotels_home') ||
             window.location.pathname.startsWith('/room_home') ||
             window.location.pathname.startsWith('/process-order') ||
-            window.location.pathname.startsWith('/booking') ||
+            window.location.pathname.startsWith('/booking/') ||
+            window.location.pathname === '/booking' ||
+            window.location.pathname.startsWith('/booking-history') ||
             window.location.pathname.startsWith('/customer-login') ||
             window.location.pathname.startsWith('/register') ||
             window.location.pathname.startsWith('/verify-email'));

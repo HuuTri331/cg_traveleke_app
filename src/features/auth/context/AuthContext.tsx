@@ -28,6 +28,9 @@ const STAFF_PROTECTED_ROUTES = [
   '/staff',
   '/schedules',
   '/tours',
+  '/customers',
+  '/hotel-staff',
+  '/profile',
 ];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -38,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Khởi tạo trạng thái xác thực khi mở web
+  // Khởi tạo trạng thái xác thực khi mở web (khôi phục session tức thì, xác thực ngầm)
   const initAuth = useCallback(async () => {
     try {
       const storedToken = localStorage.getItem('traveleke_token');
@@ -48,17 +51,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setToken(storedToken);
         if (storedUser) {
           try {
-            setUser(JSON.parse(storedUser));
+            const parsedUser = JSON.parse(storedUser);
+            setUser(parsedUser);
+            // Có session lưu sẵn: mở khoá UI ngay lập tức không bắt người dùng đợi
+            setIsLoading(false);
           } catch {
             // bỏ qua parse error
           }
         }
 
-        // Fetch fresh profile từ server
+        // Fetch fresh profile từ server ở chế độ nền
         try {
           const profile = await authApi.getMe();
           if (profile.role === 'CUSTOMER') {
-            // Không lưu thông tin customer vào admin session
             localStorage.removeItem('traveleke_token');
             localStorage.removeItem('traveleke_user');
             setToken(null);
