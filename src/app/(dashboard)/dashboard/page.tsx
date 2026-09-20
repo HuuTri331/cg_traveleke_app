@@ -226,15 +226,15 @@ export default function DashboardPage() {
               Traveleke AI Module
             </div>
             <h4 className="text-base font-bold">
-              Kế Hoạch Du Lịch Cá Nhân Hóa
+              Quản Lý Khách Sạn & Đặt Phòng
             </h4>
             <p className="mt-1 text-xs text-brand-100 leading-relaxed">
-              Tích hợp gợi ý khách sạn, tour du lịch và lịch trình di chuyển theo nhu cầu khách hàng.
+              Quản lý danh sách khách sạn, phòng nghỉ, dịch vụ buồng phòng và điều phối nhân sự thông minh.
             </p>
             <div className="mt-4 flex gap-2">
-              <Link href="/tours" className="w-full">
+              <Link href="/hotels" className="w-full">
                 <button className="w-full rounded-xl bg-white/20 hover:bg-white/30 py-2 text-xs font-bold text-white transition-colors cursor-pointer">
-                  Khám Phá Tour
+                  Xem Khách Sạn
                 </button>
               </Link>
             </div>

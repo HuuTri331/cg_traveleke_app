@@ -14,8 +14,6 @@ import {
   Users,
   ShieldCheck,
   CalendarCheck,
-  Compass,
-  CalendarDays,
   UserCheck,
   Brain,
 } from 'lucide-react';
@@ -71,21 +69,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           href: '/services',
           icon: <Sparkles className="h-5 w-5" />,
           badge: 'Mới',
-        },
-      ],
-    },
-    {
-      title: 'Dịch Vụ Du Lịch',
-      items: [
-        {
-          label: 'Tour Du Lịch',
-          href: '/tours',
-          icon: <Compass className="h-5 w-5" />,
-        },
-        {
-          label: 'Lịch Trình Di Chuyển',
-          href: '/schedules',
-          icon: <CalendarDays className="h-5 w-5" />,
         },
       ],
     },

@@ -33,6 +33,11 @@ import {
   AlertCircle,
   FileText,
   ShieldAlert,
+  UserCheck,
+  Sparkles,
+  Award,
+  ShieldCheck,
+  Check,
 } from 'lucide-react';
 
 const STATUS_CONFIG: Record<
@@ -114,6 +119,103 @@ export default function BookingsPage() {
 
   // Alert message
   const [actionNotice, setActionNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Phân công lại nhân viên Modal State
+  const [reassignModal, setReassignModal] = useState<{
+    isOpen: boolean;
+    booking: AdminBookingItem | null;
+    availableStaff: any[];
+    selectedStaffId: string;
+    note: string;
+    loading: boolean;
+    submitting: boolean;
+    roomInfo: any | null;
+    canReassign: boolean;
+  }>({
+    isOpen: false,
+    booking: null,
+    availableStaff: [],
+    selectedStaffId: '',
+    note: '',
+    loading: false,
+    submitting: false,
+    roomInfo: null,
+    canReassign: true,
+  });
+
+  const openReassignModal = async (booking: AdminBookingItem) => {
+    // Ràng buộc nghiệp vụ nghiêm ngặt: Nếu khách đã nhận phòng thì chặn ngay
+    if (
+      booking.status === 'CHECKED_IN' ||
+      booking.status === 'COMPLETED' ||
+      booking.status === 'CANCELLED' ||
+      booking.status === 'REJECTED'
+    ) {
+      setActionNotice({
+        type: 'error',
+        message: 'Khách hàng đã nhận phòng hoặc đơn đặt phòng đã hoàn tất/hủy - Không thể phân công lại người phụ trách!',
+      });
+      return;
+    }
+
+    setReassignModal({
+      isOpen: true,
+      booking,
+      availableStaff: [],
+      selectedStaffId: booking.handledBy || '',
+      note: '',
+      loading: true,
+      submitting: false,
+      roomInfo: null,
+      canReassign: true,
+    });
+
+    try {
+      const data = await bookingApi.getAvailableStaff(booking.id);
+      setReassignModal((prev) => ({
+        ...prev,
+        availableStaff: data.staff || [],
+        roomInfo: data.roomInfo || null,
+        canReassign: data.canReassign ?? true,
+        loading: false,
+      }));
+    } catch (err: any) {
+      setActionNotice({
+        type: 'error',
+        message: err.response?.data?.message || 'Không thể lấy danh sách nhân viên khả dụng.',
+      });
+      setReassignModal((prev) => ({ ...prev, loading: false }));
+    }
+  };
+
+  const handleConfirmReassign = async () => {
+    if (!reassignModal.booking || !reassignModal.selectedStaffId) return;
+    try {
+      setReassignModal((prev) => ({ ...prev, submitting: true }));
+      const res = await bookingApi.reassignStaff(reassignModal.booking.id, {
+        staffUserId: reassignModal.selectedStaffId,
+        note: reassignModal.note.trim() || undefined,
+      });
+
+      setActionNotice({
+        type: 'success',
+        message: res.message || 'Đã phân công lại người phụ trách thành công!',
+      });
+
+      setReassignModal((prev) => ({ ...prev, isOpen: false }));
+      fetchBookings();
+      if (isDetailModalOpen && selectedBookingDetail?.id === reassignModal.booking.id) {
+        handleOpenDetail(reassignModal.booking.id);
+      }
+    } catch (err: any) {
+      setActionNotice({
+        type: 'error',
+        message: err.response?.data?.message || err.message || 'Lỗi khi phân công lại nhân viên.',
+      });
+    } finally {
+      setReassignModal((prev) => ({ ...prev, submitting: false }));
+    }
+  };
 
   // ==========================================
   // FETCH BOOKINGS
@@ -417,6 +519,7 @@ export default function BookingsPage() {
                     <th className="px-5 py-3.5">Mã Đơn / Ngày Tạo</th>
                     <th className="px-5 py-3.5">Khách Hàng</th>
                     <th className="px-5 py-3.5">Khách Sạn & Số Khách</th>
+                    <th className="px-5 py-3.5">Phụ Trách (Lễ Tân)</th>
                     <th className="px-5 py-3.5">Lịch Lưu Trú</th>
                     <th className="px-5 py-3.5">Tổng Tiền</th>
                     <th className="px-5 py-3.5">Trạng Thái</th>
@@ -426,14 +529,14 @@ export default function BookingsPage() {
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
                   {loadingBookings ? (
                     <tr>
-                      <td colSpan={7} className="py-12 text-center text-xs text-gray-400">
+                      <td colSpan={8} className="py-12 text-center text-xs text-gray-400">
                         <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2 text-brand-500" />
                         Đang tải dữ liệu đơn đặt phòng...
                       </td>
                     </tr>
                   ) : bookings.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-12 text-center text-xs text-gray-500">
+                      <td colSpan={8} className="py-12 text-center text-xs text-gray-500">
                         <CalendarCheck className="h-8 w-8 text-gray-300 mx-auto mb-2" />
                         Không tìm thấy đơn đặt phòng nào phù hợp điều kiện lọc.
                       </td>
@@ -490,6 +593,41 @@ export default function BookingsPage() {
                             </div>
                           </td>
 
+                          {/* Phụ trách (Lễ Tân) */}
+                          <td className="px-5 py-3.5">
+                            {b.handledByName ? (
+                              <div>
+                                <div className="font-semibold text-gray-900 dark:text-white flex items-center gap-1.5">
+                                  <User className="h-3.5 w-3.5 text-brand-500 shrink-0" />
+                                  <span className="truncate max-w-[130px]">{b.handledByName}</span>
+                                </div>
+                                <div className="mt-1 flex items-center gap-1.5">
+                                  <span
+                                    className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                                      b.assignmentType === 'AUTO'
+                                        ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                                        : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                                    }`}
+                                  >
+                                    {b.assignmentType === 'AUTO' ? (
+                                      <>
+                                        <Sparkles className="h-2.5 w-2.5" />
+                                        Tự Động
+                                      </>
+                                    ) : (
+                                      <>
+                                        <UserCheck className="h-2.5 w-2.5" />
+                                        Chỉ Định
+                                      </>
+                                    )}
+                                  </span>
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-[11px] text-gray-400 italic">Chưa phân công</span>
+                            )}
+                          </td>
+
                           {/* Lưu trú */}
                           <td className="px-5 py-3.5">
                             <div className="font-medium text-gray-700 dark:text-gray-300">
@@ -521,6 +659,35 @@ export default function BookingsPage() {
                               >
                                 <Eye className="h-3.5 w-3.5" />
                                 <span>Chi tiết</span>
+                              </button>
+
+                              {/* Đổi nhân sự phụ trách */}
+                              <button
+                                onClick={() => openReassignModal(b)}
+                                disabled={
+                                  b.status === 'CHECKED_IN' ||
+                                  b.status === 'COMPLETED' ||
+                                  b.status === 'CANCELLED' ||
+                                  b.status === 'REJECTED'
+                                }
+                                title={
+                                  b.status === 'CHECKED_IN'
+                                    ? 'Khách đã nhận phòng - Không thể đổi người phụ trách'
+                                    : b.status === 'COMPLETED' || b.status === 'CANCELLED' || b.status === 'REJECTED'
+                                    ? 'Đơn đặt phòng đã kết thúc - Không thể đổi người phụ trách'
+                                    : 'Phân công lại nhân viên phụ trách đơn'
+                                }
+                                className={`flex h-8 items-center gap-1 rounded-lg border px-2.5 text-[11px] font-semibold transition-all cursor-pointer ${
+                                  b.status === 'CHECKED_IN' ||
+                                  b.status === 'COMPLETED' ||
+                                  b.status === 'CANCELLED' ||
+                                  b.status === 'REJECTED'
+                                    ? 'opacity-40 cursor-not-allowed border-gray-200 text-gray-400 dark:border-gray-800'
+                                    : 'border-purple-200 bg-purple-50/60 text-purple-700 hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-900/20 dark:text-purple-300 dark:hover:bg-purple-900/40'
+                                }`}
+                              >
+                                <UserCheck className="h-3.5 w-3.5" />
+                                <span>Đổi Phụ Trách</span>
                               </button>
 
                               {/* PENDING: Xác nhận hoặc Từ chối */}
@@ -832,6 +999,70 @@ export default function BookingsPage() {
               </div>
             </div>
 
+            {/* Thông tin nhân viên phụ trách phục vụ / lễ tân */}
+            <div className="rounded-xl border border-purple-200 p-4 dark:border-purple-800 bg-purple-50/40 dark:bg-purple-900/10 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5 text-xs uppercase tracking-wider text-purple-700 dark:text-purple-300">
+                  <UserCheck className="h-4 w-4" />
+                  Nhân Sự Phụ Trách Phục Vụ / Lễ Tân
+                </h4>
+                <span
+                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                    selectedBookingDetail.assignmentType === 'AUTO'
+                      ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
+                      : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
+                  }`}
+                >
+                  <Sparkles className="h-3 w-3" />
+                  {selectedBookingDetail.assignmentType === 'AUTO'
+                    ? 'Tự Động Phân Công Ngầm'
+                    : 'Quản Trị Viên Chỉ Định Thủ Công'}
+                </span>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+                <div>
+                  <p className="font-bold text-sm text-gray-900 dark:text-white flex items-center gap-1.5">
+                    <User className="h-4 w-4 text-brand-500" />
+                    <span>{selectedBookingDetail.handledByName || 'Chưa có nhân viên phụ trách'}</span>
+                  </p>
+                  {selectedBookingDetail.handledByEmail && (
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                      Email: {selectedBookingDetail.handledByEmail}
+                    </p>
+                  )}
+                  {selectedBookingDetail.assignmentNote && (
+                    <p className="text-[11px] text-purple-800 dark:text-purple-300 italic bg-white/80 dark:bg-gray-800/80 p-2.5 rounded-xl border border-purple-100 dark:border-purple-800/40 mt-2">
+                      💡 {selectedBookingDetail.assignmentNote}
+                    </p>
+                  )}
+                </div>
+
+                <div className="shrink-0">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={
+                      selectedBookingDetail.status === 'CHECKED_IN' ||
+                      selectedBookingDetail.status === 'COMPLETED' ||
+                      selectedBookingDetail.status === 'CANCELLED' ||
+                      selectedBookingDetail.status === 'REJECTED'
+                    }
+                    onClick={() => openReassignModal(selectedBookingDetail)}
+                  >
+                    <UserCheck className="h-3.5 w-3.5 mr-1" />
+                    Phân Công Lại
+                  </Button>
+                </div>
+              </div>
+
+              {selectedBookingDetail.status === 'CHECKED_IN' && (
+                <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
+                  ⚠️ Khách hàng đã nhận phòng (CHECKED_IN) - Theo quy định vận hành, không thể thay đổi nhân viên phụ trách.
+                </p>
+              )}
+            </div>
+
             {/* Chi tiết giá & thanh toán */}
             <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800 bg-gray-50/40 dark:bg-gray-800/20">
               <div className="flex items-center justify-between font-semibold">
@@ -1011,6 +1242,157 @@ export default function BookingsPage() {
               onClick={handleConfirmStatusChange}
             >
               Xác Nhận Thay Đổi
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ======================================================== */}
+      {/* MODAL 3: PHÂN CÔNG LẠI NHÂN VIÊN PHỤ TRÁCH (REASSIGN) */}
+      {/* ======================================================== */}
+      <Modal
+        isOpen={reassignModal.isOpen}
+        onClose={() => !reassignModal.submitting && setReassignModal((prev) => ({ ...prev, isOpen: false }))}
+        title="Phân Công Lại Nhân Viên Phụ Trách Đơn Hàng"
+        subtitle={`Đơn đặt phòng: ${reassignModal.booking?.bookingCode}`}
+        maxWidth="2xl"
+      >
+        <div className="space-y-4 text-xs">
+          {/* Thông tin phòng & phân hạng */}
+          <div className="rounded-xl border border-gray-200 bg-gray-50/60 p-3.5 dark:border-gray-800 dark:bg-gray-850/40 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <p className="font-semibold text-gray-700 dark:text-gray-300">
+                Cơ sở: <span className="font-bold text-gray-900 dark:text-white">{reassignModal.booking?.hotelName}</span>
+              </p>
+              <p className="text-[11px] text-gray-500 mt-0.5">
+                Khách đặt: <span className="font-semibold text-gray-800 dark:text-gray-200">{reassignModal.booking?.contactName}</span> • Phòng:{' '}
+                <span className="font-semibold text-brand-600 dark:text-brand-400">{reassignModal.roomInfo?.name || 'Phòng đặt'}</span>
+              </p>
+            </div>
+            {reassignModal.roomInfo && (
+              <Badge variant={reassignModal.roomInfo.isVip ? 'brand' : 'neutral'}>
+                {reassignModal.roomInfo.isVip ? '⭐ Phân Hạng Cao Cấp / VIP' : 'Phân Hạng Tiêu Chuẩn'}
+              </Badge>
+            )}
+          </div>
+
+          {/* Cảnh báo nếu khách đã nhận phòng */}
+          {!reassignModal.canReassign && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-3 text-amber-800 dark:border-amber-800/60 dark:bg-amber-900/20 dark:text-amber-300 flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+              <div>
+                <p className="font-bold">Không Thể Điều Chỉnh Phân Công</p>
+                <p className="text-[11px] mt-0.5">
+                  Đơn đặt phòng này khách đã nhận phòng (CHECKED_IN) hoặc đã hoàn tất/hủy. Theo quy tắc vận hành, chỉ được phép thay đổi người phụ trách khi khách chưa tới nhận phòng.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Danh sách ứng viên nhân viên */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Chọn Nhân Viên Lễ Tân / Phục Vụ Mới:
+            </label>
+
+            {reassignModal.loading ? (
+              <div className="py-8 text-center text-xs text-gray-400">
+                <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 text-brand-500" />
+                Đang tải danh sách nhân sự khách sạn...
+              </div>
+            ) : reassignModal.availableStaff.length === 0 ? (
+              <div className="py-6 text-center text-xs text-gray-400 bg-gray-50 dark:bg-gray-800/30 rounded-xl">
+                Không tìm thấy nhân viên khả dụng cho khách sạn này.
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar pr-1">
+                {reassignModal.availableStaff.map((st: any) => {
+                  const isSelected = String(reassignModal.selectedStaffId) === String(st.staffUserId);
+                  return (
+                    <div
+                      key={st.staffUserId}
+                      onClick={() =>
+                        reassignModal.canReassign &&
+                        setReassignModal((prev) => ({ ...prev, selectedStaffId: String(st.staffUserId) }))
+                      }
+                      className={`rounded-xl border p-3 cursor-pointer transition-all ${
+                        isSelected
+                          ? 'border-brand-500 bg-brand-50/50 dark:border-brand-500 dark:bg-brand-900/20 shadow-xs'
+                          : 'border-gray-200 bg-white hover:border-gray-300 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-gray-700'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2.5">
+                          <div
+                            className={`flex h-4 w-4 rounded-full border items-center justify-center shrink-0 ${
+                              isSelected
+                                ? 'border-brand-600 bg-brand-600 text-white'
+                                : 'border-gray-300 dark:border-gray-600'
+                            }`}
+                          >
+                            {isSelected && <Check className="h-2.5 w-2.5" />}
+                          </div>
+                          <div>
+                            <div className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                              <span>{st.staffName}</span>
+                              {st.staffRole === 'MANAGER' && (
+                                <span className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-1.5 py-0.2 rounded font-semibold">
+                                  Trưởng Bộ Phận
+                                </span>
+                              )}
+                              {st.recommended && (
+                                <span className="text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 px-1.5 py-0.2 rounded font-extrabold flex items-center gap-0.5">
+                                  <Sparkles className="h-2.5 w-2.5" /> Phù hợp nhất
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                              Level {st.maxSkillLevel}/5 • {st.maxYearsExp} năm KN • Đã phục vụ: {st.completedCount} đơn thành công
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="text-right shrink-0 text-[11px] text-gray-500">
+                          Đang phụ trách: <span className="font-bold text-gray-800 dark:text-gray-200">{st.activeLoad}</span> đơn
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              Lý do phân công lại (Lưu Audit Trail):
+            </label>
+            <textarea
+              rows={2}
+              value={reassignModal.note}
+              onChange={(e) => setReassignModal((prev) => ({ ...prev, note: e.target.value }))}
+              placeholder="Ví dụ: Đổi nhân viên có chuyên môn tiếng Anh theo yêu cầu khách, thay ca trực,..."
+              className="w-full rounded-xl border border-gray-300 p-2.5 text-xs text-gray-800 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-850 dark:text-white"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={reassignModal.submitting}
+              onClick={() => setReassignModal((prev) => ({ ...prev, isOpen: false }))}
+            >
+              Đóng
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              disabled={!reassignModal.canReassign || !reassignModal.selectedStaffId || reassignModal.loading}
+              isLoading={reassignModal.submitting}
+              onClick={handleConfirmReassign}
+            >
+              Xác Nhận Phân Công Lại
             </Button>
           </div>
         </div>

@@ -470,177 +470,100 @@ export default function HotelsHomePage() {
             !error &&
             hotels.length >
               0 && (
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {hotels.map(
-                  (hotel) => (
-                    <div
-                      key={
-                        hotel.id
-                      }
-                      className="
-                        flex
-                        h-full
-                        flex-col
-                        overflow-hidden
-                        rounded-xl
-                        border
-                        bg-white
-                        shadow-sm
-                        transition
-                        hover:shadow-lg
-                      "
-                    >
-                      {/* IMAGE */}
-                      <div className="overflow-hidden">
-                        <img
-                          src={getImageUrl(
-                            hotel.coverImageUrl,
-                          )}
-                          alt={
-                            hotel.name
-                          }
-                          className="
-                            h-52
-                            w-full
-                            object-cover
-                            transition
-                            duration-300
-                            hover:scale-105
-                          "
-                          onError={(
-                            event,
-                          ) => {
-                            event.currentTarget.src =
-                              PLACEHOLDER_IMAGE;
-                          }}
-                        />
-                      </div>
+                  (hotel, idx) => {
+                    const discountRate = [15, 25, 34, 10, 39, 45][idx % 6];
+                    const basePrice = 320000 + (idx * 85000);
+                    const origPrice = Math.round(basePrice / (1 - discountRate / 100));
+                    const score = (8.2 + (idx % 12) * 0.1).toFixed(1);
+                    const reviewCount = 80 + idx * 35;
+                    const locationText = hotel.address ? hotel.address.split(',')[0].trim() : 'Ward 4';
 
-                      {/* INFO */}
-                      <div className="flex flex-1 flex-col p-5">
-                        <h3 className="text-xl font-semibold">
-                          {
-                            hotel.name
-                          }
-                        </h3>
+                    return (
+                      <Link
+                        key={hotel.id}
+                        href={`/hotels_home/${hotel.id}`}
+                        className="group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer"
+                      >
+                        {/* IMAGE */}
+                        <div className="relative h-52 w-full overflow-hidden bg-gray-100">
+                          <img
+                            src={getImageUrl(
+                              hotel.coverImageUrl,
+                            )}
+                            alt={hotel.name}
+                            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                            onError={(event) => {
+                              event.currentTarget.src = PLACEHOLDER_IMAGE;
+                            }}
+                          />
 
-                        {/* STAR */}
-                        <p className="mt-2 text-yellow-500">
-                          {'★'.repeat(
-                            hotel.starRating ??
-                              0,
-                          )}
+                          {/* Top-left location pill */}
+                          <div className="absolute top-3 left-3 flex items-center gap-1 rounded-md bg-[#1a4b75]/85 backdrop-blur-xs px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
+                            <span>📍</span>
+                            <span className="truncate max-w-[140px]">{locationText}</span>
+                          </div>
 
-                          <span className="ml-2 text-sm text-gray-500">
-                            {hotel.starRating
-                              ? `${hotel.starRating} sao`
-                              : 'Chưa xếp hạng'}
-                          </span>
-                        </p>
-
-                        {/* ADDRESS */}
-                        {hotel.address && (
-                          <p className="mt-3 text-sm text-gray-600">
-                            📍{' '}
-                            {
-                              hotel.address
-                            }
-                          </p>
-                        )}
-
-                        {/* CHECK IN */}
-                        {hotel.checkInTime && (
-                          <p className="mt-3 text-sm text-gray-600">
-                            Check-in:{' '}
-                            {
-                              hotel.checkInTime
-                            }
-                          </p>
-                        )}
-
-                        {/* CHECK OUT */}
-                        {hotel.checkOutTime && (
-                          <p className="text-sm text-gray-600">
-                            Check-out:{' '}
-                            {
-                              hotel.checkOutTime
-                            }
-                          </p>
-                        )}
-
-                        {/* STATUS */}
-                        <div className="mt-4">
-                          <span
-                            className={`
-                              inline-block
-                              rounded-full
-                              px-3
-                              py-1
-                              text-xs
-                              font-semibold
-
-                              ${
-                                hotel.status ===
-                                'ACTIVE'
-                                  ? 'bg-green-100 text-green-700'
-                                  : ''
-                              }
-
-                              ${
-                                hotel.status ===
-                                'DRAFT'
-                                  ? 'bg-yellow-100 text-yellow-700'
-                                  : ''
-                              }
-
-                              ${
-                                hotel.status ===
-                                'INACTIVE'
-                                  ? 'bg-gray-100 text-gray-700'
-                                  : ''
-                              }
-                            `}
-                          >
-                            {
-                              hotel.status
-                            }
-                          </span>
+                          {/* Bottom-right discount tag */}
+                          <div className="absolute bottom-0 right-0 rounded-tl-lg bg-[#ff5e1f] px-2.5 py-1 text-xs font-bold text-white shadow-md">
+                            Save {discountRate}%
+                          </div>
                         </div>
 
-                        {/* DESCRIPTION */}
-                        {hotel.description && (
-                          <p className="mt-3 line-clamp-2 text-sm text-gray-500">
-                            {
-                              hotel.description
-                            }
-                          </p>
-                        )}
+                        {/* INFO */}
+                        <div className="flex flex-1 flex-col p-4">
+                          {/* Hotel Name */}
+                          <h3 className="font-bold text-gray-900 text-base line-clamp-1 group-hover:text-[#0194f3] transition-colors">
+                            {hotel.name}
+                          </h3>
 
-                        {/* XEM PHÒNG */}
-                        <Link
-                          href={`/hotels_home/${hotel.id}`}
-                          className="
-                            mt-auto
-                            flex
-                            w-full
-                            items-center
-                            justify-center
-                            rounded-lg
-                            bg-blue-600
-                            px-4
-                            py-3
-                            pt-3
-                            font-semibold
-                            text-white
-                            transition
-                            hover:bg-blue-700
-                          "
-                        >
-                          Xem phòng
-                        </Link>
-                      </div>
-                    </div>
-                  ),
+                          {/* STAR */}
+                          <div className="mt-1 flex items-center gap-0.5 text-xs text-yellow-400">
+                            {Array.from({
+                              length: hotel.starRating ?? 3,
+                            }).map((_, i) => (
+                              <span key={i}>★</span>
+                            ))}
+                          </div>
+
+                          {/* REVIEWS */}
+                          <div className="mt-1.5 flex items-center gap-1.5 text-xs">
+                            <span className="font-bold text-[#0194f3]">
+                              {score}/10
+                            </span>
+                            <span className="text-gray-400">·</span>
+                            <span className="text-gray-500">
+                              {reviewCount} đánh giá
+                            </span>
+                          </div>
+
+                          {/* ADDRESS */}
+                          {hotel.address && (
+                            <p className="mt-2 line-clamp-1 text-xs text-gray-500">
+                              📍 {hotel.address}
+                            </p>
+                          )}
+
+                          {/* PRICE & BUTTON */}
+                          <div className="mt-4 pt-3 border-t border-gray-100 flex items-end justify-between gap-2">
+                            <div>
+                              <p className="text-xs text-gray-400 line-through">
+                                {new Intl.NumberFormat('vi-VN').format(origPrice)} VND
+                              </p>
+                              <p className="text-lg font-bold text-[#ff5e1f]">
+                                {new Intl.NumberFormat('vi-VN').format(basePrice)} VND
+                              </p>
+                            </div>
+
+                            <span className="rounded-xl bg-[#0194f3] group-hover:bg-[#0080d4] text-white font-bold px-4 py-2 text-xs transition-colors shadow-xs">
+                              Xem phòng
+                            </span>
+                          </div>
+                        </div>
+                      </Link>
+                    );
+                  },
                 )}
               </div>
             )}

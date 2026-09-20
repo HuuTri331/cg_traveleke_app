@@ -8,7 +8,7 @@ import { homeApi } from '@/services/api/home.api';
 import Header from '@/components/common/HeaderCommon';
 import Footer from '@/components/common/FooterCommon';
 
-import TravelOptions from '@/components/home/TravelOptions';
+import HotelDealsSection from '@/components/home/HotelDealsSection';
 import TravelDestinations from '@/components/home/TravelDestinations';
 import TravelokeLayout from '@/components/home/TravelokeLayout';
 
@@ -137,8 +137,8 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="mt-16 bg-white shadow-md">
-        <TravelOptions />
+      <div className="mt-12 bg-white shadow-xs">
+        <HotelDealsSection />
       </div>
 
       <div className="mt-16 bg-white shadow-md">

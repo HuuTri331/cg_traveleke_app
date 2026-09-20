@@ -26,17 +26,45 @@ const STAFF_PROTECTED_ROUTES = [
   '/room-types',
   '/bookings',
   '/staff',
-  '/schedules',
-  '/tours',
   '/customers',
   '/hotel-staff',
+  '/services',
+  '/staff-skills',
   '/profile',
 ];
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [token, setToken] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('traveleke_token');
+    }
+    return null;
+  });
+
+  const [user, setUser] = useState<UserProfile | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const storedUser = localStorage.getItem('traveleke_user');
+        return storedUser ? JSON.parse(storedUser) : null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const storedToken = localStorage.getItem('traveleke_token');
+      const storedUser = localStorage.getItem('traveleke_user');
+      // Nếu không có token hoặc đã có user cache sẵn, không cần block UI
+      if (!storedToken || storedUser) {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  });
 
   const router = useRouter();
   const pathname = usePathname();
@@ -44,41 +72,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Khởi tạo trạng thái xác thực khi mở web (khôi phục session tức thì, xác thực ngầm)
   const initAuth = useCallback(async () => {
     try {
-      const storedToken = localStorage.getItem('traveleke_token');
-      const storedUser = localStorage.getItem('traveleke_user');
+      const storedToken = typeof window !== 'undefined' ? localStorage.getItem('traveleke_token') : null;
+      const storedUser = typeof window !== 'undefined' ? localStorage.getItem('traveleke_user') : null;
 
-      if (storedToken) {
-        setToken(storedToken);
-        if (storedUser) {
-          try {
-            const parsedUser = JSON.parse(storedUser);
-            setUser(parsedUser);
-            // Có session lưu sẵn: mở khoá UI ngay lập tức không bắt người dùng đợi
-            setIsLoading(false);
-          } catch {
-            // bỏ qua parse error
-          }
-        }
+      if (!storedToken) {
+        setIsLoading(false);
+        return;
+      }
 
-        // Fetch fresh profile từ server ở chế độ nền
+      setToken(storedToken);
+      if (storedUser) {
         try {
-          const profile = await authApi.getMe();
-          if (profile.role === 'CUSTOMER') {
-            localStorage.removeItem('traveleke_token');
-            localStorage.removeItem('traveleke_user');
-            setToken(null);
-            setUser(null);
-            return;
-          }
-          setUser(profile);
-          localStorage.setItem('traveleke_user', JSON.stringify(profile));
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+          setIsLoading(false);
         } catch {
-          // Token hết hạn hoặc không hợp lệ
+          // ignore
+        }
+      }
+
+      // Fetch fresh profile từ server ở chế độ nền kèm timeout an toàn 1.5s tránh loading kéo dài
+      try {
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Auth request timeout')), 1500),
+        );
+        const profile = await Promise.race([authApi.getMe(), timeoutPromise]);
+        if (profile.role === 'CUSTOMER') {
           localStorage.removeItem('traveleke_token');
           localStorage.removeItem('traveleke_user');
           setToken(null);
           setUser(null);
+          setIsLoading(false);
+          return;
         }
+        setUser(profile);
+        localStorage.setItem('traveleke_user', JSON.stringify(profile));
+      } catch {
+        // Token hết hạn hoặc server timeout: xoá session cũ
+        localStorage.removeItem('traveleke_token');
+        localStorage.removeItem('traveleke_user');
+        setToken(null);
+        setUser(null);
       }
     } finally {
       setIsLoading(false);

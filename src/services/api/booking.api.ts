@@ -56,6 +56,14 @@ export interface AdminBookingItem {
   status: 'PENDING' | 'CONFIRMED' | 'CHECKED_IN' | 'COMPLETED' | 'REJECTED' | 'CANCELLED';
   specialRequest?: string | null;
   handledBy?: string | null;
+  assignmentType?: 'AUTO' | 'MANUAL';
+  assignmentNote?: string | null;
+  handledByName?: string | null;
+  handledByEmail?: string | null;
+  handledByRole?: string | null;
+  canReassign?: boolean;
+  reassignedAt?: string | null;
+  reassignedBy?: string | null;
   confirmedAt?: string | null;
   rejectedAt?: string | null;
   cancelledAt?: string | null;
@@ -195,6 +203,25 @@ export const bookingApi = {
     const response = await apiClient.get('/bookings/activity-logs', {
       params: { limit },
     });
+    return response.data;
+  },
+
+  // ===============================
+  // DANH SÁCH NHÂN VIÊN KHẢ DỤNG ĐỂ PHÂN CÔNG
+  // ===============================
+  getAvailableStaff: async (bookingId: string): Promise<any> => {
+    const response = await apiClient.get(`/bookings/${bookingId}/available-staff`);
+    return response.data;
+  },
+
+  // ===============================
+  // PHÂN CÔNG LẠI NHÂN VIÊN PHỤ TRÁCH
+  // ===============================
+  reassignStaff: async (
+    bookingId: string,
+    data: { staffUserId: string; note?: string }
+  ): Promise<{ success: boolean; message: string; data?: any }> => {
+    const response = await apiClient.patch(`/bookings/${bookingId}/reassign`, data);
     return response.data;
   },
 };

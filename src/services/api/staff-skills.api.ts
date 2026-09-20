@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { apiClient } from './client';
 
 export interface SkillCategory {
   id: number;
@@ -17,11 +17,41 @@ export interface StaffSkill {
   level: number; // 1-5
   yearsExp: number | null;
   certificate: string | null;
+  certificateExpiry?: string | null;
   note: string | null;
   verifiedBy: number | null;
   verifiedAt: string | null;
+  isShadow?: boolean;
+  shadowMentorId?: number | null;
+  eligibilityLevel?: 'TRAINING' | 'STANDARD' | 'SENIOR' | 'VIP' | 'COMPLEX';
   createdAt: string;
   skill?: SkillCategory;
+}
+
+export interface StaffLanguageSkill {
+  id: number;
+  userId: number;
+  languageCode: string;
+  languageName: string;
+  level: 'BASIC' | 'INTERMEDIATE' | 'ADVANCED' | 'NATIVE';
+  certificate: string | null;
+  certificateExpiry: string | null;
+  verifiedBy: number | null;
+  verifiedAt: string | null;
+  createdAt: string;
+}
+
+export interface StaffEligibilityRule {
+  id: number;
+  ruleCode: string;
+  caseComplexity: 'STANDARD' | 'PREMIUM' | 'VIP' | 'COMPLEX';
+  description: string | null;
+  minSkillLevel: number;
+  requiredSkillCodes: string[] | null;
+  requiredLanguageCodes: string[] | null;
+  requireVerifiedSkills: boolean;
+  excludeShadowMode: boolean;
+  status: 'ACTIVE' | 'INACTIVE';
 }
 
 export interface SkillStats {
@@ -29,6 +59,8 @@ export interface SkillStats {
   staffWithSkills: number;
   averageSkillLevel: number;
   topSkill: string | null;
+  staffWithLanguages?: number;
+  expiringSoonCertificates?: number;
 }
 
 export interface SuggestedStaff {
@@ -41,98 +73,118 @@ export interface SuggestedStaff {
   matchScore: number;
 }
 
-function getAuthHeaders(): HeadersInit {
-  const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
-
-async function handleResponse<T>(res: Response): Promise<T> {
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(body?.message || `HTTP ${res.status}`);
-  }
-  return res.json() as Promise<T>;
-}
-
 export const staffSkillsApi = {
   // Skill Categories
-  getCategories: (includeInactive = false): Promise<SkillCategory[]> =>
-    fetch(`${BASE_URL}/staff-skills/categories?includeInactive=${includeInactive}`, {
-      headers: getAuthHeaders(),
-    }).then((r) => handleResponse<SkillCategory[]>(r)),
+  getCategories: async (includeInactive = false): Promise<SkillCategory[]> => {
+    const res = await apiClient.get('/staff-skills/categories', {
+      params: { includeInactive: String(includeInactive) },
+    });
+    return res.data;
+  },
 
-  createCategory: (data: {
+  createCategory: async (data: {
     code: string;
     name: string;
     description?: string;
     department?: string;
-  }): Promise<SkillCategory> =>
-    fetch(`${BASE_URL}/staff-skills/categories`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(data),
-    }).then((r) => handleResponse<SkillCategory>(r)),
+  }): Promise<SkillCategory> => {
+    const res = await apiClient.post('/staff-skills/categories', data);
+    return res.data;
+  },
 
-  updateCategory: (
+  updateCategory: async (
     id: number,
     data: { name?: string; description?: string; department?: string; status?: 'ACTIVE' | 'INACTIVE' },
-  ): Promise<SkillCategory> =>
-    fetch(`${BASE_URL}/staff-skills/categories/${id}`, {
-      method: 'PUT',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(data),
-    }).then((r) => handleResponse<SkillCategory>(r)),
+  ): Promise<SkillCategory> => {
+    const res = await apiClient.put(`/staff-skills/categories/${id}`, data);
+    return res.data;
+  },
 
   // Staff Skill Map
-  getSkillsByUser: (userId: number): Promise<StaffSkill[]> =>
-    fetch(`${BASE_URL}/staff-skills/user/${userId}`, {
-      headers: getAuthHeaders(),
-    }).then((r) => handleResponse<StaffSkill[]>(r)),
+  getSkillsByUser: async (userId: number): Promise<StaffSkill[]> => {
+    const res = await apiClient.get(`/staff-skills/user/${userId}`);
+    return res.data;
+  },
 
-  upsertSkill: (
+  upsertSkill: async (
     userId: number,
-    data: { skillId: number; level: number; yearsExp?: number; certificate?: string; note?: string },
-  ): Promise<StaffSkill> =>
-    fetch(`${BASE_URL}/staff-skills/user/${userId}`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(data),
-    }).then((r) => handleResponse<StaffSkill>(r)),
+    data: {
+      skillId: number;
+      level: number;
+      yearsExp?: number;
+      certificate?: string;
+      certificateExpiry?: string;
+      note?: string;
+      eligibilityLevel?: string;
+    },
+  ): Promise<StaffSkill> => {
+    const res = await apiClient.post(`/staff-skills/user/${userId}`, data);
+    return res.data;
+  },
 
-  removeSkill: (userId: number, skillId: number): Promise<{ message: string }> =>
-    fetch(`${BASE_URL}/staff-skills/user/${userId}/skill/${skillId}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(),
-    }).then((r) => handleResponse<{ message: string }>(r)),
+  removeSkill: async (userId: number, skillId: number): Promise<{ message: string }> => {
+    const res = await apiClient.delete(`/staff-skills/user/${userId}/skill/${skillId}`);
+    return res.data;
+  },
 
-  verifySkill: (entryId: number): Promise<StaffSkill> =>
-    fetch(`${BASE_URL}/staff-skills/verify/${entryId}`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-    }).then((r) => handleResponse<StaffSkill>(r)),
+  verifySkill: async (entryId: number): Promise<StaffSkill> => {
+    const res = await apiClient.post(`/staff-skills/verify/${entryId}`);
+    return res.data;
+  },
+
+  // Language Skills
+  getLanguagesByUser: async (userId: number): Promise<StaffLanguageSkill[]> => {
+    const res = await apiClient.get(`/staff-skills/user/${userId}/languages`);
+    return res.data;
+  },
+
+  upsertLanguage: async (
+    userId: number,
+    data: {
+      languageCode: string;
+      languageName: string;
+      level: 'BASIC' | 'INTERMEDIATE' | 'ADVANCED' | 'NATIVE';
+      certificate?: string;
+      certificateExpiry?: string;
+    },
+  ): Promise<StaffLanguageSkill> => {
+    const res = await apiClient.post(`/staff-skills/user/${userId}/languages`, data);
+    return res.data;
+  },
+
+  removeLanguage: async (userId: number, languageCode: string): Promise<{ message: string }> => {
+    const res = await apiClient.delete(`/staff-skills/user/${userId}/languages/${languageCode}`);
+    return res.data;
+  },
+
+  // Eligibility Rules
+  getEligibilityRules: async (): Promise<StaffEligibilityRule[]> => {
+    const res = await apiClient.get('/staff-skills/eligibility-rules');
+    return res.data;
+  },
+
+  checkEligibility: async (data: {
+    userId: number;
+    caseComplexity: 'STANDARD' | 'PREMIUM' | 'VIP' | 'COMPLEX';
+    requiredLanguage?: string;
+  }): Promise<{ eligible: boolean; reasons: string[] }> => {
+    const res = await apiClient.post('/staff-skills/check-eligibility', data);
+    return res.data;
+  },
 
   // Smart Assignment
-  suggestStaff: (params: {
+  suggestStaff: async (params: {
     skillCode: string;
     level: number;
     hotelId?: number;
   }): Promise<SuggestedStaff[]> => {
-    const query = new URLSearchParams({
-      skillCode: params.skillCode,
-      level: String(params.level),
-    });
-    if (params.hotelId) query.set('hotelId', String(params.hotelId));
-    return fetch(`${BASE_URL}/staff-skills/suggest?${query}`, {
-      headers: getAuthHeaders(),
-    }).then((r) => handleResponse<SuggestedStaff[]>(r));
+    const res = await apiClient.get('/staff-skills/suggest', { params });
+    return res.data;
   },
 
   // Stats
-  getStats: (): Promise<SkillStats> =>
-    fetch(`${BASE_URL}/staff-skills/stats`, {
-      headers: getAuthHeaders(),
-    }).then((r) => handleResponse<SkillStats>(r)),
+  getStats: async (): Promise<SkillStats> => {
+    const res = await apiClient.get('/staff-skills/stats');
+    return res.data;
+  },
 };

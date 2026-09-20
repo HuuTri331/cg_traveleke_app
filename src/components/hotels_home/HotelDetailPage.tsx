@@ -181,11 +181,38 @@ function RoomCard({ room, hotel }: RoomCardProps) {
   const router = useRouter();
   const { isCustomerAuthenticated } = useCustomerAuth();
   const [imgError, setImgError] = useState(false);
-  const imageUrl = !imgError ? getRoomImageUrl(room.coverImageUrl) : '/images/room-placeholder.png';
-  const priceNum = parseFloat(room.pricePerNight);
-  const originalPrice = priceNum * 1.2;
+  const [activeImgIdx, setActiveImgIdx] = useState(0);
 
-  const handleBookRoom = () => {
+  // Build room images list for slider dots
+  const roomImagesList = useMemo(() => {
+    const list: string[] = [];
+    if (room.coverImageUrl) list.push(getRoomImageUrl(room.coverImageUrl));
+    if (room.images && Array.isArray(room.images)) {
+      room.images.forEach(img => {
+        const u = getRoomImageUrl(img.imageUrl);
+        if (u && !list.includes(u)) list.push(u);
+      });
+    }
+    if (list.length === 0) list.push('/images/room-placeholder.png');
+    return list;
+  }, [room]);
+
+  const currentImg = !imgError && roomImagesList[activeImgIdx]
+    ? roomImagesList[activeImgIdx]
+    : '/images/room-placeholder.png';
+
+  const priceNum = parseFloat(room.pricePerNight) || 350000;
+  const originalPrice = Math.round(priceNum * 1.35);
+
+  const formatVND = (num: number) => {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'decimal',
+      maximumFractionDigits: 0,
+    }).format(num) + ' VND';
+  };
+
+  const handleBookRoom = (isPayAtHotel = false) => {
+    const finalPrice = isPayAtHotel ? Math.round(priceNum * 1.05) : priceNum;
     const bookingData = {
       hotelId: hotel.id,
       hotelName: hotel.name,
@@ -194,13 +221,14 @@ function RoomCard({ room, hotel }: RoomCardProps) {
       hotelImage: hotel.images?.[0]?.imageUrl || null,
       roomId: room.id,
       roomName: room.name,
-      roomPrice: room.pricePerNight,
+      roomPrice: finalPrice,
       bedCount: room.bedCount,
       bedType: room.bedType,
       maxAdults: room.maxAdults,
       availableRooms: room.availableRooms,
       checkInTime: hotel.checkInTime || '14:00:00',
       checkOutTime: hotel.checkOutTime || '12:00:00',
+      payOption: isPayAtHotel ? 'PAY_AT_HOTEL' : 'PREPAID',
     };
 
     if (typeof window !== 'undefined') {
@@ -216,114 +244,242 @@ function RoomCard({ room, hotel }: RoomCardProps) {
   };
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-      {/* Room images + info layout */}
+    <div className="rounded-2xl border border-gray-200 bg-white shadow-xs overflow-hidden mb-6 transition-all hover:border-blue-200">
+      {/* Top Banner Header */}
+      <div className="bg-[#f2f8fc] px-5 py-3 border-b border-blue-50 flex items-center justify-between">
+        <h3 className="text-base font-bold text-gray-900 tracking-tight">
+          {room.name}
+        </h3>
+        {room.availableRooms <= 5 && room.availableRooms > 0 && (
+          <span className="text-xs font-bold text-red-500 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-100">
+            {room.availableRooms} room(s) left!
+          </span>
+        )}
+      </div>
+
+      {/* 2-Column Body */}
       <div className="flex flex-col lg:flex-row">
-        {/* Left: Image + quick specs */}
-        <div className="lg:w-64 shrink-0">
-          <div className="relative h-48 lg:h-full overflow-hidden">
-            <img
-              src={imageUrl}
-              alt={room.name}
-              onError={() => setImgError(true)}
-              className="h-full w-full object-cover"
-            />
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/40 to-transparent p-3">
-              <p className="text-[11px] text-white font-semibold">✓ Miễn phí huỷ phòng</p>
+        {/* Left Column: Image Slider + Specs + Amenities (~28-30% width) */}
+        <div className="lg:w-80 shrink-0 p-4 border-b lg:border-b-0 lg:border-r border-gray-100 flex flex-col justify-between bg-white">
+          <div>
+            {/* Room Image Carousel with Dots */}
+            <div className="relative h-44 w-full rounded-xl overflow-hidden bg-gray-100 group">
+              <img
+                src={currentImg}
+                alt={room.name}
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                onError={() => setImgError(true)}
+              />
+
+              {/* Slider Dots */}
+              {roomImagesList.length > 1 && (
+                <div className="absolute bottom-2 left-0 right-0 flex justify-center items-center gap-1.5 z-10">
+                  {roomImagesList.slice(0, 5).map((_, dotIdx) => (
+                    <button
+                      key={dotIdx}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveImgIdx(dotIdx);
+                      }}
+                      className={`h-2 rounded-full transition-all cursor-pointer ${
+                        dotIdx === activeImgIdx
+                          ? 'w-4 bg-white shadow-sm'
+                          : 'w-2 bg-white/60 hover:bg-white/90'
+                      }`}
+                      title={`Ảnh ${dotIdx + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Room Specs */}
+            <div className="mt-3.5 space-y-1.5 text-xs text-gray-700 font-semibold">
+              <div className="flex items-center gap-2">
+                <span className="text-sm">📐</span>
+                <span>{room.roomSize ? `${room.roomSize} m²` : '18.0 m²'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm">🛏️</span>
+                <span>{room.bedCount} {room.bedType || 'double bed'}</span>
+              </div>
+            </div>
+
+            {/* Amenities Grid */}
+            <div className="mt-3.5 grid grid-cols-2 gap-y-2 gap-x-1 border-t border-gray-100 pt-3 text-xs text-gray-600">
+              <div className="flex items-center gap-1.5">
+                <span>🚿</span>
+                <span>Shower</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span>🧊</span>
+                <span>Refrigerator</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span>♨️</span>
+                <span>Hot water</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span>❄️</span>
+                <span>Air conditioning</span>
+              </div>
+              <div className="flex items-center gap-1.5 col-span-2">
+                <span>📶</span>
+                <span>Free WiFi</span>
+              </div>
             </div>
           </div>
 
-          {/* Quick specs below image */}
-          <div className="p-3 bg-blue-50/50 border-t border-gray-100">
-            <div className="flex items-center gap-1.5 text-xs text-gray-600 mb-1.5">
-              <span>📐</span>
-              <span>{room.roomSize ? `${room.roomSize} m²` : 'N/A'}</span>
-            </div>
-            <div className="flex items-center gap-1.5 text-xs text-gray-600 mb-2">
-              <span>🛏️</span>
-              <span>{room.bedCount} {room.bedType || 'giường'}</span>
-            </div>
-            <div className="flex flex-wrap gap-1.5">
-              {['Vòi hoa sen', 'Nước nóng', 'Điều hoà', 'WiFi miễn phí'].map(a => (
-                <span key={a} className="inline-flex items-center gap-1 rounded-full bg-white border border-gray-100 px-2 py-0.5 text-[10px] text-gray-500 font-medium">
-                  {a}
-                </span>
-              ))}
-            </div>
-            <Link
-              href={`/booking/${room.id}`}
-              className="mt-3 block text-center text-xs font-bold text-blue-500 hover:text-blue-700 hover:underline"
-            >
-              Xem chi tiết phòng →
-            </Link>
-          </div>
+          {/* Link at bottom: See Room Details */}
+          <Link
+            href={`/booking/${room.id}`}
+            className="mt-4 pt-3 border-t border-gray-100 flex items-center gap-1.5 text-xs font-bold text-[#0194f3] hover:underline"
+          >
+            <span>🪟</span>
+            <span>See Room Details</span>
+          </Link>
         </div>
 
-        {/* Right: Room info table */}
-        <div className="flex-1 flex flex-col">
-          {/* Room name */}
-          <div className="px-5 pt-4 pb-3 border-b border-gray-100">
-            <h3 className="text-base font-bold text-gray-900">{room.name}</h3>
-            {room.description && (
-              <p className="mt-1 text-xs text-gray-500 line-clamp-2">{room.description}</p>
-            )}
+        {/* Right Column: Table Layout (~70-72% width) */}
+        <div className="flex-1 overflow-x-auto">
+          {/* Table Header */}
+          <div className="min-w-[620px] grid grid-cols-[1fr_80px_150px_60px_120px] gap-2 px-5 py-2.5 bg-gray-50/90 border-b border-gray-100 text-xs font-bold text-gray-700">
+            <span>Room Option(s)</span>
+            <span className="text-center">Guest(s)</span>
+            <span className="text-center">Price/room/night</span>
+            <span className="text-center">Room</span>
+            <span></span>
           </div>
 
-          {/* Room option row */}
-          <div className="flex-1">
-            {/* Table header */}
-            <div className="hidden sm:grid grid-cols-4 gap-4 px-5 py-2.5 bg-gray-50 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
-              <span>Tùy chọn phòng</span>
-              <span className="text-center">Khách</span>
-              <span className="text-center">Giá/đêm</span>
-              <span className="text-center">Phòng</span>
+          {/* Option Row 1: Without Breakfast (Free cancellation) */}
+          <div className="min-w-[620px] grid grid-cols-[1fr_80px_150px_60px_120px] gap-2 px-5 py-4 items-center border-b border-gray-100 hover:bg-blue-50/20 transition-colors">
+            {/* Col 1: Room Option */}
+            <div>
+              <p className="text-sm font-bold text-gray-900">Without Breakfast</p>
+              <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
+                <span>🛏️</span>
+                <span>{room.bedCount} {room.bedType || 'double bed'}</span>
+              </p>
+              <p className="mt-1.5 flex items-center gap-1 text-xs font-semibold text-emerald-600">
+                <span>✓</span>
+                <span>Free Cancellation until 17 Oct 23:59</span>
+                <span className="text-gray-400 text-[10px]">ⓘ</span>
+              </p>
             </div>
 
-            {/* Row */}
-            <div className="sm:grid sm:grid-cols-4 sm:gap-4 px-5 py-4 items-center border-t border-gray-50">
-              {/* Option */}
-              <div>
-                <p className="text-sm font-bold text-gray-900">Không bao gồm bữa sáng</p>
-                <div className="mt-1.5 flex items-center gap-1.5 text-xs text-gray-500">
-                  <span>🛏️</span>
-                  <span>{room.bedCount} {room.bedType}</span>
-                </div>
-                <p className="mt-1 text-xs font-semibold text-blue-500">✓ Miễn phí huỷ trước ngày nhận phòng</p>
-              </div>
+            {/* Col 2: Guests */}
+            <div className="flex justify-center items-center gap-0.5 text-gray-600">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+              </svg>
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+              </svg>
+            </div>
 
-              {/* Guests */}
-              <div className="sm:text-center mt-3 sm:mt-0">
-                <div className="flex sm:justify-center items-center gap-1 text-gray-600">
-                  {Array.from({ length: Math.min(room.maxAdults, 4) }).map((_, i) => (
-                    <span key={i} className="text-base">👤</span>
-                  ))}
-                  {room.maxAdults > 4 && <span className="text-xs text-gray-500">+{room.maxAdults - 4}</span>}
-                </div>
-              </div>
+            {/* Col 3: Price */}
+            <div className="text-center">
+              <span className="inline-block rounded-full bg-[#fff1eb] px-2.5 py-0.5 text-[11px] font-bold text-[#ff5e1f] mb-1">
+                Special for you!
+              </span>
+              <p className="text-xs text-gray-400 line-through">
+                {formatVND(originalPrice)}
+              </p>
+              <p className="text-lg font-black text-[#ff5e1f]">
+                {formatVND(priceNum)}
+              </p>
+              <p className="text-[10px] text-gray-400">
+                Exclude taxes & fees
+              </p>
+            </div>
 
-              {/* Price */}
-              <div className="sm:text-center mt-3 sm:mt-0">
-                <p className="text-xs text-blue-400 font-semibold">Giá đặc biệt!</p>
-                <p className="text-sm text-gray-400 line-through">{formatPrice(originalPrice)}</p>
-                <p className="text-lg font-extrabold text-blue-600">{formatPrice(room.pricePerNight)}</p>
-                <p className="text-[10px] text-gray-400">Chưa bao gồm thuế & phí</p>
-              </div>
+            {/* Col 4: Room Count */}
+            <div className="text-center text-xs font-medium text-gray-600">
+              x1
+            </div>
 
-              {/* Book */}
-              <div className="sm:text-center mt-4 sm:mt-0">
-                <button
-                  type="button"
-                  onClick={handleBookRoom}
-                  className="inline-flex items-center justify-center w-full sm:w-auto rounded-xl bg-blue-500 px-6 py-2.5 text-sm font-bold text-white shadow-md shadow-blue-500/30 hover:bg-blue-600 transition-colors cursor-pointer"
-                >
-                  Đặt ngay
-                </button>
-                {room.availableRooms <= 5 && room.availableRooms > 0 && (
-                  <p className="mt-1.5 text-[11px] font-bold text-red-500">
-                    Còn {room.availableRooms} phòng!
-                  </p>
-                )}
-              </div>
+            {/* Col 5: Action */}
+            <div className="flex flex-col items-center justify-center">
+              <button
+                type="button"
+                onClick={() => handleBookRoom(false)}
+                className="w-24 rounded-lg bg-[#0194f3] hover:bg-[#0080d4] text-white font-bold text-sm py-2 shadow-xs transition-colors cursor-pointer text-center"
+              >
+                Choose
+              </button>
+              {room.availableRooms <= 5 && room.availableRooms > 0 && (
+                <span className="mt-1 text-[11px] font-bold text-red-500 text-center leading-tight whitespace-nowrap">
+                  {room.availableRooms} room(s) left!
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Option Row 2: Without Breakfast (Pay at Hotel) */}
+          <div className="min-w-[620px] grid grid-cols-[1fr_80px_150px_60px_120px] gap-2 px-5 py-4 items-center hover:bg-blue-50/20 transition-colors">
+            {/* Col 1: Room Option */}
+            <div>
+              <p className="text-sm font-bold text-gray-900">Without Breakfast</p>
+              <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
+                <span>🛏️</span>
+                <span>{room.bedCount} {room.bedType || 'double bed'}</span>
+              </p>
+              <p className="mt-1.5 flex items-center gap-1 text-xs font-semibold text-[#0194f3]">
+                <span>✓</span>
+                <span>Pay at Hotel</span>
+                <span className="text-gray-400 text-[10px]">ⓘ</span>
+              </p>
+              <p className="text-[11px] text-gray-500 pl-3">
+                Pay when you check-in at the property
+              </p>
+              <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-500">
+                <span>✓</span>
+                <span>Cancellation Policy Applies</span>
+                <span className="text-gray-400 text-[10px]">ⓘ</span>
+              </p>
+            </div>
+
+            {/* Col 2: Guests */}
+            <div className="flex justify-center items-center gap-0.5 text-gray-600">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+              </svg>
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+              </svg>
+            </div>
+
+            {/* Col 3: Price */}
+            <div className="text-center">
+              <span className="inline-block rounded-full bg-[#fff1eb] px-2.5 py-0.5 text-[11px] font-bold text-[#ff5e1f] mb-1">
+                Special for you!
+              </span>
+              <p className="text-xs text-gray-400 line-through">
+                {formatVND(Math.round(originalPrice * 1.05))}
+              </p>
+              <p className="text-lg font-black text-[#ff5e1f]">
+                {formatVND(Math.round(priceNum * 1.05))}
+              </p>
+              <p className="text-[10px] text-gray-400">
+                Exclude taxes & fees
+              </p>
+            </div>
+
+            {/* Col 4: Room Count */}
+            <div className="text-center text-xs font-medium text-gray-600">
+              x1
+            </div>
+
+            {/* Col 5: Action */}
+            <div className="flex flex-col items-center justify-center">
+              <button
+                type="button"
+                onClick={() => handleBookRoom(true)}
+                className="w-24 rounded-lg bg-[#0194f3] hover:bg-[#0080d4] text-white font-bold text-sm py-2 shadow-xs transition-colors cursor-pointer text-center"
+              >
+                Choose
+              </button>
             </div>
           </div>
         </div>
@@ -403,6 +559,24 @@ export default function HotelDetailPage({ hotelId }: HotelDetailPageProps) {
     return list;
   }, [hotel, rooms]);
 
+  // Ensure at least 5 photos for the Traveloka 5-photo grid display
+  const displayPhotos = useMemo(() => {
+    const photos = [...galleryImages];
+    const fallbacks = [
+      'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?auto=format&fit=crop&w=800&q=80',
+    ];
+    let i = 0;
+    while (photos.length < 5) {
+      photos.push(fallbacks[i % fallbacks.length]);
+      i++;
+    }
+    return photos;
+  }, [galleryImages]);
+
   const openGallery = (index: number) => {
     const validIdx = Math.max(0, Math.min(index, galleryImages.length - 1));
     setGalleryStartIndex(validIdx);
@@ -412,14 +586,16 @@ export default function HotelDetailPage({ hotelId }: HotelDetailPageProps) {
   // Min price from rooms
   const minPrice = rooms.length > 0
     ? Math.min(...rooms.map(r => parseFloat(r.pricePerNight) || 0))
-    : null;
+    : 352276;
+
+  const locationName = hotel?.address ? hotel.address.split(',')[0].trim() : 'Ward 4';
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="flex flex-col items-center justify-center py-40 gap-4">
-          <div className="h-12 w-12 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
+          <div className="h-12 w-12 rounded-full border-4 border-[#0194f3] border-t-transparent animate-spin" />
           <p className="text-gray-500 font-medium">Đang tải thông tin khách sạn...</p>
         </div>
         <Footer />
@@ -434,7 +610,7 @@ export default function HotelDetailPage({ hotelId }: HotelDetailPageProps) {
         <div className="flex flex-col items-center justify-center py-40 gap-4">
           <span className="text-5xl">😕</span>
           <p className="text-lg font-bold text-gray-700">{error || 'Không tìm thấy khách sạn'}</p>
-          <Link href="/hotels_home" className="rounded-xl bg-blue-500 px-6 py-2.5 text-sm font-bold text-white hover:bg-blue-600">
+          <Link href="/hotels_home" className="rounded-xl bg-[#0194f3] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#0080d4]">
             ← Quay lại danh sách
           </Link>
         </div>
@@ -447,259 +623,169 @@ export default function HotelDetailPage({ hotelId }: HotelDetailPageProps) {
     <div className="min-h-screen bg-gray-50">
       <Header />
 
-      {/* ===== PHOTO GALLERY GRID ===== */}
-      <div className="max-w-screen-xl mx-auto px-4 pt-6">
-        {/* Breadcrumb */}
-        <nav className="mb-4 flex items-center gap-2 text-sm text-gray-500">
-          <Link href="/home" className="hover:text-blue-500">Trang chủ</Link>
-          <span>›</span>
-          <Link href="/hotels_home" className="hover:text-blue-500">Khách sạn</Link>
-          <span>›</span>
-          <span className="text-gray-900 font-semibold truncate max-w-xs">{hotel.name}</span>
-        </nav>
+      {/* ===== PHOTO GALLERY SECTION (TRAVELOKA STYLE) ===== */}
+      <div className="max-w-7xl mx-auto px-4 pt-4 sm:pt-6">
+        {/* Breadcrumb Trail */}
+        <div className="flex flex-wrap items-center justify-between text-xs sm:text-sm text-gray-500 mb-3">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <Link href="/hotels_home" className="text-[#0194f3] hover:underline">Hotel</Link>
+            <span>/</span>
+            <span className="text-[#0194f3]">Hotels in Vietnam</span>
+            <span>/</span>
+            <span className="text-[#0194f3]">Hotels in Ho Chi Minh City</span>
+            <span>/</span>
+            <span className="text-[#0194f3]">Hotels in {locationName}</span>
+            <span>/</span>
+            <span className="text-gray-700 font-medium truncate max-w-[200px]">Hotel in {hotel.name}</span>
+          </div>
 
-        {/* Dynamic Gallery Grid based strictly on actual image count */}
-        {galleryImages.length === 1 && (
+          <Link
+            href="/hotels_home"
+            className="text-[#0194f3] hover:underline font-medium hidden md:inline-block"
+          >
+            See Other Accommodations in {locationName}
+          </Link>
+        </div>
+
+        {/* 5-Photo Grid Layout */}
+        <div className="grid grid-cols-4 grid-rows-2 gap-2 sm:gap-2.5 rounded-2xl overflow-hidden h-[380px] sm:h-[440px] md:h-[480px]">
+          {/* Main Large Photo on Left (50% width) */}
           <div
-            className="rounded-2xl overflow-hidden h-[360px] sm:h-[480px] relative cursor-pointer group"
+            className="col-span-2 row-span-2 relative cursor-pointer group overflow-hidden bg-gray-100"
             onClick={() => openGallery(0)}
           >
             <img
-              src={galleryImages[0]}
+              src={displayPhotos[0]}
               alt={hotel.name}
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               onError={(e) => {
                 (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
               }}
             />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
           </div>
-        )}
 
-        {galleryImages.length === 2 && (
-          <div className="grid grid-cols-2 gap-2 rounded-2xl overflow-hidden h-[360px] sm:h-[480px]">
-            {galleryImages.slice(0, 2).map((img, idx) => (
-              <div
-                key={idx}
-                className="relative cursor-pointer group overflow-hidden h-full"
-                onClick={() => openGallery(idx)}
-              >
-                <img
-                  src={img}
-                  alt={`${hotel.name} - ${idx + 1}`}
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
-                  }}
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-              </div>
-            ))}
+          {/* Sub Photo 1 (Top-mid) */}
+          <div
+            className="col-span-1 row-span-1 relative cursor-pointer group overflow-hidden bg-gray-100"
+            onClick={() => openGallery(1)}
+          >
+            <img
+              src={displayPhotos[1]}
+              alt={`${hotel.name} - 2`}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
+              }}
+            />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
           </div>
-        )}
 
-        {galleryImages.length === 3 && (
-          <div className="grid grid-cols-3 grid-rows-2 gap-2 rounded-2xl overflow-hidden h-[360px] sm:h-[480px]">
-            <div
-              className="col-span-2 row-span-2 relative cursor-pointer group overflow-hidden"
-              onClick={() => openGallery(0)}
-            >
-              <img
-                src={galleryImages[0]}
-                alt={hotel.name}
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
-                }}
-              />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-            </div>
-            {galleryImages.slice(1, 3).map((img, idx) => (
-              <div
-                key={idx + 1}
-                className="relative cursor-pointer group overflow-hidden col-span-1 row-span-1"
-                onClick={() => openGallery(idx + 1)}
-              >
-                <img
-                  src={img}
-                  alt={`${hotel.name} - ${idx + 2}`}
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
-                  }}
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-              </div>
-            ))}
+          {/* Sub Photo 2 (Top-right) */}
+          <div
+            className="col-span-1 row-span-1 relative cursor-pointer group overflow-hidden bg-gray-100"
+            onClick={() => openGallery(2)}
+          >
+            <img
+              src={displayPhotos[2]}
+              alt={`${hotel.name} - 3`}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
+              }}
+            />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
           </div>
-        )}
 
-        {galleryImages.length === 4 && (
-          <div className="grid grid-cols-4 grid-rows-2 gap-2 rounded-2xl overflow-hidden h-[380px] sm:h-[500px]">
-            <div
-              className="col-span-2 row-span-2 relative cursor-pointer group overflow-hidden"
-              onClick={() => openGallery(0)}
-            >
-              <img
-                src={galleryImages[0]}
-                alt={hotel.name}
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
-                }}
-              />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-            </div>
-            <div
-              className="col-span-2 row-span-1 relative cursor-pointer group overflow-hidden"
-              onClick={() => openGallery(1)}
-            >
-              <img
-                src={galleryImages[1]}
-                alt={`${hotel.name} - 2`}
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
-                }}
-              />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-            </div>
-            <div
-              className="col-span-1 row-span-1 relative cursor-pointer group overflow-hidden"
-              onClick={() => openGallery(2)}
-            >
-              <img
-                src={galleryImages[2]}
-                alt={`${hotel.name} - 3`}
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
-                }}
-              />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-            </div>
-            <div
-              className="col-span-1 row-span-1 relative cursor-pointer group overflow-hidden"
-              onClick={() => openGallery(3)}
-            >
-              <img
-                src={galleryImages[3]}
-                alt={`${hotel.name} - 4`}
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
-                }}
-              />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-            </div>
+          {/* Sub Photo 3 (Bottom-mid) */}
+          <div
+            className="col-span-1 row-span-1 relative cursor-pointer group overflow-hidden bg-gray-100"
+            onClick={() => openGallery(3)}
+          >
+            <img
+              src={displayPhotos[3]}
+              alt={`${hotel.name} - 4`}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
+              }}
+            />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
           </div>
-        )}
 
-        {galleryImages.length >= 5 && (
-          <div className="grid grid-cols-4 grid-rows-2 gap-2 rounded-2xl overflow-hidden h-[420px] sm:h-[520px]">
-            {/* Main large photo */}
-            <div
-              className="col-span-2 row-span-2 relative cursor-pointer group overflow-hidden"
-              onClick={() => openGallery(0)}
+          {/* Sub Photo 4 (Bottom-right) with "See All Photos" button */}
+          <div
+            className="col-span-1 row-span-1 relative cursor-pointer group overflow-hidden bg-gray-100"
+            onClick={() => openGallery(4)}
+          >
+            <img
+              src={displayPhotos[4]}
+              alt={`${hotel.name} - 5`}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
+              }}
+            />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+
+            {/* See All Photos Button Overlay (with grid icon on left) */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                openGallery(4);
+              }}
+              className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 flex items-center gap-2 bg-black/65 hover:bg-black/85 backdrop-blur-xs text-white text-xs sm:text-sm font-semibold px-3.5 py-2 rounded-lg border border-white/20 shadow-md cursor-pointer transition-all hover:scale-105 z-10"
             >
-              <img
-                src={galleryImages[0]}
-                alt={hotel.name}
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
-                }}
-              />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-            </div>
-
-            {/* Photos 1, 2, 3 */}
-            {[1, 2, 3].map((idx) => (
-              <div
-                key={idx}
-                className="relative cursor-pointer group overflow-hidden"
-                onClick={() => openGallery(idx)}
-              >
-                <img
-                  src={galleryImages[idx]}
-                  alt={`${hotel.name} - ${idx + 1}`}
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
-                  }}
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-              </div>
-            ))}
-
-            {/* Photo 4 */}
-            <div
-              className="relative cursor-pointer group overflow-hidden"
-              onClick={() => openGallery(4)}
-            >
-              <img
-                src={galleryImages[4]}
-                alt={`${hotel.name} - 5`}
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = '/images/hotel-placeholder.png';
-                }}
-              />
-              {/* Only show "+... ảnh" overlay if total photos strictly > 5 */}
-              {galleryImages.length > 5 && (
-                <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-1 group-hover:bg-black/60 transition-colors">
-                  <span className="text-xl">🖼️</span>
-                  <span className="text-white text-xs font-bold text-center leading-tight">
-                    Xem tất cả<br />+{galleryImages.length - 4} ảnh
-                  </span>
-                </div>
-              )}
-              {galleryImages.length === 5 && (
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
-              )}
-            </div>
+              <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+              <span>See All Photos</span>
+            </button>
           </div>
-        )}
-      </div>
+        </div>
 
-      {/* ===== HOTEL NAME + PRICE HEADER ===== */}
-      <div className="max-w-screen-xl mx-auto px-4 mt-6">
-        <div className="rounded-2xl bg-white shadow-sm border border-gray-100 px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          {/* Left: Name + stars */}
+        {/* ===== SUMMARY CARD (BELOW PHOTO GRID) ===== */}
+        <div className="rounded-2xl bg-white shadow-sm border border-gray-100 p-5 sm:p-6 mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          {/* Left: Name, Hotels Badge, Stars, Address */}
           <div>
-            <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl font-extrabold text-gray-900">{hotel.name}</h1>
-              <span className="rounded-full bg-blue-50 border border-blue-100 px-3 py-0.5 text-xs font-bold text-blue-600">
-                Khách sạn
+            <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+              {hotel.name}
+            </h1>
+
+            <div className="mt-2.5 flex items-center gap-2.5 flex-wrap">
+              <span className="rounded-md bg-[#eaf4ff] px-2.5 py-0.5 text-xs font-bold text-[#0194f3]">
+                Hotels
               </span>
-            </div>
-            {hotel.starRating && (
-              <div className="mt-1.5 flex items-center gap-1">
-                {Array.from({ length: hotel.starRating }).map((_, i) => (
-                  <span key={i} className="text-yellow-400 text-lg">★</span>
+              <div className="flex items-center text-yellow-400 text-sm">
+                {Array.from({ length: hotel.starRating ?? 3 }).map((_, i) => (
+                  <span key={i}>★</span>
                 ))}
               </div>
-            )}
-            {hotel.address && (
-              <p className="mt-2 flex items-center gap-1.5 text-sm text-gray-500">
-                <span>📍</span>
-                <span>{hotel.address}</span>
-              </p>
-            )}
+              {hotel.address && (
+                <span className="text-xs text-gray-500">
+                  📍 {hotel.address}
+                </span>
+              )}
+            </div>
           </div>
 
-          {/* Right: Starting price + CTA */}
-          <div className="flex flex-col items-end gap-2 shrink-0">
-            {minPrice && (
-              <div className="text-right">
-                <p className="text-xs text-gray-400 font-medium">Giá phòng/đêm từ</p>
-                <p className="text-2xl font-extrabold text-blue-600">{formatPrice(minPrice)}</p>
-              </div>
-            )}
+          {/* Right: Starts from price + View Rooms button */}
+          <div className="flex flex-col sm:items-end gap-1.5 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100">
+            <div className="text-left sm:text-right">
+              <p className="text-xs text-gray-400 font-medium">Price/room/night starts from</p>
+              <p className="text-2xl sm:text-3xl font-black text-[#ff5e1f]">
+                {formatPrice(minPrice)}
+              </p>
+            </div>
             <a
               href="#available-rooms"
-              className="flex items-center gap-2 rounded-xl bg-blue-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-500/30 hover:bg-blue-600 transition-colors"
+              className="flex items-center justify-center rounded-xl bg-[#0194f3] hover:bg-[#0080d4] px-7 py-2.5 text-sm font-bold text-white shadow-md transition-all cursor-pointer w-full sm:w-auto text-center"
             >
-              Xem Phòng
+              View Rooms
             </a>
           </div>
         </div>

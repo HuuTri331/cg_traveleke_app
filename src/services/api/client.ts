@@ -83,7 +83,7 @@ apiClient.interceptors.response.use(
         ) {
           localStorage.removeItem('traveleke_token');
           localStorage.removeItem('traveleke_user');
-          window.location.href = '/login';
+          window.location.replace('/login');
         }
       }
 

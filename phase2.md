@@ -24,3 +24,12 @@
 │ • Phân công Hướng dẫn viên theo ngôn ngữ & tuyến điểm                   │
 │ • Dashboard chất lượng tích hợp (Service SLA + Staff QA + Star Audit)   │
 └─────────────────────────────────────────────────────────────────────────┘
+
+Chạy lại database 1 
+cách 1  truy cập vào thư mục và thực thi files phase-2-unified-complete.sql 
+
+/usr/local/mysql/bin/mysql -u travel_booking_app -p'TravelBooking@2026Local' -h 127.0.0.1 -D hotel_booking_db < /Users/dangquangminh/cg_traveleke_service/database/bootstrap/phase-2-unified-complete.sql
+
+
+cách 2 mở Mysql Workbench chạy thực thi files 
+phase-2-unified-complete.sql
