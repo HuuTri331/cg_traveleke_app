@@ -17,6 +17,7 @@ import {
   Compass,
   CalendarDays,
   UserCheck,
+  Brain,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { cn } from '@/lib/utils';
@@ -65,6 +66,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           href: '/room-types',
           icon: <Layers className="h-5 w-5" />,
         },
+        {
+          label: 'Dịch Vụ Phòng',
+          href: '/services',
+          icon: <Sparkles className="h-5 w-5" />,
+          badge: 'Mới',
+        },
       ],
     },
     {
@@ -97,6 +104,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 label: 'Phân Công Khách Sạn',
                 href: '/hotel-staff',
                 icon: <UserCheck className="h-5 w-5" />,
+              },
+              {
+                label: 'Năng Lực Nhân Sự',
+                href: '/staff-skills',
+                icon: <Brain className="h-5 w-5" />,
+                badge: 'Mới',
               },
             ],
           },
