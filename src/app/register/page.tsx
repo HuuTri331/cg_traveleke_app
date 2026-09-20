@@ -378,12 +378,18 @@ export default function RegisterPage() {
                   <div className="relative">
                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">👤</span>
                     <input
+                      id="register-fullname"
+                      name="fullName"
                       type="text"
                       disabled={isLocked}
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="Nguyễn Văn A"
                       className={`${inputClass} pl-10`}
+                      spellCheck={false}
+                      autoComplete="name"
+                      autoCorrect="off"
+                      autoCapitalize="words"
                       required
                     />
                   </div>
@@ -559,16 +565,22 @@ export default function RegisterPage() {
 
                 {/* Address */}
                 <div>
-                  <label className={labelClass}>Địa chỉ</label>
+                  <label className={labelClass} htmlFor="register-address">Địa chỉ</label>
                   <div className="relative">
                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">📍</span>
                     <input
+                      id="register-address"
+                      name="address"
                       type="text"
                       disabled={isLocked}
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
-                      placeholder="Số nhà, tên đường, quận/huyện, TP"
+                      placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố"
                       className={`${inputClass} pl-10`}
+                      spellCheck={false}
+                      autoComplete="street-address"
+                      autoCorrect="off"
+                      autoCapitalize="words"
                     />
                   </div>
                 </div>

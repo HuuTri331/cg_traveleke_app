@@ -8,8 +8,10 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Button } from '@/components/ui/Button';
 import { TimePicker } from '@/components/ui/TimePicker';
 import { MultiImageUploadSection } from '@/components/ui/MultiImageUploadSection';
+import { RoomServicesPicker } from './RoomServicesPicker';
 import { BED_TYPES, ROOM_STATUS_OPTIONS } from '@/lib/constants';
 import { roomsApi } from '@/services/api/rooms.api';
+import { apiClient } from '@/services/api/client';
 import { Room, RoomImage, RoomStatus, UpdateRoomInput } from '@/types/room';
 import { Hotel } from '@/types/hotel';
 import { BedDouble, Users, DollarSign } from 'lucide-react';
@@ -35,6 +37,7 @@ export function RoomEditModal({
   const [existingImages, setExistingImages] = useState<RoomImage[]>([]);
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [primaryNewIndex, setPrimaryNewIndex] = useState<number>(0);
+  const [selectedServiceIds, setSelectedServiceIds] = useState<number[]>([]);
 
   const [formData, setFormData] = useState<UpdateRoomInput>({
     hotelId: 1,
@@ -88,6 +91,20 @@ export function RoomEditModal({
       setNewFiles([]);
       setPrimaryNewIndex(0);
       fetchImages();
+
+      // Load room services
+      if (room.services && room.services.length > 0) {
+        setSelectedServiceIds(room.services.map((s) => s.id));
+      } else {
+        apiClient
+          .get(`/rooms/${room.id}/services`)
+          .then((res) => {
+            if (Array.isArray(res.data)) {
+              setSelectedServiceIds(res.data.map((s: any) => Number(s.id)));
+            }
+          })
+          .catch((err) => console.error('Failed to load room services:', err));
+      }
     }
   }, [room, isOpen, fetchImages]);
 
@@ -143,6 +160,7 @@ export function RoomEditModal({
         availableRooms: Number(formData.availableRooms),
         bedCount: Number(formData.bedCount),
         roomSize: formData.roomSize ? Number(formData.roomSize) : null,
+        serviceIds: selectedServiceIds,
       });
 
       success('Thành công', `Đã cập nhật phòng "${formData.name}" thành công!`);
@@ -325,7 +343,14 @@ export function RoomEditModal({
           helperText="Tải tối đa 5 ảnh. Bấm vào ngôi sao ⭐ để chọn ảnh làm đại diện chính."
         />
 
-        {/* Hàng 9: Mô tả */}
+        {/* Hàng 9: Dịch vụ & Tiện ích kèm theo phòng (Miễn phí mặc định & Có phí) */}
+        <RoomServicesPicker
+          selectedServiceIds={selectedServiceIds}
+          onChange={setSelectedServiceIds}
+          defaultCheckComplimentary={false}
+        />
+
+        {/* Hàng 10: Mô tả */}
         <Textarea
           label="Mô tả tiện nghi phòng"
           rows={3}

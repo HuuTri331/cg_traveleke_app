@@ -10,6 +10,22 @@ export interface RoomImage {
   createdAt: string;
 }
 
+export interface RoomAssignedService {
+  id: number;
+  name: string;
+  description: string | null;
+  unit: string;
+  basePrice: number;
+  isComplimentary: boolean;
+  serviceType: string;
+  category: {
+    id: number;
+    code: string;
+    name: string;
+    icon: string | null;
+  } | null;
+}
+
 export interface Room {
   id: string;
   hotelId: string;
@@ -34,6 +50,7 @@ export interface Room {
   updatedAt: string;
   deletedAt: string | null;
   images?: RoomImage[];
+  services?: RoomAssignedService[];
 }
 
 export interface CreateRoomInput {
@@ -55,6 +72,7 @@ export interface CreateRoomInput {
   reviewCount?: number;
   coverImageUrl?: string | null;
   status?: RoomStatus;
+  serviceIds?: number[];
 }
 
 export interface UpdateRoomInput extends Partial<CreateRoomInput> {}

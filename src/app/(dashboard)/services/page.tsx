@@ -35,15 +35,36 @@ import {
 // LEVEL LABELS & ICON MAP
 // ============================================================
 const ICON_OPTIONS = [
-  { value: 'Sparkles', label: '✨ Dọn phòng' },
-  { value: 'WashingMachine', label: '👕 Giặt ủi' },
-  { value: 'UtensilsCrossed', label: '🍽️ Ăn uống' },
-  { value: 'Heart', label: '💆 Spa' },
-  { value: 'Car', label: '🚗 Vận chuyển' },
-  { value: 'Star', label: '⭐ Đặc biệt' },
-  { value: 'Wifi', label: '📶 Kỹ thuật' },
-  { value: 'Baby', label: '👶 Trẻ em' },
+  { value: 'Sparkles', label: '✨ Dọn Phòng' },
+  { value: 'WashingMachine', label: '👕 Giặt Ủi' },
+  { value: 'UtensilsCrossed', label: '🍽️ Ăn Uống Tại Phòng' },
+  { value: 'Heart', label: '💆 Spa & Massage' },
+  { value: 'Car', label: '🚗 Vận Chuyển' },
+  { value: 'Star', label: '⭐ Hỗ Trợ Đặc Biệt' },
+  { value: 'Wifi', label: '📶 Hỗ Trợ Kỹ Thuật' },
+  { value: 'Baby', label: '👶 Chăm Sóc Trẻ Em' },
 ];
+
+function formatTitleCase(str: string): string {
+  if (!str) return '';
+  return str
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+function slugifyCategoryCode(name: string): string {
+  return name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
 
 function formatPrice(amount: number): string {
   return new Intl.NumberFormat('vi-VN', {
@@ -94,7 +115,10 @@ function CategoryModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim() || !form.code.trim()) {
+    const formattedName = formatTitleCase(form.name);
+    const formattedCode = form.code.trim().toUpperCase() || slugifyCategoryCode(formattedName);
+
+    if (!formattedName || !formattedCode) {
       error('Lỗi', 'Vui lòng nhập mã và tên danh mục');
       return;
     }
@@ -102,22 +126,22 @@ function CategoryModal({
     try {
       if (category?.id) {
         await servicesApi.updateCategory(category.id, {
-          name: form.name,
-          description: form.description || undefined,
+          name: formattedName,
+          description: form.description?.trim() || undefined,
           icon: form.icon,
           sortOrder: form.sortOrder,
           status: form.status as 'ACTIVE' | 'INACTIVE',
         });
-        success('Cập nhật thành công', `Đã cập nhật danh mục "${form.name}"`);
+        success('Cập nhật thành công', `Đã cập nhật danh mục "${formattedName}"`);
       } else {
         await servicesApi.createCategory({
-          code: form.code,
-          name: form.name,
-          description: form.description || undefined,
+          code: formattedCode,
+          name: formattedName,
+          description: form.description?.trim() || undefined,
           icon: form.icon,
           sortOrder: form.sortOrder,
         });
-        success('Tạo thành công', `Đã tạo danh mục "${form.name}"`);
+        success('Tạo thành công', `Đã tạo danh mục "${formattedName}"`);
       }
       onSaved();
       onClose();
@@ -163,10 +187,11 @@ function CategoryModal({
                 type="text"
                 required
                 value={form.code}
-                onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
+                onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase().replace(/\s+/g, '_').replace(/[^A-Z0-9_]/g, '') })}
                 disabled={!!category?.id}
                 placeholder="VD: HOUSEKEEPING"
-                className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-violet-500 disabled:opacity-50 font-mono"
+                spellCheck={false}
+                className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-violet-500 disabled:opacity-50 font-mono tracking-wider"
               />
             </div>
             <div>
@@ -195,9 +220,18 @@ function CategoryModal({
               type="text"
               required
               value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="VD: Dọn phòng & Vệ sinh"
-              className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-violet-500"
+              onChange={(e) => {
+                const val = e.target.value;
+                setForm((prev) => ({
+                  ...prev,
+                  name: val,
+                  code: !category?.id && (!prev.code || prev.code === slugifyCategoryCode(prev.name)) ? slugifyCategoryCode(val) : prev.code,
+                }));
+              }}
+              onBlur={() => setForm((prev) => ({ ...prev, name: formatTitleCase(prev.name) }))}
+              placeholder="VD: Dọn Phòng & Vệ Sinh"
+              spellCheck={false}
+              className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-violet-500 font-medium"
             />
           </div>
 
@@ -209,8 +243,9 @@ function CategoryModal({
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               rows={2}
+              spellCheck={false}
               placeholder="Mô tả ngắn về nhóm dịch vụ này..."
-              className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-violet-500 resize-none"
+              className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-violet-500 resize-none font-normal"
             />
           </div>
 
@@ -295,7 +330,8 @@ function RoomServiceModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name.trim()) {
+    const formattedName = formatTitleCase(form.name);
+    if (!formattedName) {
       error('Lỗi', 'Vui lòng nhập tên dịch vụ');
       return;
     }
@@ -303,19 +339,19 @@ function RoomServiceModal({
     try {
       const payload = {
         categoryId: Number(form.categoryId),
-        name: form.name,
-        description: form.description || undefined,
-        unit: form.unit,
+        name: formattedName,
+        description: form.description?.trim() || undefined,
+        unit: form.unit.trim() || 'lần',
         basePrice: form.isComplimentary ? 0 : Number(form.basePrice),
         isComplimentary: form.isComplimentary,
         maxQuantity: form.maxQuantity ? Number(form.maxQuantity) : undefined,
       };
       if (service?.id) {
         await servicesApi.updateRoomService(service.id, { ...payload, status: form.status as 'ACTIVE' | 'INACTIVE' });
-        success('Cập nhật thành công', `Đã cập nhật dịch vụ "${form.name}"`);
+        success('Cập nhật thành công', `Đã cập nhật dịch vụ "${formattedName}"`);
       } else {
         await servicesApi.createRoomService(payload);
-        success('Tạo thành công', `Đã thêm dịch vụ "${form.name}"`);
+        success('Tạo thành công', `Đã thêm dịch vụ "${formattedName}"`);
       }
       onSaved();
       onClose();
@@ -375,8 +411,10 @@ function RoomServiceModal({
               required
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="VD: Dọn phòng buổi sáng, Giặt đồ theo kg..."
-              className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-emerald-500"
+              onBlur={() => setForm((prev) => ({ ...prev, name: formatTitleCase(prev.name) }))}
+              placeholder="VD: Dọn Phòng Buổi Sáng, Giặt Ủi Theo Kg..."
+              spellCheck={false}
+              className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-emerald-500 font-medium"
             />
           </div>
 
@@ -388,6 +426,7 @@ function RoomServiceModal({
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               rows={2}
+              spellCheck={false}
               placeholder="Mô tả chi tiết về dịch vụ..."
               className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-emerald-500 resize-none"
             />
@@ -403,8 +442,26 @@ function RoomServiceModal({
                 value={form.unit}
                 onChange={(e) => setForm({ ...form, unit: e.target.value })}
                 placeholder="lần, ngày, giờ..."
+                spellCheck={false}
                 className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-emerald-500"
               />
+              <div className="flex flex-wrap gap-1 mt-1.5">
+                {['lần', 'giờ', 'ngày', 'phần', 'kg'].map((u) => (
+                  <button
+                    key={u}
+                    type="button"
+                    onClick={() => setForm({ ...form, unit: u })}
+                    className={cn(
+                      'text-[10px] px-1.5 py-0.5 rounded border transition-colors cursor-pointer',
+                      form.unit === u
+                        ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border-emerald-300'
+                        : 'bg-gray-50 dark:bg-gray-800 text-gray-500 border-gray-200 dark:border-gray-700 hover:bg-gray-100',
+                    )}
+                  >
+                    {u}
+                  </button>
+                ))}
+              </div>
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
@@ -418,6 +475,9 @@ function RoomServiceModal({
                 disabled={form.isComplimentary}
                 className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 disabled:opacity-40"
               />
+              <div className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 mt-1 truncate">
+                {form.isComplimentary ? 'Miễn phí' : formatPrice(form.basePrice || 0)}
+              </div>
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">

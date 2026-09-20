@@ -5,7 +5,8 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { ImageSlider } from '@/components/ui/ImageSlider';
-import { Room, RoomImage } from '@/types/room';
+import { apiClient } from '@/services/api/client';
+import { Room, RoomImage, RoomAssignedService } from '@/types/room';
 import { Hotel } from '@/types/hotel';
 import { roomsApi } from '@/services/api/rooms.api';
 import { formatCurrency } from '@/lib/utils';
@@ -19,6 +20,8 @@ import {
   Star,
   Edit,
   Building2,
+  CheckCircle2,
+  PlusCircle,
 } from 'lucide-react';
 
 export interface RoomDetailModalProps {
@@ -39,6 +42,7 @@ export function RoomDetailModal({
   onOpenGallery,
 }: RoomDetailModalProps) {
   const [images, setImages] = useState<RoomImage[]>([]);
+  const [services, setServices] = useState<RoomAssignedService[]>([]);
 
   useEffect(() => {
     if (isOpen && room) {
@@ -51,6 +55,20 @@ export function RoomDetailModal({
         }
       };
       fetchImages();
+
+      // Load assigned services
+      if (room.services && room.services.length > 0) {
+        setServices(room.services);
+      } else {
+        apiClient
+          .get(`/rooms/${room.id}/services`)
+          .then((res) => {
+            if (Array.isArray(res.data)) {
+              setServices(res.data);
+            }
+          })
+          .catch((err) => console.error('Failed to load room services in modal:', err));
+      }
     }
   }, [isOpen, room]);
 
@@ -205,6 +223,51 @@ export function RoomDetailModal({
               Nhận phòng: <strong className="text-gray-800 dark:text-gray-200">{room.checkInTime || '14:00:00'}</strong> • Trả phòng: <strong className="text-gray-800 dark:text-gray-200">{room.checkOutTime || '12:00:00'}</strong>
             </span>
           </div>
+
+          {/* Room Services & Amenities */}
+          {services.length > 0 && (
+            <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-3.5 dark:border-gray-800 dark:bg-gray-800/40">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                  Dịch vụ & Tiện ích đi kèm ({services.length})
+                </p>
+                <div className="flex items-center gap-1.5 text-[10px]">
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                    {services.filter((s) => s.isComplimentary).length} Miễn phí
+                  </span>
+                  <span>•</span>
+                  <span className="text-violet-600 dark:text-violet-400 font-semibold">
+                    {services.filter((s) => !s.isComplimentary).length} Thu phí
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-1.5">
+                {services.map((svc) => (
+                  <span
+                    key={svc.id}
+                    className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg border font-medium ${
+                      svc.isComplimentary
+                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                        : 'bg-violet-50 text-violet-700 dark:bg-violet-950/40 dark:text-violet-300 border-violet-200 dark:border-violet-800'
+                    }`}
+                  >
+                    {svc.isComplimentary ? (
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                    ) : (
+                      <PlusCircle className="h-3.5 w-3.5 text-violet-600" />
+                    )}
+                    <span>{svc.name}</span>
+                    <span className="text-[10px] opacity-75">
+                      {svc.isComplimentary
+                        ? '(Miễn phí)'
+                        : `(${new Intl.NumberFormat('vi-VN').format(svc.basePrice)}₫)`}
+                    </span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Room Description & Amenities */}
           {room.description && (

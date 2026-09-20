@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Button } from '@/components/ui/Button';
 import { TimePicker } from '@/components/ui/TimePicker';
 import { MultiImageUploadSection } from '@/components/ui/MultiImageUploadSection';
+import { RoomServicesPicker } from './RoomServicesPicker';
 import { BED_TYPES, ROOM_STATUS_OPTIONS } from '@/lib/constants';
 import { slugify } from '@/lib/utils';
 import { roomsApi } from '@/services/api/rooms.api';
@@ -36,6 +37,7 @@ export function RoomCreateModal({
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [primaryNewIndex, setPrimaryNewIndex] = useState<number>(0);
   const [autoSlug, setAutoSlug] = useState(true);
+  const [selectedServiceIds, setSelectedServiceIds] = useState<number[]>([]);
 
   const [formData, setFormData] = useState<CreateRoomInput>({
     hotelId:
@@ -93,6 +95,7 @@ export function RoomCreateModal({
       setNewFiles([]);
       setPrimaryNewIndex(0);
       setAutoSlug(true);
+      setSelectedServiceIds([]);
     }
   }, [isOpen, defaultHotelId, hotels]);
 
@@ -132,6 +135,7 @@ export function RoomCreateModal({
         availableRooms: Number(formData.availableRooms),
         bedCount: Number(formData.bedCount),
         roomSize: formData.roomSize ? Number(formData.roomSize) : null,
+        serviceIds: selectedServiceIds,
       });
 
       // Batch upload all selected images for this room
@@ -329,7 +333,14 @@ export function RoomCreateModal({
           helperText="Tải tối đa 5 ảnh cho phòng nghỉ. Bấm vào ngôi sao ⭐ để chọn ảnh làm đại diện chính."
         />
 
-        {/* Hàng 9: Mô tả */}
+        {/* Hàng 9: Dịch vụ & Tiện ích kèm theo phòng (Miễn phí mặc định & Có phí) */}
+        <RoomServicesPicker
+          selectedServiceIds={selectedServiceIds}
+          onChange={setSelectedServiceIds}
+          defaultCheckComplimentary={true}
+        />
+
+        {/* Hàng 10: Mô tả */}
         <Textarea
           label="Mô tả tiện nghi phòng"
           placeholder="Ban công ngắm biển, bồn tắm nằm, minibar, TV thông minh..."
