@@ -80,7 +80,7 @@ export function Header({ onToggleSidebar }: HeaderProps) {
                 <h4 className="text-sm font-bold text-gray-900 dark:text-white">
                   Thông báo hệ thống
                 </h4>
-                <span className="rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-bold text-brand-600 dark:bg-brand-500/15 dark:text-brand-400">
+                <span className="rounded-full bg-brand-50 px-2 py-0.5 text-2xs font-bold text-brand-600 dark:bg-brand-500/15 dark:text-brand-400">
                   2 mới
                 </span>
               </div>
@@ -97,10 +97,10 @@ export function Header({ onToggleSidebar }: HeaderProps) {
                       <p className="text-xs font-semibold text-gray-800 dark:text-gray-200">
                         {n.title}
                       </p>
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
+                      <p className="text-xs-plus text-gray-500 dark:text-gray-400 truncate">
                         {n.desc}
                       </p>
-                      <span className="text-[10px] text-gray-400 mt-0.5 block">
+                      <span className="text-2xs text-gray-400 mt-0.5 block">
                         {n.time}
                       </span>
                     </div>
@@ -123,7 +123,7 @@ export function Header({ onToggleSidebar }: HeaderProps) {
                 <span className="text-xs font-bold text-gray-800 dark:text-white leading-tight">
                   {user?.fullName || 'Người Dùng'}
                 </span>
-                <span className="text-[10px] text-gray-500 dark:text-gray-400 flex items-center gap-1 font-medium">
+                <span className="text-2xs text-gray-500 dark:text-gray-400 flex items-center gap-1 font-medium">
                   <ShieldCheck className="h-3 w-3 text-brand-500" />
                   {user?.role === 'ADMIN' ? 'Quản Trị Viên' : 'Nhân Viên'}
                 </span>

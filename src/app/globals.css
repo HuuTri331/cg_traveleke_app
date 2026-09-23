@@ -3,6 +3,29 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  /* Typography Tokens */
+  --font-inter: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-outfit: var(--font-outfit), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+
+  /* Micro-typography Scale (Replaces arbitrary text-[9px], text-[10px], text-[11px]) */
+  --text-3xs: 0.5625rem;
+  --text-3xs--line-height: 0.75rem;
+
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 0.875rem;
+
+  --text-xs-plus: 0.6875rem;
+  --text-xs-plus--line-height: 0.9375rem;
+
+  /* Spacing Scale Tokens */
+  --spacing-card-sm: 1rem;
+  --spacing-card: 1.5rem;
+  --spacing-card-lg: 2rem;
+  --spacing-section: 2.5rem;
+  --spacing-section-lg: 4rem;
+  --spacing-sidebar: 17.5rem;
+
+  /* Brand Colors */
   --color-brand-50: #f0f4ff;
   --color-brand-100: #e0e8ff;
   --color-brand-200: #c7d6fe;
@@ -14,7 +37,15 @@
   --color-brand-800: #242f92;
   --color-brand-900: #1d2571;
 
-  --font-outfit: var(--font-outfit), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  /* Semantic Traveloka Palette (Replaces arbitrary hexes #0194f3, #ff5e1f, etc.) */
+  --color-traveloka-blue: #0194f3;
+  --color-traveloka-blue-hover: #0080d4;
+  --color-traveloka-blue-subtle: #f2f8fc;
+  --color-traveloka-blue-light: #eaf4ff;
+
+  --color-traveloka-orange: #ff5e1f;
+  --color-traveloka-orange-hover: #e04e14;
+  --color-traveloka-orange-subtle: #fff1eb;
 }
 
 :root {

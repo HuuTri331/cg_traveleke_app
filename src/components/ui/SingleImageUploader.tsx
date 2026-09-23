@@ -64,10 +64,10 @@ export function SingleImageUploader({
 
           <div className="flex-1 space-y-2 text-center sm:text-left">
             <div>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400 text-[11px] font-bold">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400 text-xs-plus font-bold">
                 ✓ Đã chọn ảnh đại diện
               </span>
-              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-xs-plus text-gray-500 dark:text-gray-400 mt-1">
                 Ảnh này sẽ hiển thị làm ảnh bìa chính trên trang chủ và danh sách.
               </p>
             </div>
@@ -104,7 +104,7 @@ export function SingleImageUploader({
           <p className="text-xs font-semibold text-gray-800 dark:text-gray-200">
             Bấm để chọn <span className="text-brand-500 underline">ảnh đại diện từ thiết bị</span>
           </p>
-          <p className="mt-0.5 text-[11px] text-gray-400">{helperText}</p>
+          <p className="mt-0.5 text-xs-plus text-gray-400">{helperText}</p>
         </div>
       )}
     </div>

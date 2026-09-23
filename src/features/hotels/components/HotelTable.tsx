@@ -306,7 +306,7 @@ export function HotelTable({
                           >
                             {hotel.name}
                           </button>
-                          <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate max-w-xs mt-0.5 flex items-center gap-1">
+                          <p className="text-xs-plus text-gray-500 dark:text-gray-400 truncate max-w-xs mt-0.5 flex items-center gap-1">
                             <MapPin className="h-3 w-3 shrink-0 text-gray-400" />
                             {hotel.address}
                           </p>
@@ -317,10 +317,10 @@ export function HotelTable({
                     {/* Loại hình & Địa điểm */}
                     <td className="px-4 sm:px-5 py-4">
                       <div className="space-y-1">
-                        <span className="inline-block px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-[11px] font-semibold text-gray-700 dark:text-gray-300">
+                        <span className="inline-block px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-xs-plus font-semibold text-gray-700 dark:text-gray-300">
                           {hotelType?.name || `Loại #${hotel.hotelTypeId}`}
                         </span>
-                        <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                        <p className="text-xs-plus text-gray-500 dark:text-gray-400">
                           {location?.name || `Địa điểm #${hotel.locationId}`}
                         </p>
                       </div>
@@ -340,7 +340,7 @@ export function HotelTable({
 
                     {/* Giờ nhận / trả */}
                     <td className="px-4 sm:px-5 py-4">
-                      <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">
+                      <div className="text-xs-plus text-gray-600 dark:text-gray-300 font-medium">
                         <p>Nhận: <span className="font-semibold text-gray-800 dark:text-gray-200">{hotel.checkInTime}</span></p>
                         <p>Trả: <span className="font-semibold text-gray-800 dark:text-gray-200">{hotel.checkOutTime}</span></p>
                       </div>

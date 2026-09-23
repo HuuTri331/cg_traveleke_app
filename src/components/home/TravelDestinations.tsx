@@ -231,7 +231,7 @@ export default function TravelDestinations() {
               onClick={() => handleTabClick(tab)}
               className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition-all cursor-pointer ${
                 isActive
-                  ? 'bg-[#0194f3] text-white shadow-xs'
+                  ? 'bg-traveloka-blue text-white shadow-xs'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
@@ -248,7 +248,7 @@ export default function TravelDestinations() {
           <button
             type="button"
             onClick={handlePrevious}
-            className="absolute -left-4 top-1/2 -translate-y-1/2 z-20 hidden lg:flex h-10 w-10 items-center justify-center rounded-full bg-white text-gray-700 shadow-xl border border-gray-100 hover:bg-gray-50 hover:text-[#0194f3] transition-all cursor-pointer"
+            className="absolute -left-4 top-1/2 -translate-y-1/2 z-20 hidden lg:flex h-10 w-10 items-center justify-center rounded-full bg-white text-gray-700 shadow-xl border border-gray-100 hover:bg-gray-50 hover:text-traveloka-blue transition-all cursor-pointer"
             title="Trước đó"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -276,7 +276,7 @@ export default function TravelDestinations() {
 
                 {/* Badge Tag */}
                 {dest.tag && (
-                  <span className="absolute top-2.5 left-2.5 rounded-md bg-emerald-600/90 backdrop-blur-xs px-2.5 py-1 text-[10px] font-bold text-white shadow-sm tracking-wide">
+                  <span className="absolute top-2.5 left-2.5 rounded-md bg-emerald-600/90 backdrop-blur-xs px-2.5 py-1 text-2xs font-bold text-white shadow-sm tracking-wide">
                     {dest.tag}
                   </span>
                 )}
@@ -285,7 +285,7 @@ export default function TravelDestinations() {
               {/* Card Body */}
               <div className="p-4 flex flex-1 flex-col justify-between">
                 <div>
-                  <h3 className="font-bold text-gray-900 text-base line-clamp-1 group-hover:text-[#0194f3] transition-colors">
+                  <h3 className="font-bold text-gray-900 text-base line-clamp-1 group-hover:text-traveloka-blue transition-colors">
                     {dest.title}
                   </h3>
 
@@ -321,7 +321,7 @@ export default function TravelDestinations() {
           <button
             type="button"
             onClick={handleNext}
-            className="absolute -right-4 top-1/2 -translate-y-1/2 z-20 hidden lg:flex h-10 w-10 items-center justify-center rounded-full bg-white text-gray-700 shadow-xl border border-gray-100 hover:bg-gray-50 hover:text-[#0194f3] transition-all cursor-pointer"
+            className="absolute -right-4 top-1/2 -translate-y-1/2 z-20 hidden lg:flex h-10 w-10 items-center justify-center rounded-full bg-white text-gray-700 shadow-xl border border-gray-100 hover:bg-gray-50 hover:text-traveloka-blue transition-all cursor-pointer"
             title="Tiếp theo"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

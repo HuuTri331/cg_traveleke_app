@@ -161,7 +161,7 @@ export function RoomDetailModal({
                 <DollarSign className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                <p className="text-2xs font-bold uppercase tracking-wider text-gray-400">
                   Giá mỗi đêm
                 </p>
                 <p className="text-sm font-bold text-brand-600 dark:text-brand-400 mt-0.5">
@@ -176,7 +176,7 @@ export function RoomDetailModal({
                 <BedDouble className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                <p className="text-2xs font-bold uppercase tracking-wider text-gray-400">
                   Giường & Diện tích
                 </p>
                 <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 mt-0.5">
@@ -191,7 +191,7 @@ export function RoomDetailModal({
                 <Users className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                <p className="text-2xs font-bold uppercase tracking-wider text-gray-400">
                   Sức chứa
                 </p>
                 <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 mt-0.5">
@@ -206,7 +206,7 @@ export function RoomDetailModal({
                 <Layers className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                <p className="text-2xs font-bold uppercase tracking-wider text-gray-400">
                   Tình trạng phòng
                 </p>
                 <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 mt-0.5">
@@ -228,10 +228,10 @@ export function RoomDetailModal({
           {services.length > 0 && (
             <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-3.5 dark:border-gray-800 dark:bg-gray-800/40">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                <p className="text-2xs font-bold uppercase tracking-wider text-gray-400">
                   Dịch vụ & Tiện ích đi kèm ({services.length})
                 </p>
-                <div className="flex items-center gap-1.5 text-[10px]">
+                <div className="flex items-center gap-1.5 text-2xs">
                   <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
                     {services.filter((s) => s.isComplimentary).length} Miễn phí
                   </span>
@@ -258,7 +258,7 @@ export function RoomDetailModal({
                       <PlusCircle className="h-3.5 w-3.5 text-violet-600" />
                     )}
                     <span>{svc.name}</span>
-                    <span className="text-[10px] opacity-75">
+                    <span className="text-2xs opacity-75">
                       {svc.isComplimentary
                         ? '(Miễn phí)'
                         : `(${new Intl.NumberFormat('vi-VN').format(svc.basePrice)}₫)`}
@@ -272,7 +272,7 @@ export function RoomDetailModal({
           {/* Room Description & Amenities */}
           {room.description && (
             <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-3.5 dark:border-gray-800 dark:bg-gray-800/40">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+              <p className="text-2xs font-bold uppercase tracking-wider text-gray-400 mb-1">
                 Mô tả tiện nghi phòng
               </p>
               <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">

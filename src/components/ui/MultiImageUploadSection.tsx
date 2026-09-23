@@ -100,7 +100,7 @@ export function MultiImageUploadSection({
           <p className="text-xs font-bold text-gray-800 dark:text-gray-200">
             Bấm để chọn <span className="text-brand-500 underline">nhiều ảnh cùng lúc</span> từ máy tính
           </p>
-          <p className="text-[11px] text-gray-400 mt-0.5">
+          <p className="text-xs-plus text-gray-400 mt-0.5">
             {helperText || `Có thể chọn tối đa ${remainingSlots} ảnh nữa (JPG, PNG, WEBP)`}
           </p>
         </div>
@@ -109,7 +109,7 @@ export function MultiImageUploadSection({
       {/* Combined Preview Grid of Existing + Newly Selected Images */}
       {totalCount > 0 && (
         <div className="space-y-2">
-          <div className="text-[11px] font-semibold text-gray-500 dark:text-gray-400 flex items-center justify-between">
+          <div className="text-xs-plus font-semibold text-gray-500 dark:text-gray-400 flex items-center justify-between">
             <span>Danh sách ảnh ({totalCount}) - Click ⭐ để chọn làm ảnh đại diện chính:</span>
             {newFiles.length > 0 && (
               <button
@@ -147,7 +147,7 @@ export function MultiImageUploadSection({
 
                   {/* Primary Badge or Select Primary Button */}
                   {isPrimary ? (
-                    <div className="absolute top-1 left-1 flex items-center gap-0.5 rounded-full bg-brand-500 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-md">
+                    <div className="absolute top-1 left-1 flex items-center gap-0.5 rounded-full bg-brand-500 px-1.5 py-0.5 text-3xs font-bold text-white shadow-md">
                       <Star className="h-2.5 w-2.5 fill-white" />
                       <span>Ảnh chính</span>
                     </div>
@@ -156,7 +156,7 @@ export function MultiImageUploadSection({
                       <button
                         type="button"
                         onClick={() => onSetPrimaryExisting(img.id)}
-                        className="absolute top-1 left-1 flex items-center gap-0.5 rounded-full bg-black/70 hover:bg-brand-500 px-1.5 py-0.5 text-[9px] font-semibold text-white transition-colors cursor-pointer"
+                        className="absolute top-1 left-1 flex items-center gap-0.5 rounded-full bg-black/70 hover:bg-brand-500 px-1.5 py-0.5 text-3xs font-semibold text-white transition-colors cursor-pointer"
                         title="Đặt làm ảnh chính"
                       >
                         <Star className="h-2.5 w-2.5" />
@@ -201,13 +201,13 @@ export function MultiImageUploadSection({
                   />
 
                   {/* New Image Tag */}
-                  <div className="absolute bottom-0 inset-x-0 bg-black/70 px-1 py-0.5 text-[9px] text-center text-white truncate font-medium">
+                  <div className="absolute bottom-0 inset-x-0 bg-black/70 px-1 py-0.5 text-3xs text-center text-white truncate font-medium">
                     + Mới ({ (file.size / (1024 * 1024)).toFixed(1) } MB)
                   </div>
 
                   {/* Primary Badge or Select Button */}
                   {isPrimaryNew ? (
-                    <div className="absolute top-1 left-1 flex items-center gap-0.5 rounded-full bg-brand-500 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-md">
+                    <div className="absolute top-1 left-1 flex items-center gap-0.5 rounded-full bg-brand-500 px-1.5 py-0.5 text-3xs font-bold text-white shadow-md">
                       <Star className="h-2.5 w-2.5 fill-white" />
                       <span>Ảnh chính</span>
                     </div>
@@ -216,7 +216,7 @@ export function MultiImageUploadSection({
                       <button
                         type="button"
                         onClick={() => onSetPrimaryNewIndex(idx)}
-                        className="absolute top-1 left-1 flex items-center gap-0.5 rounded-full bg-black/70 hover:bg-brand-500 px-1.5 py-0.5 text-[9px] font-semibold text-white transition-colors cursor-pointer"
+                        className="absolute top-1 left-1 flex items-center gap-0.5 rounded-full bg-black/70 hover:bg-brand-500 px-1.5 py-0.5 text-3xs font-semibold text-white transition-colors cursor-pointer"
                         title="Đặt làm ảnh chính"
                       >
                         <Star className="h-2.5 w-2.5" />

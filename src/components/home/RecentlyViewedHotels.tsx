@@ -163,13 +163,13 @@ export default function RecentlyViewedHotels() {
                     (e.target as HTMLImageElement).src = PLACEHOLDER_IMAGE;
                   }}
                 />
-                <div className="absolute top-2.5 left-2.5 flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-xs">
+                <div className="absolute top-2.5 left-2.5 flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-xs-plus font-semibold text-white backdrop-blur-xs">
                   <Eye className="h-3 w-3 text-sky-400" />
                   <span>Đã xem</span>
                 </div>
 
                 {hotel.starRating && (
-                  <div className="absolute top-2.5 right-2.5 flex items-center gap-1 rounded-full bg-amber-500/90 px-2 py-0.5 text-[11px] font-bold text-white shadow-xs">
+                  <div className="absolute top-2.5 right-2.5 flex items-center gap-1 rounded-full bg-amber-500/90 px-2 py-0.5 text-xs-plus font-bold text-white shadow-xs">
                     <Star className="h-3 w-3 fill-current" />
                     <span>{hotel.starRating} sao</span>
                   </div>
@@ -189,7 +189,7 @@ export default function RecentlyViewedHotels() {
 
                 <div className="mt-auto pt-3 border-t border-gray-100 dark:border-gray-800 flex items-end justify-between">
                   <div>
-                    <span className="block text-[10px] text-gray-400">Giá mỗi đêm từ</span>
+                    <span className="block text-2xs text-gray-400">Giá mỗi đêm từ</span>
                     <span className="text-sm font-black text-brand-500">
                       {formatVND(hotel.minPricePerNight)}
                     </span>

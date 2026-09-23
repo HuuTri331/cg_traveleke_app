@@ -247,7 +247,7 @@ function RoomCard({ room, hotel }: RoomCardProps) {
   return (
     <div className="rounded-2xl border border-gray-200 bg-white shadow-xs overflow-hidden mb-6 transition-all hover:border-blue-200">
       {/* Top Banner Header */}
-      <div className="bg-[#f2f8fc] px-5 py-3 border-b border-blue-50 flex items-center justify-between">
+      <div className="bg-traveloka-blue-subtle px-5 py-3 border-b border-blue-50 flex items-center justify-between">
         <h3 className="text-base font-bold text-gray-900 tracking-tight">
           {room.name}
         </h3>
@@ -335,7 +335,7 @@ function RoomCard({ room, hotel }: RoomCardProps) {
           {/* Link at bottom: See Room Details */}
           <Link
             href={`/booking/${room.id}`}
-            className="mt-4 pt-3 border-t border-gray-100 flex items-center gap-1.5 text-xs font-bold text-[#0194f3] hover:underline"
+            className="mt-4 pt-3 border-t border-gray-100 flex items-center gap-1.5 text-xs font-bold text-traveloka-blue hover:underline"
           >
             <span>🪟</span>
             <span>See Room Details</span>
@@ -365,7 +365,7 @@ function RoomCard({ room, hotel }: RoomCardProps) {
               <p className="mt-1.5 flex items-center gap-1 text-xs font-semibold text-emerald-600">
                 <span>✓</span>
                 <span>Free Cancellation until 17 Oct 23:59</span>
-                <span className="text-gray-400 text-[10px]">ⓘ</span>
+                <span className="text-gray-400 text-2xs">ⓘ</span>
               </p>
             </div>
 
@@ -381,16 +381,16 @@ function RoomCard({ room, hotel }: RoomCardProps) {
 
             {/* Col 3: Price */}
             <div className="text-center">
-              <span className="inline-block rounded-full bg-[#fff1eb] px-2.5 py-0.5 text-[11px] font-bold text-[#ff5e1f] mb-1">
+              <span className="inline-block rounded-full bg-traveloka-orange-subtle px-2.5 py-0.5 text-xs-plus font-bold text-traveloka-orange mb-1">
                 Special for you!
               </span>
               <p className="text-xs text-gray-400 line-through">
                 {formatVND(originalPrice)}
               </p>
-              <p className="text-lg font-black text-[#ff5e1f]">
+              <p className="text-lg font-black text-traveloka-orange">
                 {formatVND(priceNum)}
               </p>
-              <p className="text-[10px] text-gray-400">
+              <p className="text-2xs text-gray-400">
                 Exclude taxes & fees
               </p>
             </div>
@@ -405,12 +405,12 @@ function RoomCard({ room, hotel }: RoomCardProps) {
               <button
                 type="button"
                 onClick={() => handleBookRoom(false)}
-                className="w-24 rounded-lg bg-[#0194f3] hover:bg-[#0080d4] text-white font-bold text-sm py-2 shadow-xs transition-colors cursor-pointer text-center"
+                className="w-24 rounded-lg bg-traveloka-blue hover:bg-traveloka-blue-hover text-white font-bold text-sm py-2 shadow-xs transition-colors cursor-pointer text-center"
               >
                 Choose
               </button>
               {room.availableRooms <= 5 && room.availableRooms > 0 && (
-                <span className="mt-1 text-[11px] font-bold text-red-500 text-center leading-tight whitespace-nowrap">
+                <span className="mt-1 text-xs-plus font-bold text-red-500 text-center leading-tight whitespace-nowrap">
                   {room.availableRooms} room(s) left!
                 </span>
               )}
@@ -426,18 +426,18 @@ function RoomCard({ room, hotel }: RoomCardProps) {
                 <span>🛏️</span>
                 <span>{room.bedCount} {room.bedType || 'double bed'}</span>
               </p>
-              <p className="mt-1.5 flex items-center gap-1 text-xs font-semibold text-[#0194f3]">
+              <p className="mt-1.5 flex items-center gap-1 text-xs font-semibold text-traveloka-blue">
                 <span>✓</span>
                 <span>Pay at Hotel</span>
-                <span className="text-gray-400 text-[10px]">ⓘ</span>
+                <span className="text-gray-400 text-2xs">ⓘ</span>
               </p>
-              <p className="text-[11px] text-gray-500 pl-3">
+              <p className="text-xs-plus text-gray-500 pl-3">
                 Pay when you check-in at the property
               </p>
               <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-500">
                 <span>✓</span>
                 <span>Cancellation Policy Applies</span>
-                <span className="text-gray-400 text-[10px]">ⓘ</span>
+                <span className="text-gray-400 text-2xs">ⓘ</span>
               </p>
             </div>
 
@@ -453,16 +453,16 @@ function RoomCard({ room, hotel }: RoomCardProps) {
 
             {/* Col 3: Price */}
             <div className="text-center">
-              <span className="inline-block rounded-full bg-[#fff1eb] px-2.5 py-0.5 text-[11px] font-bold text-[#ff5e1f] mb-1">
+              <span className="inline-block rounded-full bg-traveloka-orange-subtle px-2.5 py-0.5 text-xs-plus font-bold text-traveloka-orange mb-1">
                 Special for you!
               </span>
               <p className="text-xs text-gray-400 line-through">
                 {formatVND(Math.round(originalPrice * 1.05))}
               </p>
-              <p className="text-lg font-black text-[#ff5e1f]">
+              <p className="text-lg font-black text-traveloka-orange">
                 {formatVND(Math.round(priceNum * 1.05))}
               </p>
-              <p className="text-[10px] text-gray-400">
+              <p className="text-2xs text-gray-400">
                 Exclude taxes & fees
               </p>
             </div>
@@ -477,7 +477,7 @@ function RoomCard({ room, hotel }: RoomCardProps) {
               <button
                 type="button"
                 onClick={() => handleBookRoom(true)}
-                className="w-24 rounded-lg bg-[#0194f3] hover:bg-[#0080d4] text-white font-bold text-sm py-2 shadow-xs transition-colors cursor-pointer text-center"
+                className="w-24 rounded-lg bg-traveloka-blue hover:bg-traveloka-blue-hover text-white font-bold text-sm py-2 shadow-xs transition-colors cursor-pointer text-center"
               >
                 Choose
               </button>
@@ -627,7 +627,7 @@ export default function HotelDetailPage({ hotelId }: HotelDetailPageProps) {
       <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="flex flex-col items-center justify-center py-40 gap-4">
-          <div className="h-12 w-12 rounded-full border-4 border-[#0194f3] border-t-transparent animate-spin" />
+          <div className="h-12 w-12 rounded-full border-4 border-traveloka-blue border-t-transparent animate-spin" />
           <p className="text-gray-500 font-medium">Đang tải thông tin khách sạn...</p>
         </div>
         <Footer />
@@ -642,7 +642,7 @@ export default function HotelDetailPage({ hotelId }: HotelDetailPageProps) {
         <div className="flex flex-col items-center justify-center py-40 gap-4">
           <span className="text-5xl">😕</span>
           <p className="text-lg font-bold text-gray-700">{error || 'Không tìm thấy khách sạn'}</p>
-          <Link href="/hotels_home" className="rounded-xl bg-[#0194f3] px-6 py-2.5 text-sm font-bold text-white hover:bg-[#0080d4]">
+          <Link href="/hotels_home" className="rounded-xl bg-traveloka-blue px-6 py-2.5 text-sm font-bold text-white hover:bg-traveloka-blue-hover">
             ← Quay lại danh sách
           </Link>
         </div>
@@ -660,20 +660,20 @@ export default function HotelDetailPage({ hotelId }: HotelDetailPageProps) {
         {/* Breadcrumb Trail */}
         <div className="flex flex-wrap items-center justify-between text-xs sm:text-sm text-gray-500 mb-3">
           <div className="flex items-center gap-1.5 flex-wrap">
-            <Link href="/hotels_home" className="text-[#0194f3] hover:underline">Hotel</Link>
+            <Link href="/hotels_home" className="text-traveloka-blue hover:underline">Hotel</Link>
             <span>/</span>
-            <span className="text-[#0194f3]">Hotels in Vietnam</span>
+            <span className="text-traveloka-blue">Hotels in Vietnam</span>
             <span>/</span>
-            <span className="text-[#0194f3]">Hotels in Ho Chi Minh City</span>
+            <span className="text-traveloka-blue">Hotels in Ho Chi Minh City</span>
             <span>/</span>
-            <span className="text-[#0194f3]">Hotels in {locationName}</span>
+            <span className="text-traveloka-blue">Hotels in {locationName}</span>
             <span>/</span>
             <span className="text-gray-700 font-medium truncate max-w-[200px]">Hotel in {hotel.name}</span>
           </div>
 
           <Link
             href="/hotels_home"
-            className="text-[#0194f3] hover:underline font-medium hidden md:inline-block"
+            className="text-traveloka-blue hover:underline font-medium hidden md:inline-block"
           >
             See Other Accommodations in {locationName}
           </Link>
@@ -789,7 +789,7 @@ export default function HotelDetailPage({ hotelId }: HotelDetailPageProps) {
             </h1>
 
             <div className="mt-2.5 flex items-center gap-2.5 flex-wrap">
-              <span className="rounded-md bg-[#eaf4ff] px-2.5 py-0.5 text-xs font-bold text-[#0194f3]">
+              <span className="rounded-md bg-traveloka-blue-light px-2.5 py-0.5 text-xs font-bold text-traveloka-blue">
                 Hotels
               </span>
               <div className="flex items-center text-yellow-400 text-sm">
@@ -809,13 +809,13 @@ export default function HotelDetailPage({ hotelId }: HotelDetailPageProps) {
           <div className="flex flex-col sm:items-end gap-1.5 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-gray-100">
             <div className="text-left sm:text-right">
               <p className="text-xs text-gray-400 font-medium">Price/room/night starts from</p>
-              <p className="text-2xl sm:text-3xl font-black text-[#ff5e1f]">
+              <p className="text-2xl sm:text-3xl font-black text-traveloka-orange">
                 {formatPrice(minPrice)}
               </p>
             </div>
             <a
               href="#available-rooms"
-              className="flex items-center justify-center rounded-xl bg-[#0194f3] hover:bg-[#0080d4] px-7 py-2.5 text-sm font-bold text-white shadow-md transition-all cursor-pointer w-full sm:w-auto text-center"
+              className="flex items-center justify-center rounded-xl bg-traveloka-blue hover:bg-traveloka-blue-hover px-7 py-2.5 text-sm font-bold text-white shadow-md transition-all cursor-pointer w-full sm:w-auto text-center"
             >
               View Rooms
             </a>

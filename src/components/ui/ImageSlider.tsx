@@ -99,7 +99,7 @@ export function ImageSlider({
 
         {/* Primary Cover Badge */}
         {isPrimary && (
-          <div className="absolute top-3 left-3 z-10 flex items-center gap-1 rounded-full bg-brand-500/90 backdrop-blur-xs px-2.5 py-1 text-[11px] font-bold text-white shadow-md">
+          <div className="absolute top-3 left-3 z-10 flex items-center gap-1 rounded-full bg-brand-500/90 backdrop-blur-xs px-2.5 py-1 text-xs-plus font-bold text-white shadow-md">
             <Star className="h-3.5 w-3.5 fill-white" />
             <span>Ảnh bìa chính</span>
           </div>

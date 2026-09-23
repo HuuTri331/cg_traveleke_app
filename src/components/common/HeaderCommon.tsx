@@ -107,7 +107,7 @@ export default function HeaderCommon() {
                   className="h-4 w-4"
                 />
                 <span>VI | VND</span>
-                <span className="text-[10px]">▼</span>
+                <span className="text-2xs">▼</span>
               </button>
 
               {isLanguageOpen && (
@@ -139,7 +139,7 @@ export default function HeaderCommon() {
                 className="flex items-center gap-1 rounded-lg px-3 py-2 transition-colors hover:bg-gray-100"
               >
                 Hỗ trợ
-                <span className="text-[10px]">▼</span>
+                <span className="text-2xs">▼</span>
               </button>
 
               {isSupportOpen && (
@@ -190,7 +190,7 @@ export default function HeaderCommon() {
                   <span className="text-sm font-semibold text-gray-700">
                     Xin chào, <span className="text-blue-600">{customer.fullName.split(' ').slice(-1)[0]}</span>
                   </span>
-                  <span className="text-[10px] text-gray-400">▼</span>
+                  <span className="text-2xs text-gray-400">▼</span>
                 </button>
 
                 {/* Dropdown */}
@@ -209,7 +209,7 @@ export default function HeaderCommon() {
                       </div>
                       <div className="min-w-0">
                         <p className="truncate text-xs font-bold text-gray-900">{customer.fullName}</p>
-                        <p className="truncate text-[11px] text-gray-500">{customer.email}</p>
+                        <p className="truncate text-xs-plus text-gray-500">{customer.email}</p>
                       </div>
                     </div>
 
@@ -290,7 +290,7 @@ export default function HeaderCommon() {
               className="flex items-center gap-1 rounded-lg px-3 py-2 transition-colors hover:bg-gray-100 hover:text-blue-500"
             >
               More
-              <span className="text-[10px]">▼</span>
+              <span className="text-2xs">▼</span>
             </button>
 
             {isMoreOpen && (

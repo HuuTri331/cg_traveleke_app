@@ -433,7 +433,7 @@ export default function BookingsPage() {
           >
             <CalendarCheck className="h-4 w-4" />
             <span>Danh Sách Đơn Đặt Phòng</span>
-            <span className="rounded-full bg-brand-100 px-2 py-0.5 text-[10px] font-extrabold text-brand-700 dark:bg-brand-500/20 dark:text-brand-300">
+            <span className="rounded-full bg-brand-100 px-2 py-0.5 text-2xs font-extrabold text-brand-700 dark:bg-brand-500/20 dark:text-brand-300">
               {meta.total}
             </span>
           </button>
@@ -448,7 +448,7 @@ export default function BookingsPage() {
           >
             <History className="h-4 w-4" />
             <span>Nhật Ký Giám Sát Vận Hành (Activity Logs)</span>
-            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-extrabold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-2xs font-extrabold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
               Mới
             </span>
           </button>
@@ -558,7 +558,7 @@ export default function BookingsPage() {
                             <div className="font-mono font-bold text-brand-600 dark:text-brand-400">
                               {b.bookingCode}
                             </div>
-                            <div className="text-[11px] text-gray-400 mt-0.5">
+                            <div className="text-xs-plus text-gray-400 mt-0.5">
                               {new Date(b.createdAt).toLocaleString('vi-VN', {
                                 hour: '2-digit',
                                 minute: '2-digit',
@@ -574,11 +574,11 @@ export default function BookingsPage() {
                             <div className="font-bold text-gray-900 dark:text-white">
                               {b.contactName}
                             </div>
-                            <div className="text-[11px] text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-0.5">
+                            <div className="text-xs-plus text-gray-500 dark:text-gray-400 flex items-center gap-1 mt-0.5">
                               <Phone className="h-3 w-3 shrink-0" />
                               <span>{b.contactPhone}</span>
                             </div>
-                            <div className="text-[11px] text-gray-400 truncate max-w-[160px]">
+                            <div className="text-xs-plus text-gray-400 truncate max-w-[160px]">
                               {b.contactEmail}
                             </div>
                           </td>
@@ -588,7 +588,7 @@ export default function BookingsPage() {
                             <div className="font-semibold text-gray-800 dark:text-gray-200">
                               {b.hotelName || 'Khách sạn liên kết'}
                             </div>
-                            <div className="text-[11px] text-gray-500 mt-0.5">
+                            <div className="text-xs-plus text-gray-500 mt-0.5">
                               {b.requestedRoomCount} phòng • {b.totalGuests} khách
                             </div>
                           </td>
@@ -603,7 +603,7 @@ export default function BookingsPage() {
                                 </div>
                                 <div className="mt-1 flex items-center gap-1.5">
                                   <span
-                                    className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                                    className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-2xs font-bold ${
                                       b.assignmentType === 'AUTO'
                                         ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
                                         : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
@@ -624,7 +624,7 @@ export default function BookingsPage() {
                                 </div>
                               </div>
                             ) : (
-                              <span className="text-[11px] text-gray-400 italic">Chưa phân công</span>
+                              <span className="text-xs-plus text-gray-400 italic">Chưa phân công</span>
                             )}
                           </td>
 
@@ -655,7 +655,7 @@ export default function BookingsPage() {
                               <button
                                 onClick={() => handleOpenDetail(b.id)}
                                 title="Xem chi tiết đơn"
-                                className="flex h-8 items-center gap-1 rounded-lg border border-gray-200 px-2.5 text-[11px] font-semibold text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 cursor-pointer"
+                                className="flex h-8 items-center gap-1 rounded-lg border border-gray-200 px-2.5 text-xs-plus font-semibold text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 cursor-pointer"
                               >
                                 <Eye className="h-3.5 w-3.5" />
                                 <span>Chi tiết</span>
@@ -677,7 +677,7 @@ export default function BookingsPage() {
                                     ? 'Đơn đặt phòng đã kết thúc - Không thể đổi người phụ trách'
                                     : 'Phân công lại nhân viên phụ trách đơn'
                                 }
-                                className={`flex h-8 items-center gap-1 rounded-lg border px-2.5 text-[11px] font-semibold transition-all cursor-pointer ${
+                                className={`flex h-8 items-center gap-1 rounded-lg border px-2.5 text-xs-plus font-semibold transition-all cursor-pointer ${
                                   b.status === 'CHECKED_IN' ||
                                   b.status === 'COMPLETED' ||
                                   b.status === 'CANCELLED' ||
@@ -696,7 +696,7 @@ export default function BookingsPage() {
                                   <button
                                     onClick={() => openStatusChangeDialog(b, 'CONFIRMED', 'Xác Nhận')}
                                     title="Xác nhận đơn"
-                                    className="flex h-8 items-center gap-1 rounded-lg bg-green-600 px-2.5 text-[11px] font-bold text-white hover:bg-green-700 shadow-xs cursor-pointer"
+                                    className="flex h-8 items-center gap-1 rounded-lg bg-green-600 px-2.5 text-xs-plus font-bold text-white hover:bg-green-700 shadow-xs cursor-pointer"
                                   >
                                     <CheckCircle2 className="h-3.5 w-3.5" />
                                     <span>Xác nhận</span>
@@ -704,7 +704,7 @@ export default function BookingsPage() {
                                   <button
                                     onClick={() => openStatusChangeDialog(b, 'REJECTED', 'Từ Chối')}
                                     title="Từ chối đơn"
-                                    className="flex h-8 items-center gap-1 rounded-lg bg-red-600 px-2.5 text-[11px] font-bold text-white hover:bg-red-700 shadow-xs cursor-pointer"
+                                    className="flex h-8 items-center gap-1 rounded-lg bg-red-600 px-2.5 text-xs-plus font-bold text-white hover:bg-red-700 shadow-xs cursor-pointer"
                                   >
                                     <XCircle className="h-3.5 w-3.5" />
                                     <span>Từ chối</span>
@@ -718,7 +718,7 @@ export default function BookingsPage() {
                                   <button
                                     onClick={() => openStatusChangeDialog(b, 'CHECKED_IN', 'Nhận Phòng')}
                                     title="Khách làm thủ tục nhận phòng"
-                                    className="flex h-8 items-center gap-1 rounded-lg bg-indigo-600 px-2.5 text-[11px] font-bold text-white hover:bg-indigo-700 shadow-xs cursor-pointer"
+                                    className="flex h-8 items-center gap-1 rounded-lg bg-indigo-600 px-2.5 text-xs-plus font-bold text-white hover:bg-indigo-700 shadow-xs cursor-pointer"
                                   >
                                     <LogIn className="h-3.5 w-3.5" />
                                     <span>Nhận phòng</span>
@@ -726,7 +726,7 @@ export default function BookingsPage() {
                                   <button
                                     onClick={() => openStatusChangeDialog(b, 'CANCELLED', 'Huỷ Đơn')}
                                     title="Huỷ đơn đặt phòng"
-                                    className="flex h-8 items-center gap-1 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30 px-2.5 text-[11px] font-bold cursor-pointer"
+                                    className="flex h-8 items-center gap-1 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30 px-2.5 text-xs-plus font-bold cursor-pointer"
                                   >
                                     <Ban className="h-3.5 w-3.5" />
                                     <span>Huỷ</span>
@@ -739,7 +739,7 @@ export default function BookingsPage() {
                                 <button
                                   onClick={() => openStatusChangeDialog(b, 'COMPLETED', 'Hoàn Thành / Trả Phòng')}
                                   title="Khách trả phòng & hoàn tất giao dịch"
-                                  className="flex h-8 items-center gap-1 rounded-lg bg-blue-600 px-2.5 text-[11px] font-bold text-white hover:bg-blue-700 shadow-xs cursor-pointer"
+                                  className="flex h-8 items-center gap-1 rounded-lg bg-blue-600 px-2.5 text-xs-plus font-bold text-white hover:bg-blue-700 shadow-xs cursor-pointer"
                                 >
                                   <CheckCheck className="h-3.5 w-3.5" />
                                   <span>Trả phòng</span>
@@ -832,7 +832,7 @@ export default function BookingsPage() {
                               minute: '2-digit',
                             })}
                           </div>
-                          <div className="text-[11px] text-gray-400">
+                          <div className="text-xs-plus text-gray-400">
                             {new Date(log.changedAt).toLocaleDateString('vi-VN')}
                           </div>
                         </td>
@@ -842,7 +842,7 @@ export default function BookingsPage() {
                           <div className="font-mono font-bold text-brand-600 dark:text-brand-400">
                             {log.bookingCode}
                           </div>
-                          <div className="text-[11px] text-gray-600 dark:text-gray-300">
+                          <div className="text-xs-plus text-gray-600 dark:text-gray-300">
                             Khách: {log.customerName}
                           </div>
                         </td>
@@ -858,7 +858,7 @@ export default function BookingsPage() {
                             <User className="h-3.5 w-3.5 text-gray-400" />
                             <span>{log.operatorName || 'Hệ thống'}</span>
                           </div>
-                          <div className="text-[10px] text-gray-400">
+                          <div className="text-2xs text-gray-400">
                             {log.operatorRole ? `Vai trò: ${log.operatorRole}` : log.operatorEmail}
                           </div>
                         </td>
@@ -914,13 +914,13 @@ export default function BookingsPage() {
             {/* Top overview banner */}
             <div className="rounded-xl border border-gray-200 bg-gray-50/70 p-4 dark:border-gray-800 dark:bg-gray-850/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <p className="text-[11px] uppercase tracking-wider font-semibold text-gray-400">
+                <p className="text-xs-plus uppercase tracking-wider font-semibold text-gray-400">
                   Mã đơn lưu trú
                 </p>
                 <p className="text-base font-black text-brand-600 dark:text-brand-400 font-mono">
                   {selectedBookingDetail.bookingCode}
                 </p>
-                <p className="text-[11px] text-gray-400 mt-0.5">
+                <p className="text-xs-plus text-gray-400 mt-0.5">
                   Ngày đặt:{' '}
                   {new Date(selectedBookingDetail.createdAt).toLocaleString('vi-VN')}
                 </p>
@@ -981,7 +981,7 @@ export default function BookingsPage() {
                   <p className="font-bold text-sm text-gray-800 dark:text-gray-100">
                     {selectedBookingDetail.hotelName || 'Khách sạn liên kết'}
                   </p>
-                  <p className="text-[11px] text-gray-400">
+                  <p className="text-xs-plus text-gray-400">
                     {selectedBookingDetail.hotelAddress}
                   </p>
                   <p className="font-semibold text-brand-600 dark:text-brand-400 mt-1 flex items-center gap-1">
@@ -1007,7 +1007,7 @@ export default function BookingsPage() {
                   Nhân Sự Phụ Trách Phục Vụ / Lễ Tân
                 </h4>
                 <span
-                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                  className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-2xs font-extrabold ${
                     selectedBookingDetail.assignmentType === 'AUTO'
                       ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'
                       : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300'
@@ -1027,12 +1027,12 @@ export default function BookingsPage() {
                     <span>{selectedBookingDetail.handledByName || 'Chưa có nhân viên phụ trách'}</span>
                   </p>
                   {selectedBookingDetail.handledByEmail && (
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                    <p className="text-xs-plus text-gray-500 dark:text-gray-400 mt-0.5">
                       Email: {selectedBookingDetail.handledByEmail}
                     </p>
                   )}
                   {selectedBookingDetail.assignmentNote && (
-                    <p className="text-[11px] text-purple-800 dark:text-purple-300 italic bg-white/80 dark:bg-gray-800/80 p-2.5 rounded-xl border border-purple-100 dark:border-purple-800/40 mt-2">
+                    <p className="text-xs-plus text-purple-800 dark:text-purple-300 italic bg-white/80 dark:bg-gray-800/80 p-2.5 rounded-xl border border-purple-100 dark:border-purple-800/40 mt-2">
                       💡 {selectedBookingDetail.assignmentNote}
                     </p>
                   )}
@@ -1057,7 +1057,7 @@ export default function BookingsPage() {
               </div>
 
               {selectedBookingDetail.status === 'CHECKED_IN' && (
-                <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
+                <p className="text-xs-plus text-amber-600 dark:text-amber-400 font-medium">
                   ⚠️ Khách hàng đã nhận phòng (CHECKED_IN) - Theo quy định vận hành, không thể thay đổi nhân viên phụ trách.
                 </p>
               )}
@@ -1091,20 +1091,20 @@ export default function BookingsPage() {
                             {STATUS_CONFIG[log.newStatus]?.label || log.newStatus}
                           </Badge>
                           {log.oldStatus && (
-                            <span className="text-[11px] text-gray-400">
+                            <span className="text-xs-plus text-gray-400">
                               (từ {STATUS_CONFIG[log.oldStatus]?.label || log.oldStatus})
                             </span>
                           )}
                         </div>
-                        <span className="text-[11px] text-gray-400">
+                        <span className="text-xs-plus text-gray-400">
                           {new Date(log.changedAt).toLocaleString('vi-VN')}
                         </span>
                       </div>
-                      <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">
+                      <p className="text-xs-plus text-gray-500 dark:text-gray-400 mt-1">
                         Thực hiện bởi: <span className="font-semibold text-gray-700 dark:text-gray-300">{log.changedByName || 'Hệ thống'}</span>
                       </p>
                       {log.note && (
-                        <p className="text-[11px] text-gray-600 dark:text-gray-300 italic bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-100 dark:border-gray-700 mt-1">
+                        <p className="text-xs-plus text-gray-600 dark:text-gray-300 italic bg-white dark:bg-gray-800 p-2 rounded-lg border border-gray-100 dark:border-gray-700 mt-1">
                           "{log.note}"
                         </p>
                       )}
@@ -1264,7 +1264,7 @@ export default function BookingsPage() {
               <p className="font-semibold text-gray-700 dark:text-gray-300">
                 Cơ sở: <span className="font-bold text-gray-900 dark:text-white">{reassignModal.booking?.hotelName}</span>
               </p>
-              <p className="text-[11px] text-gray-500 mt-0.5">
+              <p className="text-xs-plus text-gray-500 mt-0.5">
                 Khách đặt: <span className="font-semibold text-gray-800 dark:text-gray-200">{reassignModal.booking?.contactName}</span> • Phòng:{' '}
                 <span className="font-semibold text-brand-600 dark:text-brand-400">{reassignModal.roomInfo?.name || 'Phòng đặt'}</span>
               </p>
@@ -1282,7 +1282,7 @@ export default function BookingsPage() {
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
               <div>
                 <p className="font-bold">Không Thể Điều Chỉnh Phân Công</p>
-                <p className="text-[11px] mt-0.5">
+                <p className="text-xs-plus mt-0.5">
                   Đơn đặt phòng này khách đã nhận phòng (CHECKED_IN) hoặc đã hoàn tất/hủy. Theo quy tắc vận hành, chỉ được phép thay đổi người phụ trách khi khách chưa tới nhận phòng.
                 </p>
               </div>
@@ -1336,23 +1336,23 @@ export default function BookingsPage() {
                             <div className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
                               <span>{st.staffName}</span>
                               {st.staffRole === 'MANAGER' && (
-                                <span className="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-1.5 py-0.2 rounded font-semibold">
+                                <span className="text-2xs bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-1.5 py-0.2 rounded font-semibold">
                                   Trưởng Bộ Phận
                                 </span>
                               )}
                               {st.recommended && (
-                                <span className="text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 px-1.5 py-0.2 rounded font-extrabold flex items-center gap-0.5">
+                                <span className="text-2xs bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 px-1.5 py-0.2 rounded font-extrabold flex items-center gap-0.5">
                                   <Sparkles className="h-2.5 w-2.5" /> Phù hợp nhất
                                 </span>
                               )}
                             </div>
-                            <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                            <div className="text-xs-plus text-gray-500 dark:text-gray-400 mt-0.5">
                               Level {st.maxSkillLevel}/5 • {st.maxYearsExp} năm KN • Đã phục vụ: {st.completedCount} đơn thành công
                             </div>
                           </div>
                         </div>
 
-                        <div className="text-right shrink-0 text-[11px] text-gray-500">
+                        <div className="text-right shrink-0 text-xs-plus text-gray-500">
                           Đang phụ trách: <span className="font-bold text-gray-800 dark:text-gray-200">{st.activeLoad}</span> đơn
                         </div>
                       </div>

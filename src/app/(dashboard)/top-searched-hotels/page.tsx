@@ -119,7 +119,7 @@ export default function TopSearchedHotelsPage() {
             </span>
             <span className="ml-1.5 text-xs text-emerald-600 font-semibold">+18.5% so với tháng trước</span>
           </div>
-          <p className="mt-1 text-[11px] text-gray-400">Số lần xuất hiện trong tìm kiếm và xem phòng</p>
+          <p className="mt-1 text-xs-plus text-gray-400">Số lần xuất hiện trong tìm kiếm và xem phòng</p>
         </div>
 
         {/* Card 2: Top 1 Khách sạn hot */}
@@ -138,7 +138,7 @@ export default function TopSearchedHotelsPage() {
             </h4>
             <span className="text-xs text-amber-600 font-bold">Dẫn đầu thị hiếu du khách</span>
           </div>
-          <p className="mt-1 text-[11px] text-gray-400">Được quan tâm nhiều nhất trong tháng {selectedMonth}</p>
+          <p className="mt-1 text-xs-plus text-gray-400">Được quan tâm nhiều nhất trong tháng {selectedMonth}</p>
         </div>
 
         {/* Card 3: Phân khúc giá hot nhất */}
@@ -157,7 +157,7 @@ export default function TopSearchedHotelsPage() {
             </h4>
             <span className="text-xs text-sky-600 font-semibold">Phân khúc sôi động nhất</span>
           </div>
-          <p className="mt-1 text-[11px] text-gray-400">Gợi ý chủ khách sạn định giá phòng tối ưu</p>
+          <p className="mt-1 text-xs-plus text-gray-400">Gợi ý chủ khách sạn định giá phòng tối ưu</p>
         </div>
 
         {/* Card 4: Tỉ lệ chuyển đổi quan tâm */}
@@ -176,7 +176,7 @@ export default function TopSearchedHotelsPage() {
             </span>
             <span className="ml-1.5 text-xs text-emerald-600 font-semibold">Khách duy nhất (IP)</span>
           </div>
-          <p className="mt-1 text-[11px] text-gray-400">Không tính các lượt tải lại trang trùng lặp</p>
+          <p className="mt-1 text-xs-plus text-gray-400">Không tính các lượt tải lại trang trùng lặp</p>
         </div>
       </div>
 
@@ -302,7 +302,7 @@ export default function TopSearchedHotelsPage() {
                           <span className="font-bold text-gray-900 dark:text-white line-clamp-1">
                             {hotel.name}
                           </span>
-                          <span className="flex items-center gap-1 text-[11px] text-gray-400 line-clamp-1">
+                          <span className="flex items-center gap-1 text-xs-plus text-gray-400 line-clamp-1">
                             <MapPin className="h-3 w-3 shrink-0" />
                             {hotel.address || 'Việt Nam'}
                           </span>
@@ -315,7 +315,7 @@ export default function TopSearchedHotelsPage() {
                       <span className="font-black text-gray-900 dark:text-white text-sm">
                         {hotel.totalInteractions.toLocaleString()}
                       </span>
-                      <span className="block text-[10px] text-gray-400">lượt tương tác</span>
+                      <span className="block text-2xs text-gray-400">lượt tương tác</span>
                     </td>
 
                     {/* Unique Visitors */}
@@ -323,12 +323,12 @@ export default function TopSearchedHotelsPage() {
                       <span className="font-bold text-gray-700 dark:text-gray-300">
                         {hotel.uniqueVisitors.toLocaleString()}
                       </span>
-                      <span className="block text-[10px] text-gray-400">IP khách khác nhau</span>
+                      <span className="block text-2xs text-gray-400">IP khách khác nhau</span>
                     </td>
 
                     {/* Popular Price Range */}
                     <td className="py-3.5 px-4">
-                      <span className="inline-flex items-center gap-1 rounded-md bg-sky-50 px-2 py-0.5 text-[11px] font-bold text-sky-700 dark:bg-sky-950/60 dark:text-sky-300">
+                      <span className="inline-flex items-center gap-1 rounded-md bg-sky-50 px-2 py-0.5 text-xs-plus font-bold text-sky-700 dark:bg-sky-950/60 dark:text-sky-300">
                         <Tag className="h-3 w-3" />
                         {hotel.popularPriceRange}
                       </span>
@@ -344,7 +344,7 @@ export default function TopSearchedHotelsPage() {
                       <Link
                         href={`/hotels_home/${hotel.hotelId}`}
                         target="_blank"
-                        className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1 text-[11px] font-semibold text-gray-600 hover:border-brand-500 hover:text-brand-500 transition-all dark:border-gray-700 dark:text-gray-300"
+                        className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-2.5 py-1 text-xs-plus font-semibold text-gray-600 hover:border-brand-500 hover:text-brand-500 transition-all dark:border-gray-700 dark:text-gray-300"
                       >
                         <span>Xem chi tiết</span>
                         <ExternalLink className="h-3 w-3" />

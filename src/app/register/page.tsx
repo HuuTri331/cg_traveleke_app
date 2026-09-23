@@ -418,7 +418,7 @@ export default function RegisterPage() {
                       </div>
                     )}
                   </div>
-                  <p className="mt-1 text-[11px] text-gray-400">
+                  <p className="mt-1 text-xs-plus text-gray-400">
                     Hệ thống sẽ tự động đối soát DNS và từ chối mọi email không tồn tại hoặc thô tục.
                   </p>
                 </div>

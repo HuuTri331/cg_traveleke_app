@@ -452,7 +452,7 @@ function RoomServiceModal({
                     type="button"
                     onClick={() => setForm({ ...form, unit: u })}
                     className={cn(
-                      'text-[10px] px-1.5 py-0.5 rounded border transition-colors cursor-pointer',
+                      'text-2xs px-1.5 py-0.5 rounded border transition-colors cursor-pointer',
                       form.unit === u
                         ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border-emerald-300'
                         : 'bg-gray-50 dark:bg-gray-800 text-gray-500 border-gray-200 dark:border-gray-700 hover:bg-gray-100',
@@ -475,7 +475,7 @@ function RoomServiceModal({
                 disabled={form.isComplimentary}
                 className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 disabled:opacity-40"
               />
-              <div className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 mt-1 truncate">
+              <div className="text-2xs font-semibold text-emerald-600 dark:text-emerald-400 mt-1 truncate">
                 {form.isComplimentary ? 'Miễn phí' : formatPrice(form.basePrice || 0)}
               </div>
             </div>
@@ -790,7 +790,7 @@ export default function ServicesManagementPage() {
         <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-gray-50/80 dark:bg-gray-800/40 text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800 font-bold uppercase tracking-wider text-[10px]">
+              <thead className="bg-gray-50/80 dark:bg-gray-800/40 text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800 font-bold uppercase tracking-wider text-2xs">
                 <tr>
                   <th className="px-6 py-4">Danh mục</th>
                   <th className="px-6 py-4">Mã</th>
@@ -829,13 +829,13 @@ export default function ServicesManagementPage() {
                             <div>
                               <div className="font-bold text-gray-900 dark:text-white">{cat.name}</div>
                               {cat.description && (
-                                <p className="text-[11px] text-gray-400 mt-0.5 max-w-[200px] truncate">{cat.description}</p>
+                                <p className="text-xs-plus text-gray-400 mt-0.5 max-w-[200px] truncate">{cat.description}</p>
                               )}
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <code className="text-[11px] bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md text-gray-600 dark:text-gray-300 font-mono">
+                          <code className="text-xs-plus bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-md text-gray-600 dark:text-gray-300 font-mono">
                             {cat.code}
                           </code>
                         </td>
@@ -848,7 +848,7 @@ export default function ServicesManagementPage() {
                         <td className="px-6 py-4 text-gray-500 dark:text-gray-400">{cat.sortOrder}</td>
                         <td className="px-6 py-4">
                           <span className={cn(
-                            'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold',
+                            'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold',
                             cat.status === 'ACTIVE'
                               ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400'
                               : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
@@ -890,7 +890,7 @@ export default function ServicesManagementPage() {
         <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-gray-50/80 dark:bg-gray-800/40 text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800 font-bold uppercase tracking-wider text-[10px]">
+              <thead className="bg-gray-50/80 dark:bg-gray-800/40 text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800 font-bold uppercase tracking-wider text-2xs">
                 <tr>
                   <th className="px-6 py-4">Dịch vụ</th>
                   <th className="px-6 py-4">Danh mục</th>
@@ -933,12 +933,12 @@ export default function ServicesManagementPage() {
                         <td className="px-6 py-4">
                           <div className="font-bold text-gray-900 dark:text-white">{svc.name}</div>
                           {svc.description && (
-                            <p className="text-[11px] text-gray-400 mt-0.5 max-w-[220px] truncate">{svc.description}</p>
+                            <p className="text-xs-plus text-gray-400 mt-0.5 max-w-[220px] truncate">{svc.description}</p>
                           )}
                         </td>
                         <td className="px-6 py-4">
                           {cat && (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 px-2 py-0.5 rounded-full">
+                            <span className="inline-flex items-center gap-1 text-xs-plus font-semibold text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 px-2 py-0.5 rounded-full">
                               {getCategoryIcon(cat.icon)} {cat.name}
                             </span>
                           )}
@@ -946,7 +946,7 @@ export default function ServicesManagementPage() {
                         <td className="px-6 py-4 text-gray-500 dark:text-gray-400">{svc.unit}</td>
                         <td className="px-6 py-4">
                           {svc.isComplimentary ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                            <span className="inline-flex items-center gap-1 text-2xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">
                               <Star className="h-3 w-3" /> Miễn phí
                             </span>
                           ) : (
@@ -955,12 +955,12 @@ export default function ServicesManagementPage() {
                             </span>
                           )}
                           {svc.maxQuantity && (
-                            <p className="text-[10px] text-gray-400 mt-0.5">Tối đa: {svc.maxQuantity}/{svc.unit}</p>
+                            <p className="text-2xs text-gray-400 mt-0.5">Tối đa: {svc.maxQuantity}/{svc.unit}</p>
                           )}
                         </td>
                         <td className="px-6 py-4">
                           <span className={cn(
-                            'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold',
+                            'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold',
                             svc.status === 'ACTIVE'
                               ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400'
                               : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',

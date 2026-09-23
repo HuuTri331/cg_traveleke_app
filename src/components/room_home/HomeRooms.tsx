@@ -665,7 +665,7 @@ export default function HomeRooms({
                           </div>
 
                           {/* Bottom-right Discount tag */}
-                          <div className="absolute bottom-0 right-0 rounded-tl-lg bg-[#ff5e1f] px-2.5 py-1 text-xs font-bold text-white shadow-md">
+                          <div className="absolute bottom-0 right-0 rounded-tl-lg bg-traveloka-orange px-2.5 py-1 text-xs font-bold text-white shadow-md">
                             Save {discountRate}%
                           </div>
                         </div>
@@ -673,7 +673,7 @@ export default function HomeRooms({
                         {/* CONTENT */}
                         <div className="flex flex-1 flex-col justify-between p-5">
                           <div>
-                            <h2 className="text-lg font-bold text-gray-900 group-hover:text-[#0194f3] transition-colors line-clamp-1">
+                            <h2 className="text-lg font-bold text-gray-900 group-hover:text-traveloka-blue transition-colors line-clamp-1">
                               {room.name}
                             </h2>
 
@@ -712,15 +712,15 @@ export default function HomeRooms({
                                 {new Intl.NumberFormat('vi-VN').format(origPrice)} VND
                               </p>
                               <div className="flex items-baseline gap-1">
-                                <span className="text-xl font-black text-[#ff5e1f]">
+                                <span className="text-xl font-black text-traveloka-orange">
                                   {new Intl.NumberFormat('vi-VN').format(priceNum)}
                                 </span>
-                                <span className="text-xs font-bold text-[#ff5e1f]">
+                                <span className="text-xs font-bold text-traveloka-orange">
                                   VND
                                 </span>
                               </div>
                               {room.availableRooms <= 5 && room.availableRooms > 0 && (
-                                <p className="text-[11px] font-bold text-red-500 mt-0.5">
+                                <p className="text-xs-plus font-bold text-red-500 mt-0.5">
                                   Còn {room.availableRooms} phòng!
                                 </p>
                               )}
@@ -729,7 +729,7 @@ export default function HomeRooms({
                             <button
                               type="button"
                               onClick={() => handleBookRoom(room)}
-                              className="rounded-xl bg-[#0194f3] hover:bg-[#0080d4] px-5 py-2.5 text-xs font-bold text-white shadow-xs transition-colors cursor-pointer"
+                              className="rounded-xl bg-traveloka-blue hover:bg-traveloka-blue-hover px-5 py-2.5 text-xs font-bold text-white shadow-xs transition-colors cursor-pointer"
                             >
                               Đặt ngay
                             </button>

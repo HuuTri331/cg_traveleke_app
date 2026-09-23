@@ -121,7 +121,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar Container with smooth slide in/out on both desktop and mobile */}
       <aside
         className={cn(
-          'fixed top-0 bottom-0 left-0 z-50 flex w-[280px] flex-col justify-between border-r border-gray-200 bg-white px-4 py-5 transition-transform duration-300 ease-in-out dark:border-gray-800 dark:bg-gray-900 shadow-xl xl:shadow-none',
+          'fixed top-0 bottom-0 left-0 z-50 flex w-sidebar flex-col justify-between border-r border-gray-200 bg-white px-4 py-5 transition-transform duration-300 ease-in-out dark:border-gray-800 dark:bg-gray-900 shadow-xl xl:shadow-none',
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
@@ -136,7 +136,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 Traveleke
                 <span
                   className={cn(
-                    'text-[10px] px-1.5 py-0.5 rounded-md font-bold uppercase',
+                    'text-2xs px-1.5 py-0.5 rounded-md font-bold uppercase',
                     isAdmin
                       ? 'bg-amber-50 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'
                       : 'bg-indigo-50 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400'
@@ -145,7 +145,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                   {isAdmin ? 'Admin' : 'Nhân Viên'}
                 </span>
               </span>
-              <p className="text-[10px] text-gray-400 font-medium">Hệ thống quản lý khách sạn</p>
+              <p className="text-2xs text-gray-400 font-medium">Hệ thống quản lý khách sạn</p>
             </div>
           </Link>
 
@@ -162,7 +162,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <div className="flex-1 overflow-y-auto py-4 custom-scrollbar space-y-4">
           {menuSections.map((section, idx) => (
             <div key={idx}>
-              <h3 className="mb-2 px-3 text-[11px] font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+              <h3 className="mb-2 px-3 text-xs-plus font-bold uppercase tracking-wider text-gray-400 dark:text-gray-500">
                 {section.title}
               </h3>
               <ul className="space-y-1">
@@ -199,7 +199,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                         {item.badge && (
                           <span
                             className={cn(
-                              'rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider',
+                              'rounded-full px-2 py-0.5 text-3xs font-bold uppercase tracking-wider',
                               item.badge === 'Admin'
                                 ? 'bg-amber-500 text-white'
                                 : 'bg-brand-500 text-white'
@@ -227,7 +227,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               <h4 className="text-xs font-bold text-gray-900 dark:text-white truncate">
                 {user?.fullName || 'Người Dùng'}
               </h4>
-              <p className="text-[10px] text-gray-500 dark:text-gray-400 flex items-center gap-1 font-medium truncate">
+              <p className="text-2xs text-gray-500 dark:text-gray-400 flex items-center gap-1 font-medium truncate">
                 <ShieldCheck className="h-3 w-3 text-brand-500 shrink-0" />
                 {isAdmin ? 'Quản Trị Viên' : 'Nhân Viên Vận Hành'}
               </p>

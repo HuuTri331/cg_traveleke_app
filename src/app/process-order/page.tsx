@@ -284,11 +284,11 @@ function ProcessOrderContent() {
                       } rounded-xl text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#0194f3] transition-all`}
                       placeholder="NGUYEN"
                     />
-                    <span className="block text-[11px] text-gray-400 mt-1">
+                    <span className="block text-xs-plus text-gray-400 mt-1">
                       (Không bao gồm danh xưng và dấu câu)
                     </span>
                     {errors.surname && (
-                      <span className="text-[11px] text-red-500 font-medium mt-0.5 block">
+                      <span className="text-xs-plus text-red-500 font-medium mt-0.5 block">
                         {errors.surname}
                       </span>
                     )}
@@ -311,11 +311,11 @@ function ProcessOrderContent() {
                       } rounded-xl text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#0194f3] transition-all`}
                       placeholder="VAN ANH"
                     />
-                    <span className="block text-[11px] text-gray-400 mt-1">
+                    <span className="block text-xs-plus text-gray-400 mt-1">
                       (Như trên Căn cước công dân hoặc Hộ chiếu)
                     </span>
                     {errors.givenName && (
-                      <span className="text-[11px] text-red-500 font-medium mt-0.5 block">
+                      <span className="text-xs-plus text-red-500 font-medium mt-0.5 block">
                         {errors.givenName}
                       </span>
                     )}
@@ -356,11 +356,11 @@ function ProcessOrderContent() {
                         errors.email ? 'border-red-500 ring-1 ring-red-400' : 'border-gray-300 focus:border-[#0194f3]'
                       } rounded-xl text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#0194f3] transition-all`}
                     />
-                    <span className="block text-[11px] text-gray-400 mt-1">
+                    <span className="block text-xs-plus text-gray-400 mt-1">
                       Ví dụ: you@gmail.com
                     </span>
                     {errors.email && (
-                      <span className="text-[11px] text-red-500 font-medium mt-0.5 block">
+                      <span className="text-xs-plus text-red-500 font-medium mt-0.5 block">
                         {errors.email}
                       </span>
                     )}
@@ -400,11 +400,11 @@ function ProcessOrderContent() {
                         } rounded-xl text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#0194f3] transition-all`}
                       />
                     </div>
-                    <span className="block text-[11px] text-gray-400 mt-1">
+                    <span className="block text-xs-plus text-gray-400 mt-1">
                       Số điện thoại để lễ tân khách sạn liên hệ khi cần thiết
                     </span>
                     {errors.mobileNumber && (
-                      <span className="text-[11px] text-red-500 font-medium mt-0.5 block">
+                      <span className="text-xs-plus text-red-500 font-medium mt-0.5 block">
                         {errors.mobileNumber}
                       </span>
                     )}
@@ -527,7 +527,7 @@ function ProcessOrderContent() {
                     <span className="text-xs font-bold text-gray-900 block">
                       Thời gian giữ giá ưu đãi
                     </span>
-                    <span className="text-[11px] text-amber-700 font-medium block">
+                    <span className="text-xs-plus text-amber-700 font-medium block">
                       Chỉ còn {bookingData?.availableRooms || 1} phòng giá tốt!
                     </span>
                   </div>
@@ -548,11 +548,11 @@ function ProcessOrderContent() {
               {/* Date Box */}
               <div className="bg-[#f8fafc] border border-gray-200/70 rounded-xl p-3.5 flex items-center justify-between text-center mb-4">
                 <div className="text-left">
-                  <span className="text-[11px] text-gray-400 font-medium block">Nhận phòng</span>
+                  <span className="text-xs-plus text-gray-400 font-medium block">Nhận phòng</span>
                   <span className="text-xs sm:text-sm font-bold text-gray-900 block mt-0.5">
                     {checkInDateStr}
                   </span>
-                  <span className="text-[11px] text-gray-400 block mt-0.5">
+                  <span className="text-xs-plus text-gray-400 block mt-0.5">
                     Từ {bookingData?.checkInTime ? bookingData.checkInTime.slice(0, 5) : '14:00'}
                   </span>
                 </div>
@@ -563,11 +563,11 @@ function ProcessOrderContent() {
                 </div>
 
                 <div className="text-right">
-                  <span className="text-[11px] text-gray-400 font-medium block">Trả phòng</span>
+                  <span className="text-xs-plus text-gray-400 font-medium block">Trả phòng</span>
                   <span className="text-xs sm:text-sm font-bold text-gray-900 block mt-0.5">
                     {checkOutDateStr}
                   </span>
-                  <span className="text-[11px] text-gray-400 block mt-0.5">
+                  <span className="text-xs-plus text-gray-400 block mt-0.5">
                     Trước {bookingData?.checkOutTime ? bookingData.checkOutTime.slice(0, 5) : '12:00'}
                   </span>
                 </div>
@@ -599,7 +599,7 @@ function ProcessOrderContent() {
 
               {/* Hotel Information Section (User requirement: thông tin khách sạn đặt ở cuối cùng của phần phòng) */}
               <div className="pt-4">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-2">
+                <p className="text-xs-plus font-bold uppercase tracking-wider text-gray-400 mb-2">
                   Thông tin khách sạn
                 </p>
                 <div className="flex items-center gap-3">
@@ -632,7 +632,7 @@ function ProcessOrderContent() {
                         <Star key={idx} className="w-3 h-3 text-amber-400 fill-amber-400" />
                       ))}
                     </div>
-                    <p className="text-[11px] text-gray-500 truncate flex items-center gap-1">
+                    <p className="text-xs-plus text-gray-500 truncate flex items-center gap-1">
                       <MapPin className="w-3 h-3 text-gray-400 shrink-0" />
                       {bookingData?.hotelAddress || 'Việt Nam'}
                     </p>
@@ -673,7 +673,7 @@ function ProcessOrderContent() {
                   <div className="flex items-start justify-between text-xs">
                     <div>
                       <span className="font-semibold text-gray-700 block">Tiền phòng</span>
-                      <span className="text-[11px] text-gray-400 mt-0.5 block">
+                      <span className="text-xs-plus text-gray-400 mt-0.5 block">
                         (1x) {bookingData?.roomName || 'Phòng nghỉ cao cấp'} (1 Đêm)
                       </span>
                     </div>
@@ -690,7 +690,7 @@ function ProcessOrderContent() {
                   <div className="border-t border-gray-200 pt-3 flex items-center justify-between">
                     <div>
                       <span className="text-sm font-bold text-gray-900 block">Tổng thanh toán</span>
-                      <span className="text-[11px] text-gray-400 block mt-0.5">1 phòng, 1 đêm</span>
+                      <span className="text-xs-plus text-gray-400 block mt-0.5">1 phòng, 1 đêm</span>
                     </div>
                     <span className="text-xl font-extrabold text-[#f97316]">
                       {formattedTotal} VND
@@ -719,7 +719,7 @@ function ProcessOrderContent() {
               </button>
 
               {/* Disclaimer */}
-              <p className="text-[11px] text-gray-500 text-center mt-3 px-3 leading-relaxed">
+              <p className="text-xs-plus text-gray-500 text-center mt-3 px-3 leading-relaxed">
                 Bằng việc tiếp tục thanh toán, bạn đồng ý với{' '}
                 <a href="#" className="underline hover:text-gray-800 font-semibold">
                   Điều khoản & Điều kiện
@@ -754,7 +754,7 @@ function ProcessOrderContent() {
             </p>
             <div className="bg-amber-50 rounded-xl p-3 text-xs text-amber-800 font-medium mb-6">
               Tổng tiền thanh toán: <strong className="text-base text-[#f97316]">{formattedTotal} VND</strong>
-              <div className="text-[11px] text-amber-700 mt-0.5">
+              <div className="text-xs-plus text-amber-700 mt-0.5">
                 (Thông tin hợp lệ — sẵn sàng chuyển sang bước thanh toán an toàn)
               </div>
             </div>

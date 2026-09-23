@@ -289,7 +289,7 @@ function StaffSkillCard({
           </div>
           <div className="min-w-0">
             <div className="font-bold text-sm text-gray-900 dark:text-white truncate">{staff.fullName}</div>
-            <div className="text-[11px] text-gray-400 truncate">{staff.email}</div>
+            <div className="text-xs-plus text-gray-400 truncate">{staff.email}</div>
           </div>
         </div>
 
@@ -298,12 +298,12 @@ function StaffSkillCard({
           {skills.length > 0 && (
             <div className="text-center hidden sm:block">
               <div className="text-xs font-black text-gray-900 dark:text-white">{avgLevel.toFixed(1)}</div>
-              <div className="text-[10px] text-gray-400">avg level</div>
+              <div className="text-2xs text-gray-400">avg level</div>
             </div>
           )}
           <div className="text-center">
             <div className="text-xs font-black text-gray-900 dark:text-white">{skills.length}</div>
-            <div className="text-[10px] text-gray-400">kỹ năng</div>
+            <div className="text-2xs text-gray-400">kỹ năng</div>
           </div>
           <button
             onClick={() => setExpanded(!expanded)}
@@ -321,13 +321,13 @@ function StaffSkillCard({
             const cfg = getLevelConfig(sk.level);
             const cat = skillCategories.find((c) => c.id === sk.skillId);
             return (
-              <span key={sk.id} className={cn('text-[10px] font-bold px-2 py-0.5 rounded-full', cfg.bg, cfg.color)}>
+              <span key={sk.id} className={cn('text-2xs font-bold px-2 py-0.5 rounded-full', cfg.bg, cfg.color)}>
                 {cat?.name ?? 'Kỹ năng'} {'★'.repeat(sk.level)}
               </span>
             );
           })}
           {skills.length > 4 && (
-            <span className="text-[10px] text-gray-400 px-2 py-0.5">+{skills.length - 4} khác</span>
+            <span className="text-2xs text-gray-400 px-2 py-0.5">+{skills.length - 4} khác</span>
           )}
         </div>
       )}
@@ -355,16 +355,16 @@ function StaffSkillCard({
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
                         <StarRating level={sk.level} />
-                        <span className={cn('text-[10px] font-bold px-1.5 py-0.5 rounded-md', cfg.bg, cfg.color)}>
+                        <span className={cn('text-2xs font-bold px-1.5 py-0.5 rounded-md', cfg.bg, cfg.color)}>
                           {cfg.label}
                         </span>
                         {sk.yearsExp && (
-                          <span className="text-[10px] text-gray-400 flex items-center gap-0.5">
+                          <span className="text-2xs text-gray-400 flex items-center gap-0.5">
                             <Clock className="h-3 w-3" /> {sk.yearsExp} năm
                           </span>
                         )}
                         {sk.certificate && (
-                          <span className="text-[10px] text-blue-500 truncate max-w-[120px]">📜 {sk.certificate}</span>
+                          <span className="text-2xs text-blue-500 truncate max-w-[120px]">📜 {sk.certificate}</span>
                         )}
                       </div>
                     </div>

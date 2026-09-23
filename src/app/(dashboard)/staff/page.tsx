@@ -329,7 +329,7 @@ export default function StaffManagementPage() {
       <div className="bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-800 overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-gray-50/80 dark:bg-gray-800/40 text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800 font-bold uppercase tracking-wider text-[10px]">
+            <thead className="bg-gray-50/80 dark:bg-gray-800/40 text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800 font-bold uppercase tracking-wider text-2xs">
               <tr>
                 <th className="px-6 py-4">Nhân sự</th>
                 <th className="px-6 py-4">Liên hệ</th>
@@ -383,12 +383,12 @@ export default function StaffManagementPage() {
                             <div className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
                               <span>{staff.fullName}</span>
                               {isCurrent && (
-                                <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-brand-50 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400 font-bold border border-brand-200 dark:border-brand-500/30">
+                                <span className="text-3xs px-1.5 py-0.2 rounded-md bg-brand-50 text-brand-600 dark:bg-brand-500/20 dark:text-brand-400 font-bold border border-brand-200 dark:border-brand-500/30">
                                   Bạn
                                 </span>
                               )}
                             </div>
-                            <span className="text-[11px] text-gray-400 flex items-center gap-1">
+                            <span className="text-xs-plus text-gray-400 flex items-center gap-1">
                               <Mail className="h-3 w-3" /> {staff.email}
                             </span>
                           </div>
@@ -407,7 +407,7 @@ export default function StaffManagementPage() {
                       <td className="px-6 py-4">
                         <span
                           className={cn(
-                            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold border',
+                            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs-plus font-bold border',
                             isStaffAdmin
                               ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30'
                               : 'bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/30'
@@ -426,7 +426,7 @@ export default function StaffManagementPage() {
                       <td className="px-6 py-4">
                         <span
                           className={cn(
-                            'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold',
+                            'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-bold',
                             staff.status === 'ACTIVE'
                               ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400'
                               : 'bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400'
@@ -443,7 +443,7 @@ export default function StaffManagementPage() {
                       </td>
 
                       {/* Last Login */}
-                      <td className="px-6 py-4 text-gray-500 dark:text-gray-400 text-[11px]">
+                      <td className="px-6 py-4 text-gray-500 dark:text-gray-400 text-xs-plus">
                         {staff.lastLoginAt
                           ? new Date(staff.lastLoginAt).toLocaleString('vi-VN')
                           : 'Chưa từng đăng nhập'}
@@ -624,7 +624,7 @@ export default function StaffManagementPage() {
                   placeholder="Để trống để tự động gán mặc định là 123456789"
                   className="w-full px-3.5 py-2.5 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-hidden focus:border-brand-500"
                 />
-                <p className="text-[11px] text-gray-500 mt-1 flex items-center gap-1">
+                <p className="text-xs-plus text-gray-500 mt-1 flex items-center gap-1">
                   <Sparkles className="h-3 w-3 text-amber-500" />
                   Nếu để trống, mật khẩu mặc định sẽ là <strong>123456789</strong>.
                 </p>
@@ -774,7 +774,7 @@ export default function StaffManagementPage() {
                   <h4 className="text-xs font-bold text-gray-900 dark:text-white">
                     Nhân Viên (Employee)
                   </h4>
-                  <p className="text-[11px] text-gray-500 mt-0.5">
+                  <p className="text-xs-plus text-gray-500 mt-0.5">
                     Quản lý khách sạn, phòng, duyệt đơn đặt phòng. Không được tạo thêm nhân viên.
                   </p>
                 </div>
@@ -794,7 +794,7 @@ export default function StaffManagementPage() {
                   <h4 className="text-xs font-bold text-gray-900 dark:text-white">
                     Quản Trị Viên (Admin)
                   </h4>
-                  <p className="text-[11px] text-gray-500 mt-0.5">
+                  <p className="text-xs-plus text-gray-500 mt-0.5">
                     Toàn bộ quyền hệ thống, quản lý nhân viên, đổi vai trò và cài đặt.
                   </p>
                 </div>

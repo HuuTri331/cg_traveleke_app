@@ -161,18 +161,18 @@ export function RoomServicesPicker({
               Dịch vụ & Tiện ích kèm theo phòng
             </label>
           </div>
-          <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+          <p className="text-xs-plus text-gray-500 dark:text-gray-400 mt-0.5">
             Dịch vụ miễn phí mặc định có sẵn & Dịch vụ thu thêm phí (Add-on)
           </p>
         </div>
 
         {/* Counter badges */}
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+          <span className="inline-flex items-center gap-1 text-xs-plus font-semibold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
             <ShieldCheck className="h-3 w-3 text-emerald-600" />
             {freeCount} Miễn phí
           </span>
-          <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-violet-100 text-violet-800 dark:bg-violet-950/60 dark:text-violet-300 border border-violet-300 dark:border-violet-800">
+          <span className="inline-flex items-center gap-1 text-xs-plus font-semibold px-2.5 py-1 rounded-full bg-violet-100 text-violet-800 dark:bg-violet-950/60 dark:text-violet-300 border border-violet-300 dark:border-violet-800">
             <Plus className="h-3 w-3 text-violet-600" />
             {paidCount} Thu phí
           </span>
@@ -186,21 +186,21 @@ export function RoomServicesPicker({
           <button
             type="button"
             onClick={selectAllFree}
-            className="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 transition-colors cursor-pointer"
+            className="text-xs-plus font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 transition-colors cursor-pointer"
           >
             ✨ Chọn tất cả dịch vụ miễn phí
           </button>
           <button
             type="button"
             onClick={selectAll}
-            className="text-[11px] font-semibold px-2 py-1 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 transition-colors cursor-pointer"
+            className="text-xs-plus font-semibold px-2 py-1 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-700 transition-colors cursor-pointer"
           >
             Chọn tất cả
           </button>
           <button
             type="button"
             onClick={deselectAll}
-            className="text-[11px] font-semibold px-2 py-1 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-rose-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 transition-colors cursor-pointer"
+            className="text-xs-plus font-semibold px-2 py-1 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-rose-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 transition-colors cursor-pointer"
           >
             Bỏ chọn hết
           </button>
@@ -225,7 +225,7 @@ export function RoomServicesPicker({
           type="button"
           onClick={() => setSelectedCategoryTab('ALL')}
           className={cn(
-            'text-[11px] font-semibold px-2.5 py-1 rounded-lg whitespace-nowrap transition-colors cursor-pointer',
+            'text-xs-plus font-semibold px-2.5 py-1 rounded-lg whitespace-nowrap transition-colors cursor-pointer',
             selectedCategoryTab === 'ALL'
               ? 'bg-emerald-500 text-white shadow-sm'
               : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50',
@@ -243,7 +243,7 @@ export function RoomServicesPicker({
               type="button"
               onClick={() => setSelectedCategoryTab(cat.id)}
               className={cn(
-                'text-[11px] font-semibold px-2.5 py-1 rounded-lg whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1',
+                'text-xs-plus font-semibold px-2.5 py-1 rounded-lg whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1',
                 isSelected
                   ? 'bg-emerald-500 text-white shadow-sm'
                   : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50',
@@ -251,7 +251,7 @@ export function RoomServicesPicker({
             >
               <span>{CATEGORY_EMOJIS[cat.code] || '📦'}</span>
               <span>{cat.name}</span>
-              <span className="opacity-70 text-[10px]">({count})</span>
+              <span className="opacity-70 text-2xs">({count})</span>
             </button>
           );
         })}
@@ -269,7 +269,7 @@ export function RoomServicesPicker({
               <div className="flex items-center gap-1.5 text-xs font-bold text-gray-700 dark:text-gray-300">
                 <span>{CATEGORY_EMOJIS[category.code] || '📦'}</span>
                 <span>{category.name}</span>
-                <span className="text-[10px] text-gray-400 font-normal">({items.length} dịch vụ)</span>
+                <span className="text-2xs text-gray-400 font-normal">({items.length} dịch vụ)</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -309,18 +309,18 @@ export function RoomServicesPicker({
                             {svc.name}
                           </span>
                           {svc.isComplimentary ? (
-                            <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                            <span className="shrink-0 text-2xs font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
                               Miễn phí
                             </span>
                           ) : (
-                            <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
+                            <span className="shrink-0 text-2xs font-bold px-1.5 py-0.5 rounded bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300">
                               {formatPrice(svc.basePrice)}/{svc.unit || 'lần'}
                             </span>
                           )}
                         </div>
 
                         {svc.description && (
-                          <p className="text-[11px] text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5">
+                          <p className="text-xs-plus text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5">
                             {svc.description}
                           </p>
                         )}

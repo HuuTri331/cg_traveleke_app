@@ -142,7 +142,7 @@ export default function TopMonthHotelsSection() {
               </div>
 
               {/* Lượt quan tâm badge */}
-              <div className="absolute top-2.5 right-2.5 z-10 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-xs">
+              <div className="absolute top-2.5 right-2.5 z-10 rounded-full bg-black/60 px-2.5 py-1 text-xs-plus font-semibold text-white backdrop-blur-xs">
                 {hotel.totalInteractions} lượt xem
               </div>
 
@@ -167,7 +167,7 @@ export default function TopMonthHotelsSection() {
                     <span>{hotel.starRating || 5} sao</span>
                   </div>
 
-                  <span className="flex items-center gap-1 rounded-md bg-sky-50 px-2 py-0.5 text-[11px] font-semibold text-sky-700 dark:bg-sky-950/60 dark:text-sky-300">
+                  <span className="flex items-center gap-1 rounded-md bg-sky-50 px-2 py-0.5 text-xs-plus font-semibold text-sky-700 dark:bg-sky-950/60 dark:text-sky-300">
                     <Tag className="h-3 w-3 shrink-0" />
                     <span className="truncate max-w-[120px]">{hotel.popularPriceRange}</span>
                   </span>
@@ -185,7 +185,7 @@ export default function TopMonthHotelsSection() {
                 {/* Chân thẻ */}
                 <div className="mt-auto pt-3 border-t border-gray-100 dark:border-gray-800 flex items-end justify-between">
                   <div>
-                    <span className="block text-[10px] text-gray-400">Giá phòng từ</span>
+                    <span className="block text-2xs text-gray-400">Giá phòng từ</span>
                     <span className="text-base font-black text-brand-500">
                       {formatVND(hotel.minPricePerNight)}
                     </span>

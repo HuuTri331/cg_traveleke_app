@@ -139,7 +139,7 @@ export default function DashboardPage() {
               <h3 className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
                 {loading ? '...' : stat.value}
               </h3>
-              <p className="mt-1 text-[11px] text-gray-400 font-medium">{stat.desc}</p>
+              <p className="mt-1 text-xs-plus text-gray-400 font-medium">{stat.desc}</p>
             </div>
           </div>
         ))}
@@ -196,7 +196,7 @@ export default function DashboardPage() {
                       >
                         {h.name}
                       </Link>
-                      <p className="text-[11px] text-gray-400 truncate max-w-xs">
+                      <p className="text-xs-plus text-gray-400 truncate max-w-xs">
                         {h.address}
                       </p>
                     </div>

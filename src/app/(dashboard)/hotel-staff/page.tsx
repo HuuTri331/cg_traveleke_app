@@ -310,7 +310,7 @@ export default function HotelStaffPage() {
                           </div>
                           <span>{a.staffName || 'Nhân viên'}</span>
                         </div>
-                        <div className="text-[11px] text-gray-400 mt-1 flex items-center gap-3">
+                        <div className="text-xs-plus text-gray-400 mt-1 flex items-center gap-3">
                           {a.staffPhone && (
                             <span className="flex items-center gap-1">
                               <Phone className="h-3 w-3" />
@@ -332,7 +332,7 @@ export default function HotelStaffPage() {
                           <Building2 className="h-3.5 w-3.5 text-gray-400" />
                           <span>{a.hotelName || 'Khách sạn liên kết'}</span>
                         </div>
-                        <div className="text-[11px] text-gray-400 truncate max-w-xs mt-0.5">
+                        <div className="text-xs-plus text-gray-400 truncate max-w-xs mt-0.5">
                           {a.hotelAddress}
                         </div>
                       </td>
@@ -362,7 +362,7 @@ export default function HotelStaffPage() {
                           <button
                             onClick={() => setDeleteTarget(a)}
                             title="Gỡ phân công nhân viên"
-                            className="flex h-8 items-center gap-1 rounded-lg border border-red-200 px-2.5 text-[11px] font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-950/30 cursor-pointer ml-auto"
+                            className="flex h-8 items-center gap-1 rounded-lg border border-red-200 px-2.5 text-xs-plus font-semibold text-red-600 hover:bg-red-50 dark:border-red-900/40 dark:text-red-400 dark:hover:bg-red-950/30 cursor-pointer ml-auto"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                             <span>Gỡ</span>

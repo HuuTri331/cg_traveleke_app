@@ -76,7 +76,7 @@ export function TimePicker({
       </div>
 
       {helperText && (
-        <p className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">{helperText}</p>
+        <p className="mt-1 text-xs-plus text-gray-500 dark:text-gray-400">{helperText}</p>
       )}
     </div>
   );

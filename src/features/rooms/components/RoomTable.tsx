@@ -280,7 +280,7 @@ export function RoomTable({
                           >
                             {room.name}
                           </button>
-                          <p className="text-[10px] text-gray-400 font-mono mt-0.5">
+                          <p className="text-2xs text-gray-400 font-mono mt-0.5">
                             /{room.slug}
                           </p>
                         </div>
@@ -302,7 +302,7 @@ export function RoomTable({
                       <span className="text-xs font-bold text-brand-600 dark:text-brand-400">
                         {formatCurrency(room.pricePerNight)}
                       </span>
-                      <span className="text-[10px] text-gray-400 block">/ đêm</span>
+                      <span className="text-2xs text-gray-400 block">/ đêm</span>
                     </td>
 
                     {/* Giường & Diện tích */}
@@ -311,7 +311,7 @@ export function RoomTable({
                         <p className="font-semibold text-gray-800 dark:text-gray-200">
                           {room.bedCount} × {room.bedType}
                         </p>
-                        <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                        <p className="text-xs-plus text-gray-500 dark:text-gray-400">
                           {room.roomSize ? `${room.roomSize} m²` : 'Chưa nhập'}
                         </p>
                       </div>
@@ -319,7 +319,7 @@ export function RoomTable({
 
                     {/* Sức chứa */}
                     <td className="px-4 sm:px-5 py-4">
-                      <div className="flex items-center gap-1 text-[11px] text-gray-600 dark:text-gray-300">
+                      <div className="flex items-center gap-1 text-xs-plus text-gray-600 dark:text-gray-300">
                         <Users className="h-3.5 w-3.5 text-gray-400" />
                         <span>{room.maxAdults} NL</span>
                         {room.maxChildren > 0 && <span>• {room.maxChildren} TE</span>}
