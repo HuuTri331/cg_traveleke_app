@@ -16,6 +16,7 @@ import {
   CalendarCheck,
   UserCheck,
   Brain,
+  TrendingUp,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { cn } from '@/lib/utils';
@@ -70,8 +71,15 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           icon: <Sparkles className="h-5 w-5" />,
           badge: 'Mới',
         },
+        {
+          label: 'Khách Sạn Tìm Nhiều Nhất',
+          href: '/top-searched-hotels',
+          icon: <TrendingUp className="h-5 w-5" />,
+          badge: 'Hot',
+        },
       ],
     },
+
     // Chỉ hiển thị mục Quản Lý Hệ Thống nếu là ADMIN
     ...(isAdmin
       ? [

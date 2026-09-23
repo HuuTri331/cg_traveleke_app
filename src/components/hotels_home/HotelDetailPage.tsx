@@ -8,6 +8,7 @@ import Footer from '@/components/common/FooterCommon';
 import { hotelDetailApi, type HotelDetail } from '@/services/api/hotel-detail.api';
 import type { Room } from '@/types/room';
 import { useCustomerAuth } from '@/features/auth/context/CustomerAuthContext';
+import { analyticsApi } from '@/services/api/analytics.api';
 
 const BACKEND_URL = 'http://localhost:3001';
 
@@ -509,6 +510,37 @@ export default function HotelDetailPage({ hotelId }: HotelDetailPageProps) {
       ]);
       setHotel(hotelData);
       setRooms(roomsData);
+
+      // Tự động ghi nhận lượt xem khách sạn (Backend Analytics + Client LocalStorage)
+      if (hotelData) {
+        const minPrice = roomsData?.length
+          ? Math.min(...roomsData.map((r: any) => Number(r.pricePerNight) || 1500000))
+          : undefined;
+
+        // Gọi Backend API
+        analyticsApi.trackView(hotelId, minPrice);
+
+        // Lưu vào LocalStorage để trang chủ hiển thị ngay lập tức không có độ trễ
+        try {
+          const raw = localStorage.getItem('traveleke_recently_viewed');
+          let list: any[] = raw ? JSON.parse(raw) : [];
+          list = list.filter((item: any) => String(item.hotelId) !== String(hotelId));
+          list.unshift({
+            hotelId,
+            name: hotelData.name,
+            slug: hotelData.slug,
+            address: hotelData.address,
+            starRating: hotelData.starRating,
+            coverImageUrl: hotelData.coverImageUrl,
+            minPricePerNight: minPrice,
+            lastViewedAt: new Date().toISOString(),
+          });
+          if (list.length > 10) list = list.slice(0, 10);
+          localStorage.setItem('traveleke_recently_viewed', JSON.stringify(list));
+        } catch {
+          // ignore storage error
+        }
+      }
     } catch (err) {
       setError('Không thể tải thông tin khách sạn. Vui lòng thử lại.');
       console.error(err);
