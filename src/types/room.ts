@@ -75,7 +75,7 @@ export interface CreateRoomInput {
   serviceIds?: number[];
 }
 
-export interface UpdateRoomInput extends Partial<CreateRoomInput> {}
+export type UpdateRoomInput = Partial<CreateRoomInput>;
 
 export interface QueryRoomParams {
   page?: number;

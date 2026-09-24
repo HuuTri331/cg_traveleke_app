@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef } from 'react';
-import { UploadCloud, Image as ImageIcon, Trash2, RefreshCw } from 'lucide-react';
+import { UploadCloud, Image as ImageIcon, Trash2, RefreshCw, Check } from 'lucide-react';
 import { getFullImageUrl } from '@/lib/utils';
 
 export interface SingleImageUploaderProps {
@@ -64,8 +64,9 @@ export function SingleImageUploader({
 
           <div className="flex-1 space-y-2 text-center sm:text-left">
             <div>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400 text-xs-plus font-bold">
-                ✓ Đã chọn ảnh đại diện
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-brand-50 text-brand-600 dark:bg-brand-500/15 dark:text-brand-400 text-xs-plus font-bold">
+                <Check className="h-3 w-3" />
+                <span>Đã chọn ảnh đại diện</span>
               </span>
               <p className="text-xs-plus text-gray-500 dark:text-gray-400 mt-1">
                 Ảnh này sẽ hiển thị làm ảnh bìa chính trên trang chủ và danh sách.

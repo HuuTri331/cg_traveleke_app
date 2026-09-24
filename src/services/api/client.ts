@@ -84,6 +84,17 @@ apiClient.interceptors.response.use(
           localStorage.removeItem('traveleke_token');
           localStorage.removeItem('traveleke_user');
           window.location.replace('/login');
+        } else if (
+          !isAuthEndpoint &&
+          isCustomerPath &&
+          typeof window !== 'undefined' &&
+          (window.location.pathname.startsWith('/booking-history') ||
+            window.location.pathname.startsWith('/process-order'))
+        ) {
+          localStorage.removeItem('traveleke_customer_token');
+          localStorage.removeItem('traveleke_customer_user');
+          const redirect = encodeURIComponent(window.location.pathname + window.location.search);
+          window.location.replace(`/customer-login?redirect=${redirect}`);
         }
       }
 

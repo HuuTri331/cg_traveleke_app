@@ -22,6 +22,7 @@ import {
   Star,
   ShieldCheck,
   Building2,
+  ArrowRight,
 } from 'lucide-react';
 
 import HeaderCommon from '@/components/common/HeaderCommon';
@@ -559,7 +560,7 @@ function ProcessOrderContent() {
 
                 <div className="flex flex-col items-center px-2">
                   <span className="text-xs text-gray-500 font-semibold mb-0.5">1 đêm</span>
-                  <span className="text-gray-400 text-sm">➔</span>
+                  <ArrowRight className="h-4 w-4 text-gray-400" />
                 </div>
 
                 <div className="text-right">

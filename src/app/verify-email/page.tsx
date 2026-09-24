@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import logo from '@/assets/image/logo.png';
 import { useCustomerAuth } from '@/features/auth/context/CustomerAuthContext';
 import { apiClient } from '@/services/api/client';
+import { Mail, AlertCircle, CheckCircle2, Clock, RefreshCw, Info } from 'lucide-react';
 
 function VerifyEmailContent() {
   const router = useRouter();
@@ -132,7 +133,7 @@ function VerifyEmailContent() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-2xl font-extrabold text-gray-900 mb-2">Xác Thực Thành Công! 🎉</h2>
+            <h2 className="text-2xl font-extrabold text-gray-900 mb-2">Xác Thực Thành Công!</h2>
             <p className="text-sm text-gray-600 mb-6 leading-relaxed">
               {message || 'Tài khoản của bạn đã được kích hoạt thành công. Giờ đây bạn đã có thể đăng nhập và trải nghiệm dịch vụ của Traveleke.'}
             </p>
@@ -159,7 +160,7 @@ function VerifyEmailContent() {
           <div>
             <div className="text-center mb-6">
               <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 text-blue-600 ring-8 ring-blue-50/60">
-                <span className="text-4xl">✉️</span>
+                <Mail className="h-10 w-10 text-blue-600" />
               </div>
               <h2 className="text-2xl font-extrabold text-gray-900 mb-2">Xác Thực Tài Khoản Email</h2>
               <p className="text-sm text-gray-500 leading-relaxed">
@@ -170,7 +171,7 @@ function VerifyEmailContent() {
             {/* Thông báo lỗi nếu có */}
             {status === 'ERROR' && message && (
               <div className="mb-5 rounded-2xl border border-red-200 bg-red-50/90 p-4 text-sm text-red-700 flex items-start gap-3">
-                <span className="text-base shrink-0">⚠️</span>
+                <AlertCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
                 <span>{message}</span>
               </div>
             )}
@@ -178,7 +179,7 @@ function VerifyEmailContent() {
             {/* Thông báo gửi lại thành công */}
             {resendSuccessMsg && (
               <div className="mb-5 rounded-2xl border border-green-200 bg-green-50/90 p-4 text-sm text-green-700 flex items-start gap-3 animate-fade-in">
-                <span className="text-base shrink-0">✅</span>
+                <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
                 <span>{resendSuccessMsg}</span>
               </div>
             )}
@@ -200,7 +201,10 @@ function VerifyEmailContent() {
 
             {/* Hướng dẫn người dùng */}
             <div className="mb-6 text-xs text-gray-500 space-y-2 bg-gray-50 rounded-xl p-4 border border-gray-100">
-              <p className="font-semibold text-gray-700">📌 Hướng dẫn kích hoạt:</p>
+              <p className="font-semibold text-gray-700 flex items-center gap-1.5">
+                <Info className="h-4 w-4 text-blue-600 shrink-0" />
+                <span>Hướng dẫn kích hoạt:</span>
+              </p>
               <ol className="list-decimal list-inside space-y-1 pl-1">
                 <li>Mở ứng dụng Gmail hoặc hộp thư cá nhân của bạn.</li>
                 <li>Tìm thư từ <strong>Traveleke Support</strong> (kiểm tra thêm thư mục Spam/Rác).</li>
@@ -227,12 +231,12 @@ function VerifyEmailContent() {
                   </>
                 ) : countdown > 0 ? (
                   <>
-                    <span>⏳</span>
+                    <Clock className="h-4 w-4" />
                     <span>Gửi lại sau ({countdown}s)</span>
                   </>
                 ) : (
                   <>
-                    <span>🔄</span>
+                    <RefreshCw className="h-4 w-4" />
                     <span>Gửi Lại Link Xác Thực</span>
                   </>
                 )}

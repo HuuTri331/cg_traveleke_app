@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import logo from '@/assets/image/logo.png';
 import { apiClient } from '@/services/api/client';
 import { DatePicker } from '@/components/ui/DatePicker';
+import { Building2, Palmtree, Award, Bell, MapPin, Lock, Plane, Ban, Clock, AlertCircle, CheckCircle2, User, Mail, Eye, EyeOff, X, Phone } from 'lucide-react';
 
 const LOCKOUT_KEY = 'traveleke_register_lockout';
 
@@ -262,8 +263,8 @@ export default function RegisterPage() {
         <div className="absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-white/10" />
 
         <div className="relative z-10 text-center">
-          <div className="mb-8 inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-white/20 backdrop-blur-sm">
-            <span className="text-4xl">✈️</span>
+          <div className="mb-8 inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-white/20 backdrop-blur-sm text-white">
+            <Plane className="h-10 w-10 text-white" />
           </div>
           <h1 className="text-4xl font-extrabold text-white leading-tight mb-4">
             Khám phá thế giới
@@ -277,34 +278,39 @@ export default function RegisterPage() {
           <div className="mt-10 space-y-4 text-left">
             {[
               {
-                icon: '🏨',
+                icon: Building2,
                 title: 'Nghỉ dưỡng đẳng cấp',
                 desc: 'Hàng ngàn khách sạn & resort cao cấp với tiện nghi chuẩn quốc tế.',
               },
               {
-                icon: '🏖️',
+                icon: Palmtree,
                 title: 'Tour du lịch độc đáo',
                 desc: 'Lịch trình linh hoạt, trải nghiệm bản sắc văn hóa và điểm đến hàng đầu.',
               },
               {
-                icon: '🎯',
+                icon: Award,
                 title: 'Đặc quyền thành viên',
                 desc: 'Ưu đãi giá tốt nhất được đảm bảo, tích lũy điểm thưởng và giữ chỗ tức thì.',
               },
               {
-                icon: '🛎️',
+                icon: Bell,
                 title: 'Dịch vụ tận tâm 24/7',
                 desc: 'Đội ngũ chăm sóc chu đáo, luôn sẵn sàng đồng hành trên từng chuyến đi.',
               },
-            ].map((b) => (
-              <div key={b.title} className="flex items-start gap-3.5 text-white">
-                <span className="text-2xl shrink-0 mt-0.5">{b.icon}</span>
-                <div>
-                  <div className="text-sm font-bold text-white">{b.title}</div>
-                  <div className="text-xs text-blue-100/90 leading-relaxed">{b.desc}</div>
+            ].map((b) => {
+              const BIcon = b.icon;
+              return (
+                <div key={b.title} className="flex items-start gap-3.5 text-white">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 backdrop-blur-xs text-white">
+                    <BIcon className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <div className="text-sm font-bold text-white">{b.title}</div>
+                    <div className="text-xs text-blue-100/90 leading-relaxed">{b.desc}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
@@ -325,7 +331,7 @@ export default function RegisterPage() {
           {isLocked && (
             <div className="mb-6 rounded-2xl border-2 border-red-400 bg-red-50/95 p-5 text-red-900 shadow-md animate-pulse">
               <div className="flex items-start gap-3.5">
-                <span className="text-3xl shrink-0">🚫</span>
+                <Ban className="h-7 w-7 text-red-600 shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <span className="font-extrabold text-sm uppercase tracking-wider text-red-700 bg-red-100 px-2.5 py-0.5 rounded-full">
@@ -336,7 +342,8 @@ export default function RegisterPage() {
                     {lockoutMessage}
                   </p>
                   <div className="mt-3.5 flex items-center gap-2 font-mono text-xs sm:text-sm font-bold bg-white border border-red-200 rounded-xl px-3.5 py-2 text-red-700 shadow-inner w-fit">
-                    <span>⏳ Thời gian mở khóa còn lại:</span>
+                    <Clock className="h-4 w-4 text-red-600 shrink-0" />
+                    <span>Thời gian mở khóa còn lại:</span>
                     <span className="text-red-600 text-base">{formatRemainingTime(remainingSeconds)}</span>
                   </div>
                 </div>
@@ -356,13 +363,13 @@ export default function RegisterPage() {
           {/* Regular Alerts */}
           {error && !isLocked && (
             <div className="mb-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              <span className="shrink-0">⚠️</span>
+              <AlertCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
           {successMsg && (
             <div className="mb-4 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-              <span className="shrink-0">✅</span>
+              <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
               <span>{successMsg}</span>
             </div>
           )}
@@ -376,7 +383,7 @@ export default function RegisterPage() {
                     Họ và tên <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">👤</span>
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                     <input
                       id="register-fullname"
                       name="fullName"
@@ -401,7 +408,7 @@ export default function RegisterPage() {
                     Email Gmail chính thống <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">📧</span>
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                     <input
                       type="email"
                       disabled={isLocked}
@@ -429,7 +436,7 @@ export default function RegisterPage() {
                     Mật khẩu <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">🔒</span>
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       disabled={isLocked}
@@ -443,9 +450,9 @@ export default function RegisterPage() {
                       type="button"
                       disabled={isLocked}
                       onClick={() => setShowPassword((p) => !p)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 flex items-center justify-center"
                     >
-                      {showPassword ? '🙈' : '👁️'}
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                 </div>
@@ -456,7 +463,7 @@ export default function RegisterPage() {
                     Xác nhận mật khẩu <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">🔒</span>
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
                       disabled={isLocked}
@@ -470,13 +477,16 @@ export default function RegisterPage() {
                       type="button"
                       disabled={isLocked}
                       onClick={() => setShowConfirmPassword((p) => !p)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 flex items-center justify-center"
                     >
-                      {showConfirmPassword ? '🙈' : '👁️'}
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                   {confirmPassword && password !== confirmPassword && (
-                    <p className="mt-1.5 text-xs text-red-500 font-medium">⚠️ Mật khẩu không khớp</p>
+                    <p className="mt-1.5 text-xs text-red-500 font-medium flex items-center gap-1">
+                      <AlertCircle className="h-3.5 w-3.5 text-red-500 shrink-0" />
+                      <span>Mật khẩu không khớp</span>
+                    </p>
                   )}
                 </div>
 
@@ -492,7 +502,7 @@ export default function RegisterPage() {
                 >
                   {isLocked ? (
                     <span className="flex items-center justify-center gap-2">
-                      <span>🔒</span>
+                      <Lock className="h-4 w-4" />
                       <span>Đã bị khóa: Thử lại sau ({formatRemainingTime(remainingSeconds)})</span>
                     </span>
                   ) : isValidatingEmail ? (
@@ -518,7 +528,7 @@ export default function RegisterPage() {
                       {avatarPreview ? (
                         <img src={avatarPreview} alt="Avatar" className="h-full w-full object-cover" />
                       ) : (
-                        <span className="text-4xl">👤</span>
+                        <User className="h-10 w-10 text-blue-500" />
                       )}
                     </button>
                     {avatarPreview && !isLocked && (
@@ -528,9 +538,9 @@ export default function RegisterPage() {
                           setAvatarFile(null);
                           setAvatarPreview(null);
                         }}
-                        className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow"
+                        className="absolute -top-1 -right-1 h-6 w-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center shadow hover:bg-red-600 transition"
                       >
-                        ✕
+                        <X className="h-3.5 w-3.5" />
                       </button>
                     )}
                   </div>
@@ -551,7 +561,7 @@ export default function RegisterPage() {
                 <div>
                   <label className={labelClass}>Số điện thoại</label>
                   <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">📱</span>
+                    <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                     <input
                       type="tel"
                       disabled={isLocked}
@@ -567,7 +577,7 @@ export default function RegisterPage() {
                 <div>
                   <label className={labelClass} htmlFor="register-address">Địa chỉ</label>
                   <div className="relative">
-                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">📍</span>
+                    <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <input
                       id="register-address"
                       name="address"
@@ -637,7 +647,7 @@ export default function RegisterPage() {
                   >
                     {isLocked ? (
                       <span className="flex items-center justify-center gap-2">
-                        <span>🔒</span>
+                        <Lock className="h-4 w-4 text-white" />
                         <span>Đã bị khóa ({formatRemainingTime(remainingSeconds)})</span>
                       </span>
                     ) : isLoading ? (
@@ -646,7 +656,7 @@ export default function RegisterPage() {
                         <span>Đang đăng ký & gửi mail...</span>
                       </span>
                     ) : (
-                      'Hoàn tất đăng ký 🎉'
+                      'Hoàn tất đăng ký'
                     )}
                   </button>
                 </div>

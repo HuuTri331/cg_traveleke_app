@@ -11,6 +11,8 @@ import {
   bookingApi,
   BookingHistory as BookingHistoryType,
 } from '@/services/api/booking.api';
+import { useCustomerAuth } from '@/features/auth/context/CustomerAuthContext';
+import { getSocket, REALTIME_EVENTS, RealtimeBookingStatusChanged } from '@/lib/socket';
 
 const BACKEND_URL =
   'http://localhost:3001';
@@ -33,6 +35,7 @@ const getImageUrl = (
 };
 
 export default function BookingHistory() {
+  const { customer } = useCustomerAuth();
   const [
     bookings,
     setBookings,
@@ -50,6 +53,8 @@ export default function BookingHistory() {
     setError,
   ] = useState('');
 
+  const effectiveUserId = customer?.id ? String(customer.id) : '1';
+
   useEffect(() => {
     const fetchBookings =
       async () => {
@@ -57,15 +62,9 @@ export default function BookingHistory() {
           setLoading(true);
           setError('');
 
-          /*
-           * Tạm thời userId = 1.
-           *
-           * Sau này lấy từ
-           * tài khoản đăng nhập.
-           */
           const data =
             await bookingApi.getHistory(
-              '1',
+              effectiveUserId,
             );
 
           setBookings(
@@ -88,6 +87,35 @@ export default function BookingHistory() {
       };
 
     fetchBookings();
+  }, [effectiveUserId]);
+
+  // Lắng nghe sự kiện Realtime cập nhật trạng thái đơn đặt phòng tức thì
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleStatusChanged = (payload: RealtimeBookingStatusChanged) => {
+      setBookings((prev) =>
+        prev.map((item) => {
+          if (
+            (item.bookingCode && item.bookingCode === payload.bookingCode) ||
+            String(item.id) === String(payload.id)
+          ) {
+            return {
+              ...item,
+              status: payload.newStatus,
+            };
+          }
+          return item;
+        }),
+      );
+    };
+
+    socket.on(REALTIME_EVENTS.BOOKING_STATUS_CHANGED, handleStatusChanged);
+
+    return () => {
+      socket.off(REALTIME_EVENTS.BOOKING_STATUS_CHANGED, handleStatusChanged);
+    };
   }, []);
 
   if (loading) {

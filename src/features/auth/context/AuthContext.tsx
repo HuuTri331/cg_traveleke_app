@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { authApi } from '@/services/api/auth.api';
 import { LoginDto, UserProfile } from '@/types/auth';
@@ -148,26 +148,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isLoading, token, user, pathname, router]);
 
-  const login = async (dto: LoginDto) => {
-    setIsLoading(true);
-    try {
-      const data = await authApi.login(dto);
+  const login = useCallback(
+    async (dto: LoginDto) => {
+      setIsLoading(true);
+      try {
+        const data = await authApi.login(dto);
 
-      if (data.user.role === 'CUSTOMER') {
-        throw new Error('Tài khoản khách hàng không có quyền truy cập bảng quản trị. Vui lòng đăng nhập tại trang người dùng.');
+        if (data.user.role === 'CUSTOMER') {
+          throw new Error(
+            'Tài khoản khách hàng không có quyền truy cập bảng quản trị. Vui lòng đăng nhập tại trang người dùng.',
+          );
+        }
+
+        localStorage.setItem('traveleke_token', data.access_token);
+        localStorage.setItem('traveleke_user', JSON.stringify(data.user));
+        setToken(data.access_token);
+        setUser(data.user);
+        router.push('/dashboard');
+      } finally {
+        setIsLoading(false);
       }
+    },
+    [router],
+  );
 
-      localStorage.setItem('traveleke_token', data.access_token);
-      localStorage.setItem('traveleke_user', JSON.stringify(data.user));
-      setToken(data.access_token);
-      setUser(data.user);
-      router.push('/dashboard');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const logout = async () => {
+  const logout = useCallback(async () => {
     setIsLoading(true);
     try {
       await authApi.logout();
@@ -179,9 +184,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
       router.push('/login');
     }
-  };
+  }, [router]);
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     try {
       const profile = await authApi.getMe();
       setUser(profile);
@@ -189,26 +194,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // Ignored
     }
-  };
+  }, []);
 
   const isAuthenticated = !!token && !!user;
   const isAdmin = user?.role === 'ADMIN';
   const isEmployee = user?.role === 'EMPLOYEE' || user?.role === 'ADMIN';
 
+  const contextValue = useMemo(
+    () => ({
+      user,
+      token,
+      isLoading,
+      isAuthenticated,
+      isAdmin,
+      isEmployee,
+      login,
+      logout,
+      refreshProfile,
+    }),
+    [
+      user,
+      token,
+      isLoading,
+      isAuthenticated,
+      isAdmin,
+      isEmployee,
+      login,
+      logout,
+      refreshProfile,
+    ],
+  );
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        isLoading,
-        isAuthenticated,
-        isAdmin,
-        isEmployee,
-        login,
-        logout,
-        refreshProfile,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

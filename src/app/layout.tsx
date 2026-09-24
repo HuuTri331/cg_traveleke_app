@@ -5,6 +5,7 @@ import './globals.css';
 import { ToastProvider } from '@/components/ui/Toast';
 import { AuthProvider } from '@/features/auth/context/AuthContext';
 import { CustomerAuthProvider } from '@/features/auth/context/CustomerAuthContext';
+import { RealtimeProvider } from '@/features/realtime/RealtimeContext';
 
 const inter = Inter({
   subsets: ['latin', 'vietnamese'],
@@ -28,7 +29,9 @@ export default function RootLayout({
       <body className={`${inter.className} min-h-screen bg-gray-50 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100`}>
         <AuthProvider>
           <CustomerAuthProvider>
-            <ToastProvider>{children}</ToastProvider>
+            <ToastProvider>
+              <RealtimeProvider>{children}</RealtimeProvider>
+            </ToastProvider>
           </CustomerAuthProvider>
         </AuthProvider>
       </body>

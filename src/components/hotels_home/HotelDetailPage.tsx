@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Header from '@/components/common/HeaderCommon';
@@ -24,6 +24,31 @@ const getRoomImageUrl = (url?: string | null) => {
   return `${BACKEND_URL}${url}`;
 };
 
+import {
+  Snowflake,
+  Wifi,
+  Utensils,
+  Clock,
+  ArrowUpDown,
+  Waves,
+  SquareParking,
+  Dumbbell,
+  MapPin,
+  BedDouble,
+  ShowerHead,
+  Coffee,
+  Check,
+  Phone,
+  Mail,
+  MessageSquare,
+  Maximize2,
+  X,
+  Star,
+  ExternalLink,
+  AlertCircle,
+  Wind,
+} from 'lucide-react';
+
 const formatPrice = (price: string | number | null | undefined) => {
   if (!price) return '—';
   const num = typeof price === 'string' ? parseFloat(price) : price;
@@ -32,21 +57,21 @@ const formatPrice = (price: string | number | null | undefined) => {
 };
 
 const FACILITIES = [
-  { icon: '❄️', label: 'AC' },
-  { icon: '📶', label: 'WiFi' },
-  { icon: '🍽️', label: 'Nhà hàng' },
-  { icon: '🕐', label: 'Lễ tân 24h' },
-  { icon: '🛗', label: 'Thang máy' },
-  { icon: '🏊', label: 'Hồ bơi' },
-  { icon: '🅿️', label: 'Bãi đỗ xe' },
-  { icon: '🏋️', label: 'Phòng gym' },
+  { icon: Wind, label: 'AC' },
+  { icon: Wifi, label: 'WiFi' },
+  { icon: Utensils, label: 'Nhà hàng' },
+  { icon: Clock, label: 'Lễ tân 24h' },
+  { icon: ArrowUpDown, label: 'Thang máy' },
+  { icon: Waves, label: 'Hồ bơi' },
+  { icon: SquareParking, label: 'Bãi đỗ xe' },
+  { icon: Dumbbell, label: 'Phòng gym' },
 ];
 
 const NEARBY_PLACES = [
-  { icon: '📍', name: 'Bãi biển gần nhất', dist: '0.5 km' },
-  { icon: '📍', name: 'Trung tâm thành phố', dist: '2.0 km' },
-  { icon: '📍', name: 'Sân bay quốc tế', dist: '15.0 km' },
-  { icon: '📍', name: 'Trung tâm thương mại', dist: '3.2 km' },
+  { icon: MapPin, name: 'Bãi biển gần nhất', dist: '0.5 km' },
+  { icon: MapPin, name: 'Trung tâm thành phố', dist: '2.0 km' },
+  { icon: MapPin, name: 'Sân bay quốc tế', dist: '15.0 km' },
+  { icon: MapPin, name: 'Trung tâm thương mại', dist: '3.2 km' },
 ];
 
 interface GalleryModalProps {
@@ -98,7 +123,7 @@ function GalleryModal({ images, startIndex, onClose }: GalleryModalProps) {
           onClick={onClose}
           className="absolute -top-10 right-0 text-white text-sm font-semibold hover:text-gray-300 flex items-center gap-1.5 cursor-pointer"
         >
-          <span>✕</span> Đóng (ESC)
+          <X className="h-4 w-4" /> Đóng (ESC)
         </button>
 
         {/* Main image container */}
@@ -298,11 +323,11 @@ function RoomCard({ room, hotel }: RoomCardProps) {
             {/* Room Specs */}
             <div className="mt-3.5 space-y-1.5 text-xs text-gray-700 font-semibold">
               <div className="flex items-center gap-2">
-                <span className="text-sm">📐</span>
+                <Maximize2 className="h-3.5 w-3.5 text-gray-500 shrink-0" />
                 <span>{room.roomSize ? `${room.roomSize} m²` : '18.0 m²'}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm">🛏️</span>
+                <BedDouble className="h-3.5 w-3.5 text-gray-500 shrink-0" />
                 <span>{room.bedCount} {room.bedType || 'double bed'}</span>
               </div>
             </div>
@@ -310,23 +335,23 @@ function RoomCard({ room, hotel }: RoomCardProps) {
             {/* Amenities Grid */}
             <div className="mt-3.5 grid grid-cols-2 gap-y-2 gap-x-1 border-t border-gray-100 pt-3 text-xs text-gray-600">
               <div className="flex items-center gap-1.5">
-                <span>🚿</span>
+                <ShowerHead className="h-3.5 w-3.5 text-sky-500 shrink-0" />
                 <span>Shower</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span>🧊</span>
+                <Snowflake className="h-3.5 w-3.5 text-cyan-500 shrink-0" />
                 <span>Refrigerator</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span>♨️</span>
+                <Coffee className="h-3.5 w-3.5 text-amber-500 shrink-0" />
                 <span>Hot water</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span>❄️</span>
+                <Wind className="h-3.5 w-3.5 text-blue-500 shrink-0" />
                 <span>Air conditioning</span>
               </div>
               <div className="flex items-center gap-1.5 col-span-2">
-                <span>📶</span>
+                <Wifi className="h-3.5 w-3.5 text-indigo-500 shrink-0" />
                 <span>Free WiFi</span>
               </div>
             </div>
@@ -337,7 +362,7 @@ function RoomCard({ room, hotel }: RoomCardProps) {
             href={`/booking/${room.id}`}
             className="mt-4 pt-3 border-t border-gray-100 flex items-center gap-1.5 text-xs font-bold text-traveloka-blue hover:underline"
           >
-            <span>🪟</span>
+            <ExternalLink className="h-3.5 w-3.5 text-traveloka-blue shrink-0" />
             <span>See Room Details</span>
           </Link>
         </div>
@@ -359,11 +384,11 @@ function RoomCard({ room, hotel }: RoomCardProps) {
             <div>
               <p className="text-sm font-bold text-gray-900">Without Breakfast</p>
               <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
-                <span>🛏️</span>
+                <BedDouble className="h-3.5 w-3.5 text-gray-400 shrink-0" />
                 <span>{room.bedCount} {room.bedType || 'double bed'}</span>
               </p>
               <p className="mt-1.5 flex items-center gap-1 text-xs font-semibold text-emerald-600">
-                <span>✓</span>
+                <Check className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
                 <span>Free Cancellation until 17 Oct 23:59</span>
                 <span className="text-gray-400 text-2xs">ⓘ</span>
               </p>
@@ -423,11 +448,11 @@ function RoomCard({ room, hotel }: RoomCardProps) {
             <div>
               <p className="text-sm font-bold text-gray-900">Without Breakfast</p>
               <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
-                <span>🛏️</span>
+                <BedDouble className="h-3.5 w-3.5 text-gray-400 shrink-0" />
                 <span>{room.bedCount} {room.bedType || 'double bed'}</span>
               </p>
               <p className="mt-1.5 flex items-center gap-1 text-xs font-semibold text-traveloka-blue">
-                <span>✓</span>
+                <Check className="h-3.5 w-3.5 text-traveloka-blue shrink-0" />
                 <span>Pay at Hotel</span>
                 <span className="text-gray-400 text-2xs">ⓘ</span>
               </p>
@@ -435,7 +460,7 @@ function RoomCard({ room, hotel }: RoomCardProps) {
                 Pay when you check-in at the property
               </p>
               <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-500">
-                <span>✓</span>
+                <Check className="h-3.5 w-3.5 text-gray-400 shrink-0" />
                 <span>Cancellation Policy Applies</span>
                 <span className="text-gray-400 text-2xs">ⓘ</span>
               </p>
@@ -500,6 +525,7 @@ export default function HotelDetailPage({ hotelId }: HotelDetailPageProps) {
   const [error, setError] = useState('');
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryStartIndex, setGalleryStartIndex] = useState(0);
+  const trackedHotelRef = useRef<string | null>(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -517,8 +543,11 @@ export default function HotelDetailPage({ hotelId }: HotelDetailPageProps) {
           ? Math.min(...roomsData.map((r: any) => Number(r.pricePerNight) || 1500000))
           : undefined;
 
-        // Gọi Backend API
-        analyticsApi.trackView(hotelId, minPrice);
+        // Gọi Backend API duy nhất 1 lần cho lần xem trang này
+        if (trackedHotelRef.current !== String(hotelId)) {
+          trackedHotelRef.current = String(hotelId);
+          analyticsApi.trackView(hotelId, minPrice);
+        }
 
         // Lưu vào LocalStorage để trang chủ hiển thị ngay lập tức không có độ trễ
         try {
@@ -640,7 +669,7 @@ export default function HotelDetailPage({ hotelId }: HotelDetailPageProps) {
       <div className="min-h-screen bg-gray-50">
         <Header />
         <div className="flex flex-col items-center justify-center py-40 gap-4">
-          <span className="text-5xl">😕</span>
+          <AlertCircle className="h-16 w-16 text-gray-400" />
           <p className="text-lg font-bold text-gray-700">{error || 'Không tìm thấy khách sạn'}</p>
           <Link href="/hotels_home" className="rounded-xl bg-traveloka-blue px-6 py-2.5 text-sm font-bold text-white hover:bg-traveloka-blue-hover">
             ← Quay lại danh sách
@@ -792,14 +821,15 @@ export default function HotelDetailPage({ hotelId }: HotelDetailPageProps) {
               <span className="rounded-md bg-traveloka-blue-light px-2.5 py-0.5 text-xs font-bold text-traveloka-blue">
                 Hotels
               </span>
-              <div className="flex items-center text-yellow-400 text-sm">
+              <div className="flex items-center text-yellow-400 text-sm gap-0.5">
                 {Array.from({ length: hotel.starRating ?? 3 }).map((_, i) => (
-                  <span key={i}>★</span>
+                  <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
                 ))}
               </div>
               {hotel.address && (
-                <span className="text-xs text-gray-500">
-                  📍 {hotel.address}
+                <span className="flex items-center gap-1 text-xs text-gray-500">
+                  <MapPin className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                  <span>{hotel.address}</span>
                 </span>
               )}
             </div>
@@ -828,7 +858,7 @@ export default function HotelDetailPage({ hotelId }: HotelDetailPageProps) {
         <div className="max-w-screen-xl mx-auto px-4 mt-4">
           <div className="rounded-xl bg-blue-50 border border-blue-100 px-5 py-3.5 flex items-center gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-yellow-400 text-yellow-900 font-bold text-sm">
-              ⏱
+              <Clock className="h-4 w-4 text-yellow-950" />
             </div>
             <p className="text-sm font-semibold text-blue-800">
               Đừng bỏ lỡ! Chỉ còn{' '}
@@ -853,7 +883,7 @@ export default function HotelDetailPage({ hotelId }: HotelDetailPageProps) {
             <p className="text-sm font-bold text-gray-500">Chưa có đánh giá</p>
             <p className="mt-4 text-sm font-bold text-gray-700">Ý kiến của khách hàng</p>
             <div className="mt-4 rounded-xl bg-gray-50 border border-gray-100 px-4 py-8 text-center">
-              <span className="text-3xl mb-2 block">💬</span>
+              <MessageSquare className="h-8 w-8 text-gray-300 mx-auto mb-2" />
               <p className="text-sm text-gray-400 font-medium">
                 Chưa có đánh giá nào.<br />Hãy là người đầu tiên nhận xét!
               </p>
@@ -868,39 +898,42 @@ export default function HotelDetailPage({ hotelId }: HotelDetailPageProps) {
             </div>
 
             <div className="flex items-start gap-2 mb-4">
-              <span className="shrink-0 mt-0.5">📍</span>
+              <MapPin className="h-4 w-4 text-brand-500 shrink-0 mt-0.5" />
               <p className="text-sm text-gray-600 leading-relaxed">{hotel.address}</p>
             </div>
 
             {hotel.phone && (
               <div className="flex items-center gap-2 mb-3 text-sm text-gray-600">
-                <span>📞</span>
+                <Phone className="h-4 w-4 text-emerald-500 shrink-0" />
                 <span>{hotel.phone}</span>
               </div>
             )}
             {hotel.email && (
               <div className="flex items-center gap-2 mb-3 text-sm text-gray-600">
-                <span>✉️</span>
+                <Mail className="h-4 w-4 text-sky-500 shrink-0" />
                 <span>{hotel.email}</span>
               </div>
             )}
             {hotel.checkInTime && (
               <div className="flex items-center gap-2 mb-3 text-sm text-gray-600">
-                <span>🕑</span>
+                <Clock className="h-4 w-4 text-amber-500 shrink-0" />
                 <span>Check-in: {hotel.checkInTime.slice(0, 5)} | Check-out: {hotel.checkOutTime.slice(0, 5)}</span>
               </div>
             )}
 
             <div className="mt-4 space-y-2.5">
-              {NEARBY_PLACES.map((place) => (
-                <div key={place.name} className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <span>{place.icon}</span>
-                    <span>{place.name}</span>
+              {NEARBY_PLACES.map((place) => {
+                const PlaceIcon = place.icon;
+                return (
+                  <div key={place.name} className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <PlaceIcon className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                      <span>{place.name}</span>
+                    </div>
+                    <span className="text-gray-400 font-semibold">{place.dist}</span>
                   </div>
-                  <span className="text-gray-400 font-semibold">{place.dist}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -912,12 +945,15 @@ export default function HotelDetailPage({ hotelId }: HotelDetailPageProps) {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              {FACILITIES.map((fac) => (
-                <div key={fac.label} className="flex items-center gap-2.5 rounded-xl bg-gray-50 px-3 py-2.5">
-                  <span className="text-lg">{fac.icon}</span>
-                  <span className="text-sm font-medium text-gray-700">{fac.label}</span>
-                </div>
-              ))}
+              {FACILITIES.map((fac) => {
+                const FacIcon = fac.icon;
+                return (
+                  <div key={fac.label} className="flex items-center gap-2.5 rounded-xl bg-gray-50 px-3 py-2.5">
+                    <FacIcon className="h-4 w-4 text-brand-500 shrink-0" />
+                    <span className="text-sm font-medium text-gray-700">{fac.label}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -957,7 +993,7 @@ export default function HotelDetailPage({ hotelId }: HotelDetailPageProps) {
 
         {rooms.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-gray-200 bg-white py-16 text-center">
-            <span className="text-5xl mb-4 block">🛏️</span>
+            <BedDouble className="h-14 w-14 text-gray-300 mx-auto mb-3" />
             <p className="text-lg font-bold text-gray-500">Chưa có phòng trống</p>
             <p className="text-sm text-gray-400 mt-2">Vui lòng thử lại sau hoặc chọn khách sạn khác.</p>
           </div>

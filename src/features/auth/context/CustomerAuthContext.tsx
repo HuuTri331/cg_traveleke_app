@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient } from '@/services/api/client';
 import type { UserProfile, LoginDto } from '@/types/auth';
@@ -75,33 +75,44 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
 
   useEffect(() => { initCustomerAuth(); }, [initCustomerAuth]);
 
-  const customerLogin = async (dto: LoginDto, redirectPath?: string) => {
-    setIsCustomerLoading(true);
-    try {
-      const res = await apiClient.post<{ data: { access_token: string; user: UserProfile } }>('/auth/login', dto);
-      const { access_token, user } = res.data.data;
+  const customerLogin = useCallback(
+    async (dto: LoginDto, redirectPath?: string) => {
+      setIsCustomerLoading(true);
+      try {
+        const res = await apiClient.post<{
+          data: { access_token: string; user: UserProfile };
+        }>('/auth/login', dto);
+        const { access_token, user } = res.data.data;
 
-      // Block staff/admin from logging into customer portal
-      if (user.role === 'ADMIN' || user.role === 'EMPLOYEE') {
-        throw new Error('Thông tin đăng nhập không hợp lệ tại cổng khách hàng vì đây là tài khoản của nhân viên/quản trị viên khách sạn. Vui lòng sử dụng trang đăng nhập quản trị.');
+        // Block staff/admin from logging into customer portal
+        if (user.role === 'ADMIN' || user.role === 'EMPLOYEE') {
+          throw new Error(
+            'Thông tin đăng nhập không hợp lệ tại cổng khách hàng vì đây là tài khoản của nhân viên/quản trị viên khách sạn. Vui lòng sử dụng trang đăng nhập quản trị.',
+          );
+        }
+
+        localStorage.setItem(TOKEN_KEY, access_token);
+        localStorage.setItem(USER_KEY, JSON.stringify(user));
+        setCustomerToken(access_token);
+        setCustomer(user);
+        router.push(redirectPath || '/home');
+      } finally {
+        setIsCustomerLoading(false);
       }
+    },
+    [router],
+  );
 
-      localStorage.setItem(TOKEN_KEY, access_token);
-      localStorage.setItem(USER_KEY, JSON.stringify(user));
-      setCustomerToken(access_token);
-      setCustomer(user);
-      router.push(redirectPath || '/home');
-    } finally {
-      setIsCustomerLoading(false);
-    }
-  };
-
-  const customerLogout = async () => {
+  const customerLogout = useCallback(async () => {
     try {
       if (customerToken) {
-        await apiClient.post('/auth/logout', {}, {
-          headers: { Authorization: `Bearer ${customerToken}` },
-        });
+        await apiClient.post(
+          '/auth/logout',
+          {},
+          {
+            headers: { Authorization: `Bearer ${customerToken}` },
+          },
+        );
       }
     } catch {
       // Bỏ qua lỗi backend khi logout, luôn xoá phiên ở client
@@ -112,21 +123,23 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
       setCustomer(null);
       router.push('/customer-login');
     }
-  };
+  }, [customerToken, router]);
 
-  const refreshCustomerProfile = async () => {
+  const refreshCustomerProfile = useCallback(async () => {
     if (!customerToken) return;
     try {
       const profile = await fetchCustomerProfile(customerToken);
       setCustomer(profile);
       localStorage.setItem(USER_KEY, JSON.stringify(profile));
-    } catch { /* ignore */ }
-  };
+    } catch {
+      // ignore
+    }
+  }, [customerToken]);
 
   const isCustomerAuthenticated = !!customerToken && !!customer;
 
-  return (
-    <CustomerAuthContext.Provider value={{
+  const contextValue = useMemo(
+    () => ({
       customer,
       customerToken,
       isCustomerLoading,
@@ -134,7 +147,20 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
       customerLogin,
       customerLogout,
       refreshCustomerProfile,
-    }}>
+    }),
+    [
+      customer,
+      customerToken,
+      isCustomerLoading,
+      isCustomerAuthenticated,
+      customerLogin,
+      customerLogout,
+      refreshCustomerProfile,
+    ],
+  );
+
+  return (
+    <CustomerAuthContext.Provider value={contextValue}>
       {children}
     </CustomerAuthContext.Provider>
   );

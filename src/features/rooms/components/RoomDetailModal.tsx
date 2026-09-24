@@ -138,7 +138,7 @@ export function RoomDetailModal({
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1 text-xs text-amber-400 font-bold">
                 <Star className="h-4 w-4 fill-amber-400" />
-                <span>{room.rating || 5}★ tiêu chuẩn</span>
+                <span>{room.rating || 5} sao tiêu chuẩn</span>
               </div>
               <Badge variant={statusVariantMap[room.status] || 'neutral'} size="sm" dot>
                 {statusLabelMap[room.status] || room.status}

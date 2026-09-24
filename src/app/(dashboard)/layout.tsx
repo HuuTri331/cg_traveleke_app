@@ -16,22 +16,26 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const { isLoading, isAuthenticated, user } = useAuth();
 
   useEffect(() => {
-    // Kiểm tra tức thì trên Client: Nếu không có token nhân viên/admin, chuyển hướng ngay lập tức
-    if (typeof window !== 'undefined') {
-      const staffToken = localStorage.getItem('traveleke_token');
-      if (!staffToken) {
-        const customerToken = localStorage.getItem('traveleke_customer_token');
-        router.replace(customerToken ? '/home' : '/login');
-        return;
-      }
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    const staffToken = localStorage.getItem('traveleke_token');
+    if (!staffToken) {
+      const customerToken = localStorage.getItem('traveleke_customer_token');
+      router.replace(customerToken ? '/home' : '/login');
+      return;
     }
 
     if (!isLoading) {
       if (!isAuthenticated || user?.role === 'CUSTOMER') {
-        const customerToken = typeof window !== 'undefined' ? localStorage.getItem('traveleke_customer_token') : null;
+        const customerToken = localStorage.getItem('traveleke_customer_token');
         if (customerToken || user?.role === 'CUSTOMER') {
           router.replace('/home');
         } else {
@@ -39,26 +43,9 @@ export default function DashboardLayout({
         }
       }
     }
-  }, [isLoading, isAuthenticated, user, router]);
+  }, [mounted, isLoading, isAuthenticated, user, router]);
 
-  // Fallback an toàn: Không bao giờ để màn hình xác thực treo quá 1s nếu phiên không hợp lệ
-  useEffect(() => {
-    if (isLoading) {
-      const timer = setTimeout(() => {
-        if (typeof window !== 'undefined' && !localStorage.getItem('traveleke_token')) {
-          router.replace('/login');
-        }
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [isLoading, router]);
-
-  if (isLoading) {
-    // Nếu trong localStorage không có token nhân viên, không hiển thị màn hình loading gây giật
-    if (typeof window !== 'undefined' && !localStorage.getItem('traveleke_token')) {
-      return null;
-    }
-
+  if (!mounted || isLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
         <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-500 text-white shadow-xl shadow-brand-500/30 animate-pulse">

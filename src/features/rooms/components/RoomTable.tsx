@@ -137,7 +137,7 @@ export function RoomTable({
                 <option value="">-- Tất cả khách sạn --</option>
                 {hotels.map((h) => (
                   <option key={h.id} value={h.id}>
-                    🏨 {h.name} (#{h.id})
+                    {h.name} (#{h.id})
                   </option>
                 ))}
               </select>
@@ -227,7 +227,7 @@ export function RoomTable({
                       Chưa có phòng nào
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      Hãy chọn khách sạn khác hoặc bấm "+ Thêm Phòng Mới".
+                      Hãy chọn khách sạn khác hoặc bấm &quot;+ Thêm Phòng Mới&quot;.
                     </p>
                   </div>
                 </td>

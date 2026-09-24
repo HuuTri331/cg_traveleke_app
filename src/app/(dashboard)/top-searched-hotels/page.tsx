@@ -17,6 +17,9 @@ import {
   Filter,
   BarChart3,
   Sparkles,
+  Trophy,
+  Medal,
+  Award,
 } from 'lucide-react';
 import { analyticsApi, type AdminSearchTrendsResponse } from '@/services/api/analytics.api';
 import { formatCurrency, getFullImageUrl } from '@/lib/utils';
@@ -266,18 +269,21 @@ export default function TopSearchedHotelsPage() {
                     {/* Rank */}
                     <td className="py-3.5 px-4 font-black">
                       {hotel.rank === 1 && (
-                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-amber-700 font-black shadow-xs">
-                          🥇 1
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-amber-100 text-amber-700 font-bold shadow-xs text-xs gap-0.5">
+                          <Trophy className="h-3.5 w-3.5 fill-amber-500 text-amber-600" />
+                          <span>1</span>
                         </span>
                       )}
                       {hotel.rank === 2 && (
-                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-200 text-slate-700 font-black shadow-xs">
-                          🥈 2
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-slate-200 text-slate-700 font-bold shadow-xs text-xs gap-0.5">
+                          <Medal className="h-3.5 w-3.5 text-slate-600" />
+                          <span>2</span>
                         </span>
                       )}
                       {hotel.rank === 3 && (
-                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-amber-50 text-amber-800 font-black shadow-xs">
-                          🥉 3
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-amber-50 text-amber-800 font-bold shadow-xs text-xs border border-amber-200 gap-0.5">
+                          <Award className="h-3.5 w-3.5 text-amber-700" />
+                          <span>3</span>
                         </span>
                       )}
                       {hotel.rank > 3 && (

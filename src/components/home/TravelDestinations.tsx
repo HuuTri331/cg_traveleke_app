@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Plane, Calendar } from 'lucide-react';
 
 type Destination = {
   title: string;
@@ -290,12 +291,12 @@ export default function TravelDestinations() {
                   </h3>
 
                   <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
-                    <span>✈️</span>
+                    <Plane className="h-3.5 w-3.5 text-traveloka-blue shrink-0" />
                     <span>{dest.airline}</span>
                   </p>
 
                   <p className="mt-1 flex items-center gap-1.5 text-xs text-gray-400">
-                    <span>📅</span>
+                    <Calendar className="h-3.5 w-3.5 text-gray-400 shrink-0" />
                     <span>{dest.date}</span>
                   </p>
                 </div>

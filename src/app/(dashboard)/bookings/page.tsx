@@ -13,6 +13,7 @@ import {
   ActivityLogItem,
 } from '@/services/api/booking.api';
 import { formatCurrency } from '@/lib/utils';
+import { getSocket, REALTIME_EVENTS } from '@/lib/socket';
 import {
   CalendarCheck,
   Search,
@@ -38,6 +39,9 @@ import {
   Award,
   ShieldCheck,
   Check,
+  Star,
+  Lightbulb,
+  ArrowRight,
 } from 'lucide-react';
 
 const STATUS_CONFIG: Record<
@@ -266,6 +270,27 @@ export default function BookingsPage() {
       fetchActivityLogs();
     }
   }, [mainTab, fetchBookings, fetchActivityLogs]);
+
+  // Lắng nghe sự kiện Realtime để đồng bộ hoá danh sách Booking tự động
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleRealtimeUpdate = () => {
+      fetchBookings();
+      if (mainTab === 'activity_logs') {
+        fetchActivityLogs();
+      }
+    };
+
+    socket.on(REALTIME_EVENTS.BOOKING_CREATED, handleRealtimeUpdate);
+    socket.on(REALTIME_EVENTS.BOOKING_STATUS_CHANGED, handleRealtimeUpdate);
+
+    return () => {
+      socket.off(REALTIME_EVENTS.BOOKING_CREATED, handleRealtimeUpdate);
+      socket.off(REALTIME_EVENTS.BOOKING_STATUS_CHANGED, handleRealtimeUpdate);
+    };
+  }, [fetchBookings, fetchActivityLogs, mainTab]);
 
   // ==========================================
   // XEM CHI TIẾT BOOKING
@@ -871,7 +896,7 @@ export default function BookingsPage() {
                                 <Badge size="sm" variant={STATUS_CONFIG[log.oldStatus]?.variant || 'neutral'}>
                                   {STATUS_CONFIG[log.oldStatus]?.label || log.oldStatus}
                                 </Badge>
-                                <span className="text-gray-400">➔</span>
+                                <ArrowRight className="h-3 w-3 text-gray-400" />
                               </>
                             )}
                             <Badge size="sm" variant={STATUS_CONFIG[log.newStatus]?.variant || 'neutral'}>
@@ -1032,8 +1057,9 @@ export default function BookingsPage() {
                     </p>
                   )}
                   {selectedBookingDetail.assignmentNote && (
-                    <p className="text-xs-plus text-purple-800 dark:text-purple-300 italic bg-white/80 dark:bg-gray-800/80 p-2.5 rounded-xl border border-purple-100 dark:border-purple-800/40 mt-2">
-                      💡 {selectedBookingDetail.assignmentNote}
+                    <p className="text-xs-plus text-purple-800 dark:text-purple-300 italic bg-white/80 dark:bg-gray-800/80 p-2.5 rounded-xl border border-purple-100 dark:border-purple-800/40 mt-2 flex items-start gap-1.5">
+                      <Lightbulb className="h-3.5 w-3.5 shrink-0 mt-0.5 text-purple-600 dark:text-purple-400" />
+                      <span>{selectedBookingDetail.assignmentNote}</span>
                     </p>
                   )}
                 </div>
@@ -1057,8 +1083,9 @@ export default function BookingsPage() {
               </div>
 
               {selectedBookingDetail.status === 'CHECKED_IN' && (
-                <p className="text-xs-plus text-amber-600 dark:text-amber-400 font-medium">
-                  ⚠️ Khách hàng đã nhận phòng (CHECKED_IN) - Theo quy định vận hành, không thể thay đổi nhân viên phụ trách.
+                <p className="text-xs-plus text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1.5">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                  <span>Khách hàng đã nhận phòng (CHECKED_IN) - Theo quy định vận hành, không thể thay đổi nhân viên phụ trách.</span>
                 </p>
               )}
             </div>
@@ -1270,8 +1297,15 @@ export default function BookingsPage() {
               </p>
             </div>
             {reassignModal.roomInfo && (
-              <Badge variant={reassignModal.roomInfo.isVip ? 'brand' : 'neutral'}>
-                {reassignModal.roomInfo.isVip ? '⭐ Phân Hạng Cao Cấp / VIP' : 'Phân Hạng Tiêu Chuẩn'}
+              <Badge variant={reassignModal.roomInfo.isVip ? 'brand' : 'neutral'} className="inline-flex items-center gap-1">
+                {reassignModal.roomInfo.isVip ? (
+                  <>
+                    <Star className="h-3 w-3 fill-current" />
+                    <span>Phân Hạng Cao Cấp / VIP</span>
+                  </>
+                ) : (
+                  'Phân Hạng Tiêu Chuẩn'
+                )}
               </Badge>
             )}
           </div>

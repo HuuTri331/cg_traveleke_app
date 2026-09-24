@@ -333,7 +333,7 @@ export function HotelTable({
                           <Star key={i} className="h-3.5 w-3.5 fill-amber-400" />
                         ))}
                         <span className="text-xs font-bold text-gray-700 dark:text-gray-300 ml-1">
-                          {hotel.starRating || 0}★
+                          {hotel.starRating || 0} sao
                         </span>
                       </div>
                     </td>

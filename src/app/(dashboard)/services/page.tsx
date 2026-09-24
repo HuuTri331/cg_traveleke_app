@@ -20,6 +20,15 @@ import {
   ToggleRight,
   ChevronRight,
   Layers,
+  WashingMachine,
+  UtensilsCrossed,
+  Heart,
+  Car,
+  Wifi,
+  Baby,
+  Building2,
+  Shield,
+  Wrench,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useToast } from '@/components/ui/Toast';
@@ -35,14 +44,14 @@ import {
 // LEVEL LABELS & ICON MAP
 // ============================================================
 const ICON_OPTIONS = [
-  { value: 'Sparkles', label: '✨ Dọn Phòng' },
-  { value: 'WashingMachine', label: '👕 Giặt Ủi' },
-  { value: 'UtensilsCrossed', label: '🍽️ Ăn Uống Tại Phòng' },
-  { value: 'Heart', label: '💆 Spa & Massage' },
-  { value: 'Car', label: '🚗 Vận Chuyển' },
-  { value: 'Star', label: '⭐ Hỗ Trợ Đặc Biệt' },
-  { value: 'Wifi', label: '📶 Hỗ Trợ Kỹ Thuật' },
-  { value: 'Baby', label: '👶 Chăm Sóc Trẻ Em' },
+  { value: 'Sparkles', label: 'Dọn Phòng' },
+  { value: 'WashingMachine', label: 'Giặt Ủi' },
+  { value: 'UtensilsCrossed', label: 'Ăn Uống Tại Phòng' },
+  { value: 'Heart', label: 'Spa & Massage' },
+  { value: 'Car', label: 'Vận Chuyển' },
+  { value: 'Star', label: 'Hỗ Trợ Đặc Biệt' },
+  { value: 'Wifi', label: 'Hỗ Trợ Kỹ Thuật' },
+  { value: 'Baby', label: 'Chăm Sóc Trẻ Em' },
 ];
 
 function formatTitleCase(str: string): string {
@@ -74,20 +83,21 @@ function formatPrice(amount: number): string {
   }).format(amount);
 }
 
-function getCategoryIcon(icon: string | null): string {
-  const map: Record<string, string> = {
-    Sparkles: '✨',
-    WashingMachine: '👕',
-    UtensilsCrossed: '🍽️',
-    Heart: '💆',
-    Car: '🚗',
-    Star: '⭐',
-    Wifi: '📶',
-    Baby: '👶',
-    Hotel: '🏨',
-    Shield: '🛡️',
+function CategoryIcon({ icon, className = 'h-4 w-4' }: { icon: string | null; className?: string }) {
+  const map: Record<string, React.ComponentType<{ className?: string }>> = {
+    Sparkles,
+    WashingMachine,
+    UtensilsCrossed,
+    Heart,
+    Car,
+    Star,
+    Wifi,
+    Baby,
+    Hotel: Building2,
+    Shield,
   };
-  return map[icon ?? ''] ?? '🔧';
+  const Comp = map[icon ?? ''] ?? Wrench;
+  return <Comp className={className} />;
 }
 
 // ============================================================
@@ -396,7 +406,7 @@ function RoomServiceModal({
             >
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
-                  {getCategoryIcon(cat.icon)} {cat.name}
+                  {cat.name}
                 </option>
               ))}
             </select>
@@ -778,7 +788,7 @@ export default function ServicesManagementPage() {
             >
               <option value="ALL">Tất cả danh mục</option>
               {categories.map((c) => (
-                <option key={c.id} value={c.id}>{getCategoryIcon(c.icon)} {c.name}</option>
+                <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
           )}
@@ -824,7 +834,7 @@ export default function ServicesManagementPage() {
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-500/10 text-lg">
-                              {getCategoryIcon(cat.icon)}
+                              <CategoryIcon icon={cat.icon} className="h-5 w-5 text-violet-600 dark:text-violet-400" />
                             </div>
                             <div>
                               <div className="font-bold text-gray-900 dark:text-white">{cat.name}</div>
@@ -938,8 +948,9 @@ export default function ServicesManagementPage() {
                         </td>
                         <td className="px-6 py-4">
                           {cat && (
-                            <span className="inline-flex items-center gap-1 text-xs-plus font-semibold text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 px-2 py-0.5 rounded-full">
-                              {getCategoryIcon(cat.icon)} {cat.name}
+                            <span className="inline-flex items-center gap-1.5 text-xs-plus font-semibold text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-500/10 px-2.5 py-1 rounded-full">
+                              <CategoryIcon icon={cat.icon} className="h-3.5 w-3.5 shrink-0" />
+                              <span>{cat.name}</span>
                             </span>
                           )}
                         </td>

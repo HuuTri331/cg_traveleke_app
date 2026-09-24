@@ -3,6 +3,20 @@
 import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import {
+  Package,
+  Shield,
+  Gift,
+  Ship,
+  Compass,
+  Tag,
+  HelpCircle,
+  Headphones,
+  User,
+  ClipboardList,
+  LogOut,
+  ChevronDown,
+} from 'lucide-react';
 
 import logo from '@/assets/image/logo.png';
 import { useCustomerAuth } from '@/features/auth/context/CustomerAuthContext';
@@ -30,11 +44,11 @@ const mainMenu = [
 ];
 
 const moreMenu = [
-  { icon: '📦', label: 'Combo tiết kiệm' },
-  { icon: '🛡️', label: 'Bảo hiểm du lịch' },
-  { icon: '🎁', label: 'Phiếu quà tặng' },
-  { icon: '🚢', label: 'Du thuyền' },
-  { icon: '🔭', label: 'Cẩm nang du lịch' },
+  { icon: Package, label: 'Combo tiết kiệm' },
+  { icon: Shield, label: 'Bảo hiểm du lịch' },
+  { icon: Gift, label: 'Phiếu quà tặng' },
+  { icon: Ship, label: 'Du thuyền' },
+  { icon: Compass, label: 'Cẩm nang du lịch' },
 ];
 
 const menuItemClass =
@@ -107,7 +121,7 @@ export default function HeaderCommon() {
                   className="h-4 w-4"
                 />
                 <span>VI | VND</span>
-                <span className="text-2xs">▼</span>
+                <ChevronDown className="h-3.5 w-3.5 text-gray-500" />
               </button>
 
               {isLanguageOpen && (
@@ -127,7 +141,7 @@ export default function HeaderCommon() {
               type="button"
               className="flex items-center gap-2 rounded-lg px-3 py-2 text-green-600 transition-colors hover:bg-gray-100"
             >
-              <span>🏷️</span>
+              <Tag className="h-4 w-4 text-emerald-600 shrink-0" />
               <span>Khuyến mãi</span>
             </button>
 
@@ -138,18 +152,18 @@ export default function HeaderCommon() {
                 onClick={() => setIsSupportOpen((prev) => !prev)}
                 className="flex items-center gap-1 rounded-lg px-3 py-2 transition-colors hover:bg-gray-100"
               >
-                Hỗ trợ
-                <span className="text-2xs">▼</span>
+                <span>Hỗ trợ</span>
+                <ChevronDown className="h-3.5 w-3.5 text-gray-500" />
               </button>
 
               {isSupportOpen && (
                 <div className="absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
                   <a href="#" className={dropdownItemClass}>
-                    <span>❓</span>
+                    <HelpCircle className="h-4 w-4 text-gray-500 shrink-0" />
                     <span>Trợ giúp</span>
                   </a>
                   <a href="#" className={dropdownItemClass}>
-                    <span>🎧</span>
+                    <Headphones className="h-4 w-4 text-gray-500 shrink-0" />
                     <span>Liên hệ chúng tôi</span>
                   </a>
                 </div>
@@ -190,7 +204,7 @@ export default function HeaderCommon() {
                   <span className="text-sm font-semibold text-gray-700">
                     Xin chào, <span className="text-blue-600">{customer.fullName.split(' ').slice(-1)[0]}</span>
                   </span>
-                  <span className="text-2xs text-gray-400">▼</span>
+                  <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
                 </button>
 
                 {/* Dropdown */}
@@ -214,11 +228,11 @@ export default function HeaderCommon() {
                     </div>
 
                     <Link href="/home" className={dropdownItemClass} onClick={() => setIsUserMenuOpen(false)}>
-                      <span>👤</span>
+                      <User className="h-4 w-4 text-gray-500 shrink-0" />
                       <span>Profile (Hồ sơ cá nhân)</span>
                     </Link>
                     <Link href="/booking-history" className={dropdownItemClass} onClick={() => setIsUserMenuOpen(false)}>
-                      <span>📋</span>
+                      <ClipboardList className="h-4 w-4 text-gray-500 shrink-0" />
                       <span>Đặt chỗ của tôi</span>
                     </Link>
                     <div className="border-t border-gray-100">
@@ -230,7 +244,7 @@ export default function HeaderCommon() {
                         }}
                         className="flex w-full items-center gap-3 px-4 py-3 text-left text-red-500 transition-colors hover:bg-red-50 font-medium"
                       >
-                        <span>🚪</span>
+                        <LogOut className="h-4 w-4 text-red-500 shrink-0" />
                         <span>Đăng xuất</span>
                       </button>
                     </div>
@@ -250,7 +264,7 @@ export default function HeaderCommon() {
                     hover:bg-blue-50
                   "
                 >
-                  <span>👤</span>
+                  <User className="h-4 w-4 text-blue-500 shrink-0" />
                   <span>Đăng nhập</span>
                 </Link>
 
@@ -289,22 +303,25 @@ export default function HeaderCommon() {
               onClick={() => setIsMoreOpen((prev) => !prev)}
               className="flex items-center gap-1 rounded-lg px-3 py-2 transition-colors hover:bg-gray-100 hover:text-blue-500"
             >
-              More
-              <span className="text-2xs">▼</span>
+              <span>More</span>
+              <ChevronDown className="h-3.5 w-3.5 text-gray-500" />
             </button>
 
             {isMoreOpen && (
               <div className="absolute left-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg">
-                {moreMenu.map((item) => (
-                  <a
-                    key={item.label}
-                    href="#"
-                    className={dropdownItemClass}
-                  >
-                    <span>{item.icon}</span>
-                    <span>{item.label}</span>
-                  </a>
-                ))}
+                {moreMenu.map((item) => {
+                  const ItemIcon = item.icon;
+                  return (
+                    <a
+                      key={item.label}
+                      href="#"
+                      className={dropdownItemClass}
+                    >
+                      <ItemIcon className="h-4 w-4 text-gray-500 shrink-0" />
+                      <span>{item.label}</span>
+                    </a>
+                  );
+                })}
               </div>
             )}
           </div>

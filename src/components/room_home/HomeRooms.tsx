@@ -7,6 +7,7 @@ import { useCustomerAuth } from '@/features/auth/context/CustomerAuthContext';
 
 import Header from '@/components/common/HeaderCommon';
 import Footer from '@/components/common/FooterCommon';
+import { Maximize2, Star, BedDouble, User, Users, Check } from 'lucide-react';
 
 import { homeRoomApi } from '@/services/api/home-room.api';
 import {
@@ -654,13 +655,13 @@ export default function HomeRooms({
 
                           {/* Top-left Specs Badge */}
                           <div className="absolute left-3 top-3 flex items-center gap-1 rounded-md bg-[#1a4b75]/85 backdrop-blur-xs px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
-                            <span>📐</span>
+                            <Maximize2 className="h-3.5 w-3.5 text-white" />
                             <span>{room.roomSize ? `${room.roomSize} m²` : '18 m²'}</span>
                           </div>
 
                           {/* Top-right Rating */}
                           <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-yellow-700 shadow-sm">
-                            <span>⭐</span>
+                            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                             <span>{Number(room.rating || 4.5).toFixed(1)}</span>
                           </div>
 
@@ -685,22 +686,25 @@ export default function HomeRooms({
 
                             {/* ROOM INFO */}
                             <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-600">
-                              <span className="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2.5 py-1 font-medium">
-                                🛏️ {room.bedCount} {room.bedType || 'giường'}
+                              <span className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-1 font-medium">
+                                <BedDouble className="h-3.5 w-3.5 text-gray-500" />
+                                <span>{room.bedCount} {room.bedType || 'giường'}</span>
                               </span>
-                              <span className="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2.5 py-1 font-medium">
-                                👤 {room.maxAdults} người lớn
+                              <span className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-1 font-medium">
+                                <User className="h-3.5 w-3.5 text-gray-500" />
+                                <span>{room.maxAdults} người lớn</span>
                               </span>
                               {Number(room.maxChildren) > 0 && (
-                                <span className="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2.5 py-1 font-medium">
-                                  👶 {room.maxChildren} trẻ em
+                                <span className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-1 font-medium">
+                                  <Users className="h-3.5 w-3.5 text-gray-500" />
+                                  <span>{room.maxChildren} trẻ em</span>
                                 </span>
                               )}
                             </div>
 
                             {/* CANCELLATION */}
                             <p className="mt-2.5 flex items-center gap-1 text-xs font-semibold text-emerald-600">
-                              <span>✓</span>
+                              <Check className="h-3.5 w-3.5 text-emerald-600" />
                               <span>Miễn phí huỷ phòng</span>
                             </p>
                           </div>

@@ -330,7 +330,7 @@ export function RoomCreateModal({
           onNewFilesChange={setNewFiles}
           primaryNewIndex={primaryNewIndex}
           onSetPrimaryNewIndex={setPrimaryNewIndex}
-          helperText="Tải tối đa 5 ảnh cho phòng nghỉ. Bấm vào ngôi sao ⭐ để chọn ảnh làm đại diện chính."
+          helperText="Tải tối đa 5 ảnh cho phòng nghỉ. Bấm vào biểu tượng ngôi sao để chọn ảnh làm đại diện chính."
         />
 
         {/* Hàng 9: Dịch vụ & Tiện ích kèm theo phòng (Miễn phí mặc định & Có phí) */}

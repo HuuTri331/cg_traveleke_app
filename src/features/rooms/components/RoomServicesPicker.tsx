@@ -2,19 +2,36 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { servicesApi, ServiceCategory, RoomService } from '@/services/api/services.api';
-import { Check, Sparkles, Plus, CheckSquare, Square, Search, ShieldCheck } from 'lucide-react';
+import {
+  Check,
+  Sparkles,
+  Plus,
+  CheckSquare,
+  Square,
+  Search,
+  ShieldCheck,
+  Shirt,
+  Utensils,
+  Heart,
+  Car,
+  Star,
+  Wifi,
+  Baby,
+  UtensilsCrossed,
+  Package,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const CATEGORY_EMOJIS: Record<string, string> = {
-  HOUSEKEEPING: '✨',
-  LAUNDRY: '👕',
-  FOOD_BEVERAGE: '🍽️',
-  SPA_WELLNESS: '🧖',
-  TRANSPORT: '🚗',
-  CONCIERGE: '⭐',
-  TECH_SUPPORT: '📶',
-  CHILDCARE: '👶',
-  FOODFAST: '🍔',
+const CATEGORY_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  HOUSEKEEPING: Sparkles,
+  LAUNDRY: Shirt,
+  FOOD_BEVERAGE: Utensils,
+  SPA_WELLNESS: Heart,
+  TRANSPORT: Car,
+  CONCIERGE: Star,
+  TECH_SUPPORT: Wifi,
+  CHILDCARE: Baby,
+  FOODFAST: UtensilsCrossed,
 };
 
 function formatPrice(val: number) {
@@ -186,9 +203,10 @@ export function RoomServicesPicker({
           <button
             type="button"
             onClick={selectAllFree}
-            className="text-xs-plus font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 text-xs-plus font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 transition-colors cursor-pointer"
           >
-            ✨ Chọn tất cả dịch vụ miễn phí
+            <Sparkles className="h-3.5 w-3.5" />
+            <span>Chọn tất cả dịch vụ miễn phí</span>
           </button>
           <button
             type="button"
@@ -237,19 +255,20 @@ export function RoomServicesPicker({
           const count = services.filter((s) => s.categoryId === cat.id).length;
           if (count === 0) return null;
           const isSelected = selectedCategoryTab === cat.id;
+          const CatIcon = CATEGORY_ICONS[cat.code] || Package;
           return (
             <button
               key={cat.id}
               type="button"
               onClick={() => setSelectedCategoryTab(cat.id)}
               className={cn(
-                'text-xs-plus font-semibold px-2.5 py-1 rounded-lg whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1',
+                'text-xs-plus font-semibold px-2.5 py-1 rounded-lg whitespace-nowrap transition-colors cursor-pointer flex items-center gap-1.5',
                 isSelected
                   ? 'bg-emerald-500 text-white shadow-sm'
                   : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50',
               )}
             >
-              <span>{CATEGORY_EMOJIS[cat.code] || '📦'}</span>
+              <CatIcon className="h-3.5 w-3.5 shrink-0" />
               <span>{cat.name}</span>
               <span className="opacity-70 text-2xs">({count})</span>
             </button>
@@ -264,13 +283,15 @@ export function RoomServicesPicker({
             Không tìm thấy dịch vụ nào phù hợp.
           </div>
         ) : (
-          groupedByCategory.map(({ category, items }) => (
-            <div key={category.id} className="space-y-2">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-gray-700 dark:text-gray-300">
-                <span>{CATEGORY_EMOJIS[category.code] || '📦'}</span>
-                <span>{category.name}</span>
-                <span className="text-2xs text-gray-400 font-normal">({items.length} dịch vụ)</span>
-              </div>
+          groupedByCategory.map(({ category, items }) => {
+            const CatIcon = CATEGORY_ICONS[category.code] || Package;
+            return (
+              <div key={category.id} className="space-y-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-gray-700 dark:text-gray-300">
+                  <CatIcon className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  <span>{category.name}</span>
+                  <span className="text-2xs text-gray-400 font-normal">({items.length} dịch vụ)</span>
+                </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {items.map((svc) => {
@@ -330,8 +351,9 @@ export function RoomServicesPicker({
                 })}
               </div>
             </div>
-          ))
-        )}
+          );
+        })
+      )}
       </div>
     </div>
   );

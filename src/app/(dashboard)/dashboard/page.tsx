@@ -205,7 +205,7 @@ export default function DashboardPage() {
                   <div className="flex items-center gap-3">
                     <div className="hidden sm:flex items-center gap-1 text-amber-400 text-xs font-bold">
                       <Star className="h-3.5 w-3.5 fill-amber-400" />
-                      <span>{h.starRating || 0}★</span>
+                      <span>{h.starRating || 0} sao</span>
                     </div>
                     <Badge variant={h.status === 'ACTIVE' ? 'success' : 'warning'} size="sm">
                       {h.status}

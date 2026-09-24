@@ -321,8 +321,13 @@ function StaffSkillCard({
             const cfg = getLevelConfig(sk.level);
             const cat = skillCategories.find((c) => c.id === sk.skillId);
             return (
-              <span key={sk.id} className={cn('text-2xs font-bold px-2 py-0.5 rounded-full', cfg.bg, cfg.color)}>
-                {cat?.name ?? 'Kỹ năng'} {'★'.repeat(sk.level)}
+              <span key={sk.id} className={cn('text-2xs font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1', cfg.bg, cfg.color)}>
+                <span>{cat?.name ?? 'Kỹ năng'}</span>
+                <span className="inline-flex items-center">
+                  {Array.from({ length: Math.min(Math.max(sk.level, 1), 5) }).map((_, i) => (
+                    <Star key={i} className="h-2.5 w-2.5 fill-current" />
+                  ))}
+                </span>
               </span>
             );
           })}
@@ -364,7 +369,10 @@ function StaffSkillCard({
                           </span>
                         )}
                         {sk.certificate && (
-                          <span className="text-2xs text-blue-500 truncate max-w-[120px]">📜 {sk.certificate}</span>
+                          <span className="text-2xs text-blue-500 truncate max-w-[120px] inline-flex items-center gap-1">
+                            <Award className="h-3 w-3 shrink-0" />
+                            <span className="truncate">{sk.certificate}</span>
+                          </span>
                         )}
                       </div>
                     </div>

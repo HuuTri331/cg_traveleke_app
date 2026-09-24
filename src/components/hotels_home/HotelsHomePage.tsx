@@ -10,6 +10,7 @@ import {
 
 import Header from '@/components/common/HeaderCommon';
 import Footer from '@/components/common/FooterCommon';
+import { MapPin, Star } from 'lucide-react';
 
 import { hotelSearchApi } from '@/services/api/hotel-search.api';
 
@@ -501,7 +502,7 @@ export default function HotelsHomePage() {
 
                           {/* Top-left location pill */}
                           <div className="absolute top-3 left-3 flex items-center gap-1 rounded-md bg-[#1a4b75]/85 backdrop-blur-xs px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
-                            <span>📍</span>
+                            <MapPin className="h-3.5 w-3.5 text-white shrink-0" />
                             <span className="truncate max-w-[140px]">{locationText}</span>
                           </div>
 
@@ -523,7 +524,7 @@ export default function HotelsHomePage() {
                             {Array.from({
                               length: hotel.starRating ?? 3,
                             }).map((_, i) => (
-                              <span key={i}>★</span>
+                              <Star key={i} className="h-3 w-3 fill-amber-400 text-amber-400" />
                             ))}
                           </div>
 
@@ -540,8 +541,9 @@ export default function HotelsHomePage() {
 
                           {/* ADDRESS */}
                           {hotel.address && (
-                            <p className="mt-2 line-clamp-1 text-xs text-gray-500">
-                              📍 {hotel.address}
+                            <p className="mt-2 line-clamp-1 text-xs text-gray-500 flex items-center gap-1">
+                              <MapPin className="h-3 w-3 text-gray-400 shrink-0" />
+                              <span>{hotel.address}</span>
                             </p>
                           )}
 

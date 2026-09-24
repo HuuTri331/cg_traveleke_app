@@ -6,6 +6,19 @@ import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import logo from '@/assets/image/logo.png';
 import { useCustomerAuth } from '@/features/auth/context/CustomerAuthContext';
+import {
+  Building2,
+  Tag,
+  Zap,
+  ShieldCheck,
+  CheckCircle2,
+  AlertCircle,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Plane,
+} from 'lucide-react';
 
 function CustomerLoginForm() {
   const { customerLogin, isCustomerLoading } = useCustomerAuth();
@@ -62,8 +75,8 @@ function CustomerLoginForm() {
         <div className="absolute top-1/2 left-1/4 h-32 w-32 rounded-full bg-white/5" />
 
         <div className="relative z-10 text-center">
-          <div className="mb-8 inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-white/20 backdrop-blur-sm">
-            <span className="text-4xl">✈️</span>
+          <div className="mb-8 inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-white/20 backdrop-blur-sm text-white">
+            <Plane className="h-10 w-10 text-white" />
           </div>
           <h1 className="text-4xl font-extrabold text-white leading-tight mb-4">
             Chào mừng trở lại
@@ -77,19 +90,22 @@ function CustomerLoginForm() {
           {/* Features */}
           <div className="mt-12 grid grid-cols-2 gap-4 text-left">
             {[
-              { icon: '🏨', label: 'Ngàn khách sạn' },
-              { icon: '💰', label: 'Giá tốt nhất' },
-              { icon: '⚡', label: 'Đặt nhanh 1 click' },
-              { icon: '🔒', label: 'Bảo mật tuyệt đối' },
-            ].map((f) => (
-              <div
-                key={f.label}
-                className="flex items-center gap-3 rounded-2xl bg-white/10 backdrop-blur-sm px-4 py-3 text-white"
-              >
-                <span className="text-xl">{f.icon}</span>
-                <span className="text-sm font-semibold">{f.label}</span>
-              </div>
-            ))}
+              { icon: Building2, label: 'Ngàn khách sạn' },
+              { icon: Tag, label: 'Giá tốt nhất' },
+              { icon: Zap, label: 'Đặt nhanh 1 click' },
+              { icon: ShieldCheck, label: 'Bảo mật tuyệt đối' },
+            ].map((f) => {
+              const FIcon = f.icon;
+              return (
+                <div
+                  key={f.label}
+                  className="flex items-center gap-3 rounded-2xl bg-white/10 backdrop-blur-sm px-4 py-3 text-white"
+                >
+                  <FIcon className="h-5 w-5 text-blue-200 shrink-0" />
+                  <span className="text-sm font-semibold">{f.label}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -112,7 +128,7 @@ function CustomerLoginForm() {
           {/* Success banner from verification */}
           {isVerifiedParam && (
             <div className="mb-5 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
-              <span className="text-base shrink-0">🎉</span>
+              <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
               <span>Xác thực email thành công! Vui lòng đăng nhập vào tài khoản của bạn.</span>
             </div>
           )}
@@ -121,7 +137,7 @@ function CustomerLoginForm() {
           {error && (
             <div className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
               <div className="flex items-start gap-3">
-                <span className="text-base shrink-0">⚠️</span>
+                <AlertCircle className="h-5 w-5 text-red-600 shrink-0 mt-0.5" />
                 <div className="flex-1">
                   <p>{error}</p>
                   {needsVerification && (
@@ -130,7 +146,7 @@ function CustomerLoginForm() {
                         href={`/verify-email?email=${encodeURIComponent(unverifiedEmail)}`}
                         className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-red-700 transition"
                       >
-                        <span>✉️</span>
+                        <Mail className="h-3.5 w-3.5" />
                         <span>Đến trang xác thực & gửi lại link</span>
                       </Link>
                     </div>
@@ -147,7 +163,7 @@ function CustomerLoginForm() {
                 Email <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-base">📧</span>
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type="email"
                   value={email}
@@ -165,7 +181,7 @@ function CustomerLoginForm() {
                 Mật khẩu <span className="text-red-500">*</span>
               </label>
               <div className="relative">
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-base">🔒</span>
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
@@ -179,7 +195,7 @@ function CustomerLoginForm() {
                   onClick={() => setShowPassword((p) => !p)}
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  {showPassword ? '👁️' : '🙈'}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>

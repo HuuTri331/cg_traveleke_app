@@ -110,7 +110,7 @@ export function MultiImageUploadSection({
       {totalCount > 0 && (
         <div className="space-y-2">
           <div className="text-xs-plus font-semibold text-gray-500 dark:text-gray-400 flex items-center justify-between">
-            <span>Danh sách ảnh ({totalCount}) - Click ⭐ để chọn làm ảnh đại diện chính:</span>
+            <span>Danh sách ảnh ({totalCount}) - Click biểu tượng sao để chọn làm ảnh đại diện chính:</span>
             {newFiles.length > 0 && (
               <button
                 type="button"
