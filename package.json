@@ -6,7 +6,8 @@
     "dev": "next dev",
     "start:dev": "next dev",
     "tokens:build": "node scripts/transform-tokens.mjs",
-    "build": "npm run tokens:build && next build",
+    "css:critical": "node scripts/extract-critical-css.mjs",
+    "build": "npm run tokens:build && next build && npm run css:critical",
     "start": "next start",
     "lint": "eslint"
   },

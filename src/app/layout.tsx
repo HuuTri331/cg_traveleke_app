@@ -26,6 +26,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi" className={inter.variable} suppressHydrationWarning>
+      <head>
+        {/* Critical Rendering Path Preconnect & DNS-Prefetch Optimization */}
+        <link rel="preconnect" href="http://localhost:3001" />
+        <link rel="dns-prefetch" href="http://localhost:3001" />
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+      </head>
       <body className={`${inter.className} min-h-screen bg-gray-50 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100`}>
         <AuthProvider>
           <CustomerAuthProvider>
