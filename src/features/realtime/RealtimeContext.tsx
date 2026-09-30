@@ -18,6 +18,7 @@ import {
   subscribeHotelRoom,
   subscribeStaffChannel,
   subscribeUserRoom,
+  updateSocketAuthToken,
 } from '@/lib/socket';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useCustomerAuth } from '@/features/auth/context/CustomerAuthContext';
@@ -106,22 +107,30 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   // Tham gia Room theo vai trò Nhân viên / Lễ tân / Quản lý
   useEffect(() => {
     const socket = getSocket();
-    if (!socket || !isStaffAuth || !staffUser) return;
+    if (!socket) return;
 
-    subscribeStaffChannel();
+    if (isStaffAuth && staffUser) {
+      const token =
+        typeof window !== 'undefined'
+          ? localStorage.getItem('traveleke_token')
+          : null;
+      updateSocketAuthToken(token);
+      subscribeStaffChannel();
 
-    if ((staffUser as any).hotelId) {
-      subscribeHotelRoom((staffUser as any).hotelId);
+      if ((staffUser as any).hotelId) {
+        subscribeHotelRoom((staffUser as any).hotelId);
+      }
+    } else if (isCustomerAuthenticated && customer?.id) {
+      const token =
+        typeof window !== 'undefined'
+          ? localStorage.getItem('traveleke_customer_token')
+          : null;
+      updateSocketAuthToken(token);
+      subscribeUserRoom(customer.id);
+    } else {
+      updateSocketAuthToken(null);
     }
-  }, [isStaffAuth, staffUser]);
-
-  // Tham gia Room theo vai trò Khách hàng cá nhân
-  useEffect(() => {
-    const socket = getSocket();
-    if (!socket || !isCustomerAuthenticated || !customer?.id) return;
-
-    subscribeUserRoom(customer.id);
-  }, [isCustomerAuthenticated, customer]);
+  }, [isStaffAuth, staffUser, isCustomerAuthenticated, customer]);
 
   // Lắng nghe sự kiện Realtime nghiệp vụ
   useEffect(() => {

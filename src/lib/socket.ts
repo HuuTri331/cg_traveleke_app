@@ -91,6 +91,16 @@ export function getSocket(): Socket | null {
       reconnectionDelay: 2000,
       reconnectionDelayMax: 10000,
       timeout: 10000,
+      auth: (cb: (data: { token: string }) => void) => {
+        let token = '';
+        if (typeof window !== 'undefined') {
+          token =
+            localStorage.getItem('traveleke_token') ||
+            localStorage.getItem('traveleke_customer_token') ||
+            '';
+        }
+        cb({ token });
+      },
     });
 
     socketInstance.on('connect', () => {
@@ -113,6 +123,18 @@ export function getSocket(): Socket | null {
   }
 
   return socketInstance;
+}
+
+/**
+ * Cập nhật token xác thực cho Socket và tự động reconnect nếu cần
+ */
+export function updateSocketAuthToken(token?: string | null) {
+  if (socketInstance) {
+    socketInstance.auth = { token: token || '' };
+    if (socketInstance.connected) {
+      socketInstance.disconnect().connect();
+    }
+  }
 }
 
 /**
