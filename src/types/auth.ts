@@ -37,10 +37,12 @@ export interface LoginDto {
 
 export interface LoginResponseData {
   access_token: string;
+  refresh_token?: string;
   token_type: string;
   expires_in: string;
   user: UserProfile;
 }
+
 
 export interface CreateStaffDto {
   fullName: string;

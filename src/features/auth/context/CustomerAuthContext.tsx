@@ -18,7 +18,9 @@ interface CustomerAuthContextType {
 const CustomerAuthContext = createContext<CustomerAuthContextType | undefined>(undefined);
 
 const TOKEN_KEY = 'traveleke_customer_token';
+const REFRESH_TOKEN_KEY = 'traveleke_customer_refresh_token';
 const USER_KEY = 'traveleke_customer_user';
+
 
 async function fetchCustomerProfile(token: string): Promise<UserProfile> {
   const res = await apiClient.get<{ data: UserProfile }>('/auth/me', {
@@ -80,9 +82,9 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
       setIsCustomerLoading(true);
       try {
         const res = await apiClient.post<{
-          data: { access_token: string; user: UserProfile };
+          data: { access_token: string; refresh_token?: string; user: UserProfile };
         }>('/auth/login', dto);
-        const { access_token, user } = res.data.data;
+        const { access_token, refresh_token, user } = res.data.data;
 
         // Block staff/admin from logging into customer portal
         if (user.role === 'ADMIN' || user.role === 'EMPLOYEE') {
@@ -92,6 +94,9 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
         }
 
         localStorage.setItem(TOKEN_KEY, access_token);
+        if (refresh_token) {
+          localStorage.setItem(REFRESH_TOKEN_KEY, refresh_token);
+        }
         localStorage.setItem(USER_KEY, JSON.stringify(user));
         setCustomerToken(access_token);
         setCustomer(user);
@@ -118,12 +123,14 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
       // Bỏ qua lỗi backend khi logout, luôn xoá phiên ở client
     } finally {
       localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
       setCustomerToken(null);
       setCustomer(null);
       router.push('/customer-login');
     }
   }, [customerToken, router]);
+
 
   const refreshCustomerProfile = useCallback(async () => {
     if (!customerToken) return;

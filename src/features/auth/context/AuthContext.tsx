@@ -161,6 +161,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         localStorage.setItem('traveleke_token', data.access_token);
+        if (data.refresh_token) {
+          localStorage.setItem('traveleke_refresh_token', data.refresh_token);
+        }
         localStorage.setItem('traveleke_user', JSON.stringify(data.user));
         setToken(data.access_token);
         setUser(data.user);
@@ -178,6 +181,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await authApi.logout();
     } finally {
       localStorage.removeItem('traveleke_token');
+      localStorage.removeItem('traveleke_refresh_token');
       localStorage.removeItem('traveleke_user');
       setToken(null);
       setUser(null);
@@ -185,6 +189,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push('/login');
     }
   }, [router]);
+
 
   const refreshProfile = useCallback(async () => {
     try {
