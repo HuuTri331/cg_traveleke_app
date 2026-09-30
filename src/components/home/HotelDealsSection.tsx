@@ -110,10 +110,10 @@ export default function HotelDealsSection() {
       <div className="flex items-center justify-between mb-4">
         <Link
           href="/hotels_home"
-          className="group flex items-center gap-2 text-2xl font-extrabold text-gray-900 hover:text-[#0194f3] transition-colors"
+          className="group flex items-center gap-2 text-2xl font-extrabold text-gray-900 hover:text-traveloka-blue transition-colors"
         >
           <span>Top Deal Khách Sạn Nổi Bật</span>
-          <span className="text-gray-400 group-hover:text-[#0194f3] group-hover:translate-x-1 transition-all text-xl font-bold">
+          <span className="text-gray-400 group-hover:text-traveloka-blue group-hover:translate-x-1 transition-all text-xl font-bold">
             ›
           </span>
         </Link>
@@ -134,7 +134,7 @@ export default function HotelDealsSection() {
                 }}
                 className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-[#0194f3] text-white shadow-xs'
+                    ? 'bg-traveloka-blue text-white shadow-xs'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -167,7 +167,7 @@ export default function HotelDealsSection() {
             <button
               type="button"
               onClick={handlePrev}
-              className="absolute -left-4 top-1/2 -translate-y-1/2 z-20 hidden lg:flex h-10 w-10 items-center justify-center rounded-full bg-white text-gray-700 shadow-xl border border-gray-100 hover:bg-gray-50 hover:text-[#0194f3] transition-all cursor-pointer"
+              className="absolute -left-4 top-1/2 -translate-y-1/2 z-20 hidden lg:flex h-10 w-10 items-center justify-center rounded-full bg-white text-gray-700 shadow-xl border border-gray-100 hover:bg-gray-50 hover:text-traveloka-blue transition-all cursor-pointer"
               title="Khách sạn trước"
             >
               <span className="text-xl font-bold">‹</span>
@@ -201,13 +201,13 @@ export default function HotelDealsSection() {
                     />
 
                     {/* Top-left location pill */}
-                    <div className="absolute top-2.5 left-2.5 flex items-center gap-1 rounded-md bg-[#1a4b75]/85 backdrop-blur-xs px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
+                    <div className="absolute top-2.5 left-2.5 flex items-center gap-1 rounded-md bg-traveloka-navy/85 backdrop-blur-xs px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
                       <MapPin className="h-3.5 w-3.5 text-white shrink-0" />
                       <span className="truncate max-w-[130px]">{locationPill}</span>
                     </div>
 
                     {/* Bottom-right discount tag */}
-                    <div className="absolute bottom-0 right-0 rounded-tl-lg bg-[#ff5e1f] px-2.5 py-1 text-xs font-bold text-white shadow-md">
+                    <div className="absolute bottom-0 right-0 rounded-tl-lg bg-traveloka-orange px-2.5 py-1 text-xs font-bold text-white shadow-md">
                       Save {discountRate}%
                     </div>
                   </div>
@@ -216,7 +216,7 @@ export default function HotelDealsSection() {
                   <div className="p-4 flex flex-1 flex-col justify-between">
                     <div>
                       {/* Hotel Name */}
-                      <h3 className="font-bold text-gray-900 text-base line-clamp-1 group-hover:text-[#0194f3] transition-colors">
+                      <h3 className="font-bold text-gray-900 text-base line-clamp-1 group-hover:text-traveloka-blue transition-colors">
                         {hotel.name}
                       </h3>
 
@@ -229,7 +229,7 @@ export default function HotelDealsSection() {
 
                       {/* Review rating score */}
                       <div className="mt-1.5 flex items-center gap-1.5 text-xs">
-                        <span className="font-bold text-[#0194f3]">{score}/10</span>
+                        <span className="font-bold text-traveloka-blue">{score}/10</span>
                         <span className="text-gray-400">·</span>
                         <span className="text-gray-500">{reviewCount} đánh giá</span>
                       </div>
@@ -249,12 +249,12 @@ export default function HotelDealsSection() {
                         <p className="text-xs text-gray-400 line-through">
                           {formatVND(origPrice)}
                         </p>
-                        <p className="text-lg font-bold text-[#ff5e1f]">
+                        <p className="text-lg font-bold text-traveloka-orange">
                           {formatVND(basePrice)}
                         </p>
                       </div>
 
-                      <span className="rounded-xl bg-[#0194f3] group-hover:bg-[#0080d4] text-white font-bold px-3 py-1.5 text-xs transition-colors shadow-xs">
+                      <span className="rounded-xl bg-traveloka-blue group-hover:bg-traveloka-blue-hover text-white font-bold px-3 py-1.5 text-xs transition-colors shadow-xs">
                         Xem phòng
                       </span>
                     </div>
@@ -269,7 +269,7 @@ export default function HotelDealsSection() {
             <button
               type="button"
               onClick={handleNext}
-              className="absolute -right-4 top-1/2 -translate-y-1/2 z-20 hidden lg:flex h-10 w-10 items-center justify-center rounded-full bg-white text-gray-700 shadow-xl border border-gray-100 hover:bg-gray-50 hover:text-[#0194f3] transition-all cursor-pointer"
+              className="absolute -right-4 top-1/2 -translate-y-1/2 z-20 hidden lg:flex h-10 w-10 items-center justify-center rounded-full bg-white text-gray-700 shadow-xl border border-gray-100 hover:bg-gray-50 hover:text-traveloka-blue transition-all cursor-pointer"
               title="Khách sạn tiếp theo"
             >
               <span className="text-xl font-bold">›</span>

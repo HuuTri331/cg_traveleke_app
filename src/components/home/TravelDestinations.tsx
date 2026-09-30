@@ -308,7 +308,7 @@ export default function TravelDestinations() {
                       {dest.originalPrice}
                     </p>
                   )}
-                  <p className="text-lg font-black text-[#ff5e1f]">
+                  <p className="text-lg font-black text-traveloka-orange">
                     {dest.discountedPrice}
                   </p>
                 </div>

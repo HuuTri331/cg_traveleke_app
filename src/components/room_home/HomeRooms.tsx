@@ -654,7 +654,7 @@ export default function HomeRooms({
                           />
 
                           {/* Top-left Specs Badge */}
-                          <div className="absolute left-3 top-3 flex items-center gap-1 rounded-md bg-[#1a4b75]/85 backdrop-blur-xs px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
+                          <div className="absolute left-3 top-3 flex items-center gap-1 rounded-md bg-traveloka-navy/85 backdrop-blur-xs px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
                             <Maximize2 className="h-3.5 w-3.5 text-white" />
                             <span>{room.roomSize ? `${room.roomSize} m²` : '18 m²'}</span>
                           </div>

@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "start:dev": "next dev",
-    "build": "next build",
+    "tokens:build": "node scripts/transform-tokens.mjs",
+    "build": "npm run tokens:build && next build",
     "start": "next start",
     "lint": "eslint"
   },

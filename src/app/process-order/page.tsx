@@ -234,15 +234,15 @@ function ProcessOrderContent() {
 
   if (isCustomerLoading || loadingDetails) {
     return (
-      <div className="min-h-screen bg-[#f2f4f7] flex flex-col items-center justify-center gap-3">
-        <div className="w-11 h-11 border-4 border-[#0194f3] border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-traveloka-surface flex flex-col items-center justify-center gap-3">
+        <div className="w-11 h-11 border-4 border-traveloka-blue border-t-transparent rounded-full animate-spin" />
         <p className="text-sm font-semibold text-gray-500">Đang tải thông tin đặt phòng...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f2f4f7] font-sans antialiased text-gray-800 selection:bg-blue-100">
+    <div className="min-h-screen bg-traveloka-surface font-sans antialiased text-gray-800 selection:bg-blue-100">
       {/* Navigation Header */}
       <HeaderCommon />
 
@@ -256,7 +256,7 @@ function ProcessOrderContent() {
             {/* 1. Guest Detail Card */}
             <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-xs border border-gray-200/70">
               <div className="flex items-center gap-3 mb-1">
-                <User className="w-5 h-5 text-[#0194f3] stroke-[2.2]" />
+                <User className="w-5 h-5 text-traveloka-blue stroke-[2.2]" />
                 <h2 className="text-base sm:text-lg font-bold text-gray-900">
                   Thông Tin Khách Lưu Trú
                 </h2>
@@ -266,7 +266,7 @@ function ProcessOrderContent() {
               </p>
 
               {/* Tinted blue form box */}
-              <div className="bg-[#f2f8fd] border border-[#e5f0fa] rounded-2xl p-4 sm:p-5">
+              <div className="bg-traveloka-blue-subtle border border-traveloka-blue-border rounded-2xl p-4 sm:p-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Surname / Last Name */}
                   <div>
@@ -281,8 +281,8 @@ function ProcessOrderContent() {
                         if (errors.surname) setErrors((prev) => ({ ...prev, surname: '' }));
                       }}
                       className={`w-full px-3.5 py-2.5 bg-white border ${
-                        errors.surname ? 'border-red-500 ring-1 ring-red-400' : 'border-gray-300 focus:border-[#0194f3]'
-                      } rounded-xl text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#0194f3] transition-all`}
+                        errors.surname ? 'border-red-500 ring-1 ring-red-400' : 'border-gray-300 focus:border-traveloka-blue'
+                      } rounded-xl text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-traveloka-blue transition-all`}
                       placeholder="NGUYEN"
                     />
                     <span className="block text-xs-plus text-gray-400 mt-1">
@@ -308,8 +308,8 @@ function ProcessOrderContent() {
                         if (errors.givenName) setErrors((prev) => ({ ...prev, givenName: '' }));
                       }}
                       className={`w-full px-3.5 py-2.5 bg-white border ${
-                        errors.givenName ? 'border-red-500 ring-1 ring-red-400' : 'border-gray-300 focus:border-[#0194f3]'
-                      } rounded-xl text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#0194f3] transition-all`}
+                        errors.givenName ? 'border-red-500 ring-1 ring-red-400' : 'border-gray-300 focus:border-traveloka-blue'
+                      } rounded-xl text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-traveloka-blue transition-all`}
                       placeholder="VAN ANH"
                     />
                     <span className="block text-xs-plus text-gray-400 mt-1">
@@ -328,7 +328,7 @@ function ProcessOrderContent() {
             {/* 2. Booking Contact Card */}
             <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-xs border border-gray-200/70">
               <div className="flex items-center gap-3 mb-1">
-                <Mail className="w-5 h-5 text-[#0194f3] stroke-[2.2]" />
+                <Mail className="w-5 h-5 text-traveloka-blue stroke-[2.2]" />
                 <h2 className="text-base sm:text-lg font-bold text-gray-900">
                   Thông Tin Người Liên Hệ Đặt Chỗ
                 </h2>
@@ -338,7 +338,7 @@ function ProcessOrderContent() {
               </p>
 
               {/* Tinted blue form box with no overflow */}
-              <div className="bg-[#f2f8fd] border border-[#e5f0fa] rounded-2xl p-4 sm:p-5">
+              <div className="bg-traveloka-blue-subtle border border-traveloka-blue-border rounded-2xl p-4 sm:p-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
                   {/* Email */}
                   <div className="min-w-0">
@@ -354,8 +354,8 @@ function ProcessOrderContent() {
                       }}
                       placeholder="you@gmail.com"
                       className={`w-full px-3.5 py-2.5 bg-white border ${
-                        errors.email ? 'border-red-500 ring-1 ring-red-400' : 'border-gray-300 focus:border-[#0194f3]'
-                      } rounded-xl text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#0194f3] transition-all`}
+                        errors.email ? 'border-red-500 ring-1 ring-red-400' : 'border-gray-300 focus:border-traveloka-blue'
+                      } rounded-xl text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-traveloka-blue transition-all`}
                     />
                     <span className="block text-xs-plus text-gray-400 mt-1">
                       Ví dụ: you@gmail.com
@@ -377,7 +377,7 @@ function ProcessOrderContent() {
                         <select
                           value={countryCode}
                           onChange={(e) => setCountryCode(e.target.value)}
-                          className="w-full appearance-none px-3 py-2.5 bg-white border border-gray-300 rounded-xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-[#0194f3] focus:ring-1 focus:ring-[#0194f3] cursor-pointer"
+                          className="w-full appearance-none px-3 py-2.5 bg-white border border-gray-300 rounded-xl text-sm font-semibold text-gray-800 focus:outline-none focus:border-traveloka-blue focus:ring-1 focus:ring-traveloka-blue cursor-pointer"
                         >
                           <option value="+84">+84 (VN)</option>
                           <option value="+1">+1 (US)</option>
@@ -397,8 +397,8 @@ function ProcessOrderContent() {
                         }}
                         placeholder="0989 479 840"
                         className={`min-w-0 flex-1 px-3.5 py-2.5 bg-white border ${
-                          errors.mobileNumber ? 'border-red-500 ring-1 ring-red-400' : 'border-gray-300 focus:border-[#0194f3]'
-                        } rounded-xl text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-[#0194f3] transition-all`}
+                          errors.mobileNumber ? 'border-red-500 ring-1 ring-red-400' : 'border-gray-300 focus:border-traveloka-blue'
+                        } rounded-xl text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-traveloka-blue transition-all`}
                       />
                     </div>
                     <span className="block text-xs-plus text-gray-400 mt-1">
@@ -417,7 +417,7 @@ function ProcessOrderContent() {
             {/* 3. Special Request Card */}
             <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-xs border border-gray-200/70">
               <div className="flex items-center gap-3 mb-1">
-                <CheckCircle2 className="w-5 h-5 text-[#0194f3] stroke-[2.2]" />
+                <CheckCircle2 className="w-5 h-5 text-traveloka-blue stroke-[2.2]" />
                 <h2 className="text-base sm:text-lg font-bold text-gray-900">Yêu Cầu Đặc Biệt</h2>
               </div>
               <p className="text-xs text-gray-500 ml-8 leading-relaxed mb-5">
@@ -431,7 +431,7 @@ function ProcessOrderContent() {
                     type="checkbox"
                     checked={nonSmoking}
                     onChange={(e) => setNonSmoking(e.target.checked)}
-                    className="w-5 h-5 rounded-md border-2 border-[#0194f3] text-[#0194f3] focus:ring-[#0194f3] cursor-pointer"
+                    className="w-5 h-5 rounded-md border-2 border-traveloka-blue text-traveloka-blue focus:ring-traveloka-blue cursor-pointer"
                   />
                   <span className="text-xs font-semibold text-gray-800">Phòng không hút thuốc</span>
                 </label>
@@ -441,7 +441,7 @@ function ProcessOrderContent() {
                     type="checkbox"
                     checked={connectingRooms}
                     onChange={(e) => setConnectingRooms(e.target.checked)}
-                    className="w-5 h-5 rounded-md border-2 border-[#0194f3] text-[#0194f3] focus:ring-[#0194f3] cursor-pointer"
+                    className="w-5 h-5 rounded-md border-2 border-traveloka-blue text-traveloka-blue focus:ring-traveloka-blue cursor-pointer"
                   />
                   <span className="text-xs font-semibold text-gray-800">Phòng thông nhau</span>
                 </label>
@@ -451,7 +451,7 @@ function ProcessOrderContent() {
                     type="checkbox"
                     checked={highFloor}
                     onChange={(e) => setHighFloor(e.target.checked)}
-                    className="w-5 h-5 rounded-md border-2 border-[#0194f3] text-[#0194f3] focus:ring-[#0194f3] cursor-pointer"
+                    className="w-5 h-5 rounded-md border-2 border-traveloka-blue text-traveloka-blue focus:ring-traveloka-blue cursor-pointer"
                   />
                   <span className="text-xs font-semibold text-gray-800">Phòng tầng cao</span>
                 </label>
@@ -461,7 +461,7 @@ function ProcessOrderContent() {
                 <button
                   type="button"
                   onClick={() => alert('Chi tiết yêu cầu đặc biệt: Khách sạn sẽ cố gắng đáp ứng tùy theo khả năng và tình trạng phòng thực tế khi nhận phòng.')}
-                  className="text-xs font-bold text-[#0194f3] hover:underline cursor-pointer"
+                  className="text-xs font-bold text-traveloka-blue hover:underline cursor-pointer"
                 >
                   Xem chi tiết chính sách
                 </button>
@@ -472,7 +472,7 @@ function ProcessOrderContent() {
             <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-xs border border-gray-200/70">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-3">
-                  <FileText className="w-5 h-5 text-[#0194f3] stroke-[2.2]" />
+                  <FileText className="w-5 h-5 text-traveloka-blue stroke-[2.2]" />
                   <h2 className="text-base sm:text-lg font-bold text-gray-900">
                     Quy Định & Chính Sách Lưu Trú
                   </h2>
@@ -480,16 +480,16 @@ function ProcessOrderContent() {
                 <button
                   type="button"
                   onClick={() => alert('Chính sách lưu trú: Bắt buộc mang CCCD/Hộ chiếu gốc hoặc VNeID mức 2. Khách dưới 18 tuổi cần có người lớn đi kèm.')}
-                  className="text-xs font-bold text-[#0194f3] hover:underline cursor-pointer"
+                  className="text-xs font-bold text-traveloka-blue hover:underline cursor-pointer"
                 >
                   Xem toàn bộ
                 </button>
               </div>
 
               {/* Blue Alert Callout Box */}
-              <div className="bg-[#eaf5fc] border border-[#d6ebf8] rounded-xl p-4 mt-3">
-                <div className="flex items-center gap-2 text-[#0194f3] font-bold text-xs mb-1.5">
-                  <Info className="w-4 h-4 shrink-0 fill-[#0194f3] text-white" />
+              <div className="bg-traveloka-blue-light border border-traveloka-blue-border-light rounded-xl p-4 mt-3">
+                <div className="flex items-center gap-2 text-traveloka-blue font-bold text-xs mb-1.5">
+                  <Info className="w-4 h-4 shrink-0 fill-traveloka-blue text-white" />
                   <span>Lưu ý quan trọng</span>
                 </div>
                 <p className="text-xs text-gray-700 leading-relaxed font-normal">
@@ -547,7 +547,7 @@ function ProcessOrderContent() {
               </p>
 
               {/* Date Box */}
-              <div className="bg-[#f8fafc] border border-gray-200/70 rounded-xl p-3.5 flex items-center justify-between text-center mb-4">
+              <div className="bg-slate-50 border border-gray-200/70 rounded-xl p-3.5 flex items-center justify-between text-center mb-4">
                 <div className="text-left">
                   <span className="text-xs-plus text-gray-400 font-medium block">Nhận phòng</span>
                   <span className="text-xs sm:text-sm font-bold text-gray-900 block mt-0.5">
@@ -620,7 +620,7 @@ function ProcessOrderContent() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-400 bg-blue-50">
-                        <Building2 className="w-6 h-6 text-[#0194f3]" />
+                        <Building2 className="w-6 h-6 text-traveloka-blue" />
                       </div>
                     )}
                   </div>
@@ -646,7 +646,7 @@ function ProcessOrderContent() {
             <div className="bg-white rounded-2xl p-5 shadow-xs border border-gray-200/70">
               {/* Notice text box */}
               <div className="bg-blue-50/60 border border-blue-100/60 rounded-xl p-3 flex items-start gap-2.5 mb-4 text-xs text-gray-600 leading-relaxed">
-                <Info className="w-4 h-4 text-[#0194f3] shrink-0 mt-0.5" />
+                <Info className="w-4 h-4 text-traveloka-blue shrink-0 mt-0.5" />
                 <span>
                   Giá phòng đã bao gồm toàn bộ thuế VAT và phí dịch vụ. Quý khách không phải trả thêm bất kỳ phụ phí ẩn nào tại khách sạn.
                 </span>
@@ -693,7 +693,7 @@ function ProcessOrderContent() {
                       <span className="text-sm font-bold text-gray-900 block">Tổng thanh toán</span>
                       <span className="text-xs-plus text-gray-400 block mt-0.5">1 phòng, 1 đêm</span>
                     </div>
-                    <span className="text-xl font-extrabold text-[#f97316]">
+                    <span className="text-xl font-extrabold text-traveloka-orange">
                       {formattedTotal} VND
                     </span>
                   </div>
@@ -707,7 +707,7 @@ function ProcessOrderContent() {
                 type="button"
                 onClick={handleContinue}
                 disabled={isSubmitting}
-                className="w-full bg-[#0194f3] hover:bg-[#0082d6] active:bg-[#0073be] disabled:opacity-60 text-white font-bold py-3.5 px-6 rounded-2xl text-base shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full bg-traveloka-blue hover:bg-traveloka-blue-hover active:bg-traveloka-blue-dark disabled:opacity-60 text-white font-bold py-3.5 px-6 rounded-2xl text-base shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isSubmitting ? (
                   <>
@@ -744,8 +744,8 @@ function ProcessOrderContent() {
       {showSuccessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-gray-100 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-blue-50 text-[#0194f3] flex items-center justify-center mx-auto mb-4 text-2xl">
-              <ShieldCheck className="w-8 h-8 text-[#0194f3]" />
+            <div className="w-14 h-14 rounded-2xl bg-blue-50 text-traveloka-blue flex items-center justify-center mx-auto mb-4 text-2xl">
+              <ShieldCheck className="w-8 h-8 text-traveloka-blue" />
             </div>
             <h3 className="text-lg font-bold text-gray-900 mb-2">
               Xác thực thông tin đặt phòng thành công!
@@ -754,7 +754,7 @@ function ProcessOrderContent() {
               Khách lưu trú: <strong>{surname} {givenName}</strong> ({email} - {countryCode}{mobileNumber}) cho phòng <strong>{bookingData?.roomName}</strong> tại <strong>{bookingData?.hotelName}</strong>.
             </p>
             <div className="bg-amber-50 rounded-xl p-3 text-xs text-amber-800 font-medium mb-6">
-              Tổng tiền thanh toán: <strong className="text-base text-[#f97316]">{formattedTotal} VND</strong>
+              Tổng tiền thanh toán: <strong className="text-base text-traveloka-orange">{formattedTotal} VND</strong>
               <div className="text-xs-plus text-amber-700 mt-0.5">
                 (Thông tin hợp lệ — sẵn sàng chuyển sang bước thanh toán an toàn)
               </div>
@@ -762,7 +762,7 @@ function ProcessOrderContent() {
             <button
               type="button"
               onClick={() => setShowSuccessModal(false)}
-              className="w-full bg-[#0194f3] hover:bg-[#0082d6] text-white font-bold py-3 rounded-xl text-sm transition cursor-pointer"
+              className="w-full bg-traveloka-blue hover:bg-traveloka-blue-hover text-white font-bold py-3 rounded-xl text-sm transition cursor-pointer"
             >
               Đóng & Hoàn tất kiểm tra
             </button>
@@ -780,8 +780,8 @@ export default function ProcessOrderPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#f7f9fa] flex items-center justify-center">
-          <div className="w-10 h-10 border-4 border-[#0194f3] border-t-transparent rounded-full animate-spin" />
+        <div className="min-h-screen bg-traveloka-surface-light flex items-center justify-center">
+          <div className="w-10 h-10 border-4 border-traveloka-blue border-t-transparent rounded-full animate-spin" />
         </div>
       }
     >

@@ -501,13 +501,13 @@ export default function HotelsHomePage() {
                           />
 
                           {/* Top-left location pill */}
-                          <div className="absolute top-3 left-3 flex items-center gap-1 rounded-md bg-[#1a4b75]/85 backdrop-blur-xs px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
+                          <div className="absolute top-3 left-3 flex items-center gap-1 rounded-md bg-traveloka-navy/85 backdrop-blur-xs px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
                             <MapPin className="h-3.5 w-3.5 text-white shrink-0" />
                             <span className="truncate max-w-[140px]">{locationText}</span>
                           </div>
 
                           {/* Bottom-right discount tag */}
-                          <div className="absolute bottom-0 right-0 rounded-tl-lg bg-[#ff5e1f] px-2.5 py-1 text-xs font-bold text-white shadow-md">
+                          <div className="absolute bottom-0 right-0 rounded-tl-lg bg-traveloka-orange px-2.5 py-1 text-xs font-bold text-white shadow-md">
                             Save {discountRate}%
                           </div>
                         </div>
@@ -515,7 +515,7 @@ export default function HotelsHomePage() {
                         {/* INFO */}
                         <div className="flex flex-1 flex-col p-4">
                           {/* Hotel Name */}
-                          <h3 className="font-bold text-gray-900 text-base line-clamp-1 group-hover:text-[#0194f3] transition-colors">
+                          <h3 className="font-bold text-gray-900 text-base line-clamp-1 group-hover:text-traveloka-blue transition-colors">
                             {hotel.name}
                           </h3>
 
@@ -530,7 +530,7 @@ export default function HotelsHomePage() {
 
                           {/* REVIEWS */}
                           <div className="mt-1.5 flex items-center gap-1.5 text-xs">
-                            <span className="font-bold text-[#0194f3]">
+                            <span className="font-bold text-traveloka-blue">
                               {score}/10
                             </span>
                             <span className="text-gray-400">·</span>
@@ -553,12 +553,12 @@ export default function HotelsHomePage() {
                               <p className="text-xs text-gray-400 line-through">
                                 {new Intl.NumberFormat('vi-VN').format(origPrice)} VND
                               </p>
-                              <p className="text-lg font-bold text-[#ff5e1f]">
+                              <p className="text-lg font-bold text-traveloka-orange">
                                 {new Intl.NumberFormat('vi-VN').format(basePrice)} VND
                               </p>
                             </div>
 
-                            <span className="rounded-xl bg-[#0194f3] group-hover:bg-[#0080d4] text-white font-bold px-4 py-2 text-xs transition-colors shadow-xs">
+                            <span className="rounded-xl bg-traveloka-blue group-hover:bg-traveloka-blue-hover text-white font-bold px-4 py-2 text-xs transition-colors shadow-xs">
                               Xem phòng
                             </span>
                           </div>

@@ -139,7 +139,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
     // 1. Sự kiện ĐẶT PHÒNG MỚI (Lễ tân & Quản lý)
     const handleBookingCreated = (payload: RealtimeBookingCreated) => {
-      const title = `🛎️ Đơn đặt phòng mới: #${payload.bookingCode}`;
+      const title = ` Đơn đặt phòng mới: #${payload.bookingCode}`;
       const message = `Khách ${payload.contactName} vừa đặt ${payload.roomName || 'phòng'} (${payload.roomCount} phòng).`;
 
       addNotification({
@@ -193,7 +193,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
     // 3. Sự kiện YÊU CẦU DỊCH VỤ PHÒNG (Lễ tân)
     const handleServiceRequested = (payload: RealtimeServiceRequested) => {
-      const title = `🛎️ Yêu cầu dịch vụ mới: ${payload.serviceName}`;
+      const title = ` Yêu cầu dịch vụ mới: ${payload.serviceName}`;
       const message = `Đơn #${payload.bookingId} - Số lượng: ${payload.quantity}${payload.note ? ` (${payload.note})` : ''}`;
 
       addNotification({

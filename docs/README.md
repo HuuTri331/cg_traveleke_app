@@ -9,6 +9,7 @@
 | STT | Tài liệu chuyên đề | File tài liệu chi tiết | Trọng tâm nội dung & Giá trị thực tế |
 | :---: | :--- | :--- | :--- |
 | **1** | **Giải bài toán Realtime: So sánh Socket.IO & Pusher** | [`GIAI_BAI_TOAN_REALTIME_NEXTJS_SOCKETIO_VA_PUSHER.md`](./GIAI_BAI_TOAN_REALTIME_NEXTJS_SOCKETIO_VA_PUSHER.md) | • Phân tích bài toán kết nối bền vững (Persistent Connection) trên nền tảng Next.js Serverless.<br>• So sánh toàn diện Managed Realtime (Pusher) vs Self-hosted (Socket.IO).<br>• Kiến trúc tách rời EventEmitter, Handshake Authentication và Rooms.<br>• Giải pháp đã hoàn thiện và kiểm thử thực tế trong dự án Traveleke. |
+| **2** | **Tự động hóa Design Tokens & Tối ưu hóa Tailwind CSS v4** | [`KIEN_TRUC_DESIGN_TOKENS_VA_TOI_UU_TAILWIND_V4.md`](./KIEN_TRUC_DESIGN_TOKENS_VA_TOI_UU_TAILWIND_V4.md) | • Thiết kế Design Tokens JSON theo chuẩn W3C DTCG làm Single Source of Truth.<br>• Pipeline Node.js tự động chuyển đổi tokens thành theme CSS `@theme` của Tailwind v4.<br>• Rà soát và xóa bỏ 100% arbitrary hex values trên toàn bộ component giao diện.<br>• Triệt tiêu Dynamic Class Interpolation và kiểm soát việc lạm dụng `@apply`. |
 
 ---
 
