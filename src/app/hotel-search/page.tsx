@@ -13,6 +13,7 @@ import {
   HotelSearchMeta,
   HotelStatus,
 } from '@/types/hotel-search';
+import { Star } from 'lucide-react';
 
 const BACKEND_URL = 'http://localhost:3001';
 
@@ -414,12 +415,16 @@ export default function HotelSearchPage() {
                 {/* STAR */}
                 <div className="mt-3">
                   {hotel.starRating ? (
-                    <span className="font-medium text-yellow-600">
-                      {'★'.repeat(
-                        hotel.starRating,
-                      )}{' '}
-                      {hotel.starRating} sao
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <div className="flex items-center text-amber-400">
+                        {Array.from({ length: hotel.starRating }).map((_, i) => (
+                          <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                        ))}
+                      </div>
+                      <span className="font-medium text-sm text-amber-700">
+                        {hotel.starRating} sao
+                      </span>
+                    </div>
                   ) : (
                     <span className="text-gray-500">
                       Chưa xếp hạng

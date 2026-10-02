@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { hotelsApi } from '@/services/api/hotels.api';
 import { roomsApi } from '@/services/api/rooms.api';
+import { bookingApi, DashboardStatistics } from '@/services/api/booking.api';
 import { Hotel } from '@/types/hotel';
 import { getFullImageUrl, formatCurrency } from '@/lib/utils';
 import {
@@ -24,8 +25,7 @@ import {
 } from 'lucide-react';
 
 export default function DashboardPage() {
-  const [totalHotels, setTotalHotels] = useState<number>(0);
-  const [totalRooms, setTotalRooms] = useState<number>(0);
+  const [statistics, setStatistics] = useState<DashboardStatistics | null>(null);
   const [recentHotels, setRecentHotels] = useState<Hotel[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,13 +33,15 @@ export default function DashboardPage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [hotelsRes, roomsRes] = await Promise.all([
-          hotelsApi.getAll({ perPage: 5 }),
-          roomsApi.getAll({ perPage: 1 }),
+        const [statsRes, hotelsRes] = await Promise.all([
+          bookingApi.getStatistics().catch(() => ({ data: null })),
+          hotelsApi.getAll({ perPage: 5 }).catch(() => ({ data: [], meta: { total: 0 } })),
         ]);
-        setTotalHotels(hotelsRes.meta.total);
-        setRecentHotels(hotelsRes.data);
-        setTotalRooms(roomsRes.meta.total);
+
+        if (statsRes.data) {
+          setStatistics(statsRes.data);
+        }
+        setRecentHotels(hotelsRes.data || []);
       } catch (err) {
         console.error('Dashboard load error:', err);
       } finally {
@@ -52,33 +54,33 @@ export default function DashboardPage() {
   const stats = [
     {
       title: 'Tổng Khách Sạn',
-      value: totalHotels,
-      growth: '+12%',
-      desc: 'so với tháng trước',
+      value: statistics?.totalHotels ?? 0,
+      growth: '+100%',
+      desc: 'cơ sở đang hoạt động',
       icon: <Building2 className="h-6 w-6 text-brand-500" />,
       bg: 'bg-brand-50 dark:bg-brand-500/15',
     },
     {
       title: 'Tổng Phòng Quản Lý',
-      value: totalRooms,
-      growth: '+8.5%',
+      value: statistics?.totalRooms ?? 0,
+      growth: '+100%',
       desc: 'đang mở phục vụ',
       icon: <BedDouble className="h-6 w-6 text-indigo-500" />,
       bg: 'bg-indigo-50 dark:bg-indigo-500/15',
     },
     {
       title: 'Lượt Đặt Phòng (Booking)',
-      value: '128',
-      growth: '+24%',
-      desc: 'trong 30 ngày qua',
+      value: statistics?.totalBookings ?? 0,
+      growth: `${statistics?.pendingBookings ?? 0} chờ duyệt`,
+      desc: 'tổng đơn hệ thống',
       icon: <CalendarCheck className="h-6 w-6 text-green-500" />,
       bg: 'bg-green-50 dark:bg-green-500/15',
     },
     {
       title: 'Ước Tính Doanh Thu',
-      value: formatCurrency(84500000),
-      growth: '+18.2%',
-      desc: 'tổng giao dịch tháng',
+      value: formatCurrency(statistics?.totalRevenue ?? 0),
+      growth: `${formatCurrency(statistics?.monthlyRevenue ?? 0)}/tháng`,
+      desc: 'tổng giao dịch hệ thống',
       icon: <TrendingUp className="h-6 w-6 text-amber-500" />,
       bg: 'bg-amber-50 dark:bg-amber-500/15',
     },
@@ -137,7 +139,7 @@ export default function DashboardPage() {
               <h3 className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
                 {loading ? '...' : stat.value}
               </h3>
-              <p className="mt-1 text-[11px] text-gray-400 font-medium">{stat.desc}</p>
+              <p className="mt-1 text-xs-plus text-gray-400 font-medium">{stat.desc}</p>
             </div>
           </div>
         ))}
@@ -194,7 +196,7 @@ export default function DashboardPage() {
                       >
                         {h.name}
                       </Link>
-                      <p className="text-[11px] text-gray-400 truncate max-w-xs">
+                      <p className="text-xs-plus text-gray-400 truncate max-w-xs">
                         {h.address}
                       </p>
                     </div>
@@ -203,7 +205,7 @@ export default function DashboardPage() {
                   <div className="flex items-center gap-3">
                     <div className="hidden sm:flex items-center gap-1 text-amber-400 text-xs font-bold">
                       <Star className="h-3.5 w-3.5 fill-amber-400" />
-                      <span>{h.starRating || 0}★</span>
+                      <span>{h.starRating || 0} sao</span>
                     </div>
                     <Badge variant={h.status === 'ACTIVE' ? 'success' : 'warning'} size="sm">
                       {h.status}
@@ -224,15 +226,15 @@ export default function DashboardPage() {
               Traveleke AI Module
             </div>
             <h4 className="text-base font-bold">
-              Kế Hoạch Du Lịch Cá Nhân Hóa
+              Quản Lý Khách Sạn & Đặt Phòng
             </h4>
             <p className="mt-1 text-xs text-brand-100 leading-relaxed">
-              Tích hợp gợi ý khách sạn, tour du lịch và lịch trình di chuyển theo nhu cầu khách hàng.
+              Quản lý danh sách khách sạn, phòng nghỉ, dịch vụ buồng phòng và điều phối nhân sự thông minh.
             </p>
             <div className="mt-4 flex gap-2">
-              <Link href="/tours" className="w-full">
+              <Link href="/hotels" className="w-full">
                 <button className="w-full rounded-xl bg-white/20 hover:bg-white/30 py-2 text-xs font-bold text-white transition-colors cursor-pointer">
-                  Khám Phá Tour
+                  Xem Khách Sạn
                 </button>
               </Link>
             </div>

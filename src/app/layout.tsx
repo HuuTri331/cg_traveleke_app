@@ -1,13 +1,22 @@
 import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import './globals.css';
 
 import { ToastProvider } from '@/components/ui/Toast';
 import { AuthProvider } from '@/features/auth/context/AuthContext';
+import { CustomerAuthProvider } from '@/features/auth/context/CustomerAuthContext';
+import { RealtimeProvider } from '@/features/realtime/RealtimeContext';
+
+const inter = Inter({
+  subsets: ['latin', 'vietnamese'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 export const metadata: Metadata = {
-  title: 'Traveleke Admin - Bảng Điều Khiển Quản Trị Khách Sạn & Tour',
+  title: 'Traveleke - Đặt Phòng Khách Sạn & Tour Du Lịch',
   description:
-    'Hệ thống quản lý khách sạn, phòng nghỉ, tour du lịch và phân công nhân viên.',
+    'Nền tảng đặt phòng khách sạn, tour du lịch và lập kế hoạch du lịch cá nhân ứng dụng AI.',
 };
 
 export default function RootLayout({
@@ -16,10 +25,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi" suppressHydrationWarning>
-      <body className="min-h-screen bg-gray-50 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100">
+    <html lang="vi" className={inter.variable} suppressHydrationWarning>
+      <head>
+        {/* Critical Rendering Path Preconnect & DNS-Prefetch Optimization */}
+        <link rel="preconnect" href="http://localhost:3001" />
+        <link rel="dns-prefetch" href="http://localhost:3001" />
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        <link rel="dns-prefetch" href="https://images.unsplash.com" />
+      </head>
+      <body className={`${inter.className} min-h-screen bg-gray-50 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100`}>
         <AuthProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <CustomerAuthProvider>
+            <ToastProvider>
+              <RealtimeProvider>{children}</RealtimeProvider>
+            </ToastProvider>
+          </CustomerAuthProvider>
         </AuthProvider>
       </body>
     </html>

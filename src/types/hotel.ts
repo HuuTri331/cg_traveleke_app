@@ -52,7 +52,7 @@ export interface CreateHotelInput {
   status?: HotelStatus;
 }
 
-export interface UpdateHotelInput extends Partial<CreateHotelInput> {}
+export type UpdateHotelInput = Partial<CreateHotelInput>;
 
 export interface QueryHotelParams {
   page?: number;

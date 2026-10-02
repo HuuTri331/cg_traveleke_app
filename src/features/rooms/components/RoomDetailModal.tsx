@@ -5,7 +5,8 @@ import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { ImageSlider } from '@/components/ui/ImageSlider';
-import { Room, RoomImage } from '@/types/room';
+import { apiClient } from '@/services/api/client';
+import { Room, RoomImage, RoomAssignedService } from '@/types/room';
 import { Hotel } from '@/types/hotel';
 import { roomsApi } from '@/services/api/rooms.api';
 import { formatCurrency } from '@/lib/utils';
@@ -19,6 +20,8 @@ import {
   Star,
   Edit,
   Building2,
+  CheckCircle2,
+  PlusCircle,
 } from 'lucide-react';
 
 export interface RoomDetailModalProps {
@@ -39,6 +42,7 @@ export function RoomDetailModal({
   onOpenGallery,
 }: RoomDetailModalProps) {
   const [images, setImages] = useState<RoomImage[]>([]);
+  const [services, setServices] = useState<RoomAssignedService[]>([]);
 
   useEffect(() => {
     if (isOpen && room) {
@@ -51,6 +55,20 @@ export function RoomDetailModal({
         }
       };
       fetchImages();
+
+      // Load assigned services
+      if (room.services && room.services.length > 0) {
+        setServices(room.services);
+      } else {
+        apiClient
+          .get(`/rooms/${room.id}/services`)
+          .then((res) => {
+            if (Array.isArray(res.data)) {
+              setServices(res.data);
+            }
+          })
+          .catch((err) => console.error('Failed to load room services in modal:', err));
+      }
     }
   }, [isOpen, room]);
 
@@ -120,7 +138,7 @@ export function RoomDetailModal({
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-1 text-xs text-amber-400 font-bold">
                 <Star className="h-4 w-4 fill-amber-400" />
-                <span>{room.rating || 5}★ tiêu chuẩn</span>
+                <span>{room.rating || 5} sao tiêu chuẩn</span>
               </div>
               <Badge variant={statusVariantMap[room.status] || 'neutral'} size="sm" dot>
                 {statusLabelMap[room.status] || room.status}
@@ -143,7 +161,7 @@ export function RoomDetailModal({
                 <DollarSign className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                <p className="text-2xs font-bold uppercase tracking-wider text-gray-400">
                   Giá mỗi đêm
                 </p>
                 <p className="text-sm font-bold text-brand-600 dark:text-brand-400 mt-0.5">
@@ -158,7 +176,7 @@ export function RoomDetailModal({
                 <BedDouble className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                <p className="text-2xs font-bold uppercase tracking-wider text-gray-400">
                   Giường & Diện tích
                 </p>
                 <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 mt-0.5">
@@ -173,7 +191,7 @@ export function RoomDetailModal({
                 <Users className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                <p className="text-2xs font-bold uppercase tracking-wider text-gray-400">
                   Sức chứa
                 </p>
                 <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 mt-0.5">
@@ -188,7 +206,7 @@ export function RoomDetailModal({
                 <Layers className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                <p className="text-2xs font-bold uppercase tracking-wider text-gray-400">
                   Tình trạng phòng
                 </p>
                 <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 mt-0.5">
@@ -206,10 +224,55 @@ export function RoomDetailModal({
             </span>
           </div>
 
+          {/* Room Services & Amenities */}
+          {services.length > 0 && (
+            <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-3.5 dark:border-gray-800 dark:bg-gray-800/40">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-2xs font-bold uppercase tracking-wider text-gray-400">
+                  Dịch vụ & Tiện ích đi kèm ({services.length})
+                </p>
+                <div className="flex items-center gap-1.5 text-2xs">
+                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                    {services.filter((s) => s.isComplimentary).length} Miễn phí
+                  </span>
+                  <span>•</span>
+                  <span className="text-violet-600 dark:text-violet-400 font-semibold">
+                    {services.filter((s) => !s.isComplimentary).length} Thu phí
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-1.5">
+                {services.map((svc) => (
+                  <span
+                    key={svc.id}
+                    className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-lg border font-medium ${
+                      svc.isComplimentary
+                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                        : 'bg-violet-50 text-violet-700 dark:bg-violet-950/40 dark:text-violet-300 border-violet-200 dark:border-violet-800'
+                    }`}
+                  >
+                    {svc.isComplimentary ? (
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                    ) : (
+                      <PlusCircle className="h-3.5 w-3.5 text-violet-600" />
+                    )}
+                    <span>{svc.name}</span>
+                    <span className="text-2xs opacity-75">
+                      {svc.isComplimentary
+                        ? '(Miễn phí)'
+                        : `(${new Intl.NumberFormat('vi-VN').format(svc.basePrice)}₫)`}
+                    </span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Room Description & Amenities */}
           {room.description && (
             <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-3.5 dark:border-gray-800 dark:bg-gray-800/40">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+              <p className="text-2xs font-bold uppercase tracking-wider text-gray-400 mb-1">
                 Mô tả tiện nghi phòng
               </p>
               <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">

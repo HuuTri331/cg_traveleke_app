@@ -8,7 +8,9 @@ import { homeApi } from '@/services/api/home.api';
 import Header from '@/components/common/HeaderCommon';
 import Footer from '@/components/common/FooterCommon';
 
-import TravelOptions from '@/components/home/TravelOptions';
+import HotelDealsSection from '@/components/home/HotelDealsSection';
+import TopMonthHotelsSection from '@/components/home/TopMonthHotelsSection';
+import RecentlyViewedHotels from '@/components/home/RecentlyViewedHotels';
 import TravelDestinations from '@/components/home/TravelDestinations';
 import TravelokeLayout from '@/components/home/TravelokeLayout';
 
@@ -137,8 +139,13 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="mt-16 bg-white shadow-md">
-        <TravelOptions />
+      <div className="mt-12 bg-white shadow-xs">
+        <HotelDealsSection />
+      </div>
+
+      {/* KHÁCH SẠN ĐƯỢC TÌM KIẾM NHIỀU NHẤT THÁNG */}
+      <div className="mt-12 bg-gradient-to-b from-orange-50/50 to-white dark:from-gray-900 dark:to-gray-950 py-4 border-y border-orange-100/60 dark:border-gray-800">
+        <TopMonthHotelsSection />
       </div>
 
       <div className="mt-16 bg-white shadow-md">
@@ -147,6 +154,11 @@ export default function HomePage() {
 
       <div className="mt-16 bg-white shadow-md">
         <TravelokeLayout />
+      </div>
+
+      {/* KHÁCH SẠN BẠN ĐÃ XEM GẦN ĐÂY (NẰM DƯỚI CÙNG SÁT BÊN TRÊN FOOTER) */}
+      <div className="mt-16 bg-gray-50/80 dark:bg-gray-900/60 py-6 border-t border-gray-200/60 dark:border-gray-800">
+        <RecentlyViewedHotels />
       </div>
 
       {/* API TEST */}

@@ -267,7 +267,7 @@ export function HotelCreateModal({
           onNewFilesChange={setNewFiles}
           primaryNewIndex={primaryNewIndex}
           onSetPrimaryNewIndex={setPrimaryNewIndex}
-          helperText="Tải tối đa 6 ảnh cho khách sạn. Bấm vào ngôi sao ⭐ để chọn ảnh bìa đại diện chính."
+          helperText="Tải tối đa 6 ảnh cho khách sạn. Bấm vào biểu tượng ngôi sao để chọn ảnh bìa đại diện chính."
         />
 
         {/* Hàng 8: Mô tả */}

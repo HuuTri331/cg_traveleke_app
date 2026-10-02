@@ -2,20 +2,7 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-@theme {
-  --color-brand-50: #f0f4ff;
-  --color-brand-100: #e0e8ff;
-  --color-brand-200: #c7d6fe;
-  --color-brand-300: #a5bbfd;
-  --color-brand-400: #8198f8;
-  --color-brand-500: #465fff;
-  --color-brand-600: #3b50df;
-  --color-brand-700: #2d3bb8;
-  --color-brand-800: #242f92;
-  --color-brand-900: #1d2571;
-
-  --font-outfit: var(--font-outfit), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-}
+@import "../styles/theme-tokens.css";
 
 :root {
   --background: #f8fafc;
@@ -36,9 +23,13 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+input, textarea, select, button, option {
+  font-family: inherit;
 }
 
 /* Hide Next.js Dev Badge Indicator */

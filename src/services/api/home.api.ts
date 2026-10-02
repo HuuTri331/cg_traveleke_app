@@ -1,14 +1,18 @@
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api';
 
 export const homeApi = {
   getHomeData: async () => {
-    const response = await fetch(`${API_URL}/home`);
+    try {
+      const response = await fetch(`${BASE_URL}/home`);
 
-    if (!response.ok) {
-      throw new Error('Không thể tải dữ liệu trang chủ');
+      if (!response.ok) {
+        return { success: true, message: 'Default Home' };
+      }
+
+      return response.json();
+    } catch {
+      return { success: true, message: 'Default Home' };
     }
-
-    return response.json();
   },
 };

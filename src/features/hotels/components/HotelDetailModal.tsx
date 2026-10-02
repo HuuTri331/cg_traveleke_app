@@ -203,7 +203,7 @@ export function HotelDetailModal({
                     <Building2 className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                    <p className="text-2xs font-bold uppercase tracking-wider text-gray-400">
                       Loại hình
                     </p>
                     <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 mt-0.5">
@@ -217,7 +217,7 @@ export function HotelDetailModal({
                     <MapPin className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                    <p className="text-2xs font-bold uppercase tracking-wider text-gray-400">
                       Tỉnh / Thành phố
                     </p>
                     <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 mt-0.5">
@@ -231,7 +231,7 @@ export function HotelDetailModal({
                     <Clock className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                    <p className="text-2xs font-bold uppercase tracking-wider text-gray-400">
                       Giờ nhận / trả phòng
                     </p>
                     <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 mt-0.5">
@@ -245,7 +245,7 @@ export function HotelDetailModal({
                     <Phone className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                    <p className="text-2xs font-bold uppercase tracking-wider text-gray-400">
                       Số điện thoại
                     </p>
                     <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 mt-0.5 truncate max-w-40">
@@ -265,7 +265,7 @@ export function HotelDetailModal({
                 )}
 
                 <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-3 dark:border-gray-800 dark:bg-gray-800/40">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-0.5">
+                  <p className="text-2xs font-bold uppercase tracking-wider text-gray-400 mb-0.5">
                     Địa chỉ chi tiết
                   </p>
                   <p className="text-xs font-medium text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
@@ -278,7 +278,7 @@ export function HotelDetailModal({
               {/* Mô tả */}
               {hotel.description && (
                 <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-3.5 dark:border-gray-800 dark:bg-gray-800/40">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                  <p className="text-2xs font-bold uppercase tracking-wider text-gray-400 mb-1">
                     Giới thiệu khách sạn
                   </p>
                   <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
@@ -368,16 +368,16 @@ export function HotelDetailModal({
                         <h5 className="text-xs font-bold text-gray-900 dark:text-white truncate">
                           {r.name}
                         </h5>
-                        <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                        <p className="text-xs-plus text-gray-500 dark:text-gray-400 mt-0.5">
                           {r.bedCount} × {r.bedType} {r.roomSize ? `• ${r.roomSize} m²` : ''}
                         </p>
-                        <p className="text-[11px] text-brand-600 dark:text-brand-400 font-bold mt-1">
+                        <p className="text-xs-plus text-brand-600 dark:text-brand-400 font-bold mt-1">
                           {formatCurrency(r.pricePerNight)} / đêm
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800 text-[11px]">
+                    <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-800 text-xs-plus">
                       <span className="text-gray-500">
                         Sức chứa: <strong>{r.maxAdults} NL</strong>
                         {r.maxChildren > 0 ? ` • ${r.maxChildren} TE` : ''}

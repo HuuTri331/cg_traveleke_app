@@ -146,7 +146,7 @@ export function ImageUploadZone({
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
-                <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1.5 py-0.5 text-[10px] text-white truncate text-center">
+                <div className="absolute bottom-0 inset-x-0 bg-black/60 px-1.5 py-0.5 text-2xs text-white truncate text-center">
                   {(item.file.size / (1024 * 1024)).toFixed(1)} MB
                 </div>
               </div>

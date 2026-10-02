@@ -2,9 +2,12 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useCustomerAuth } from '@/features/auth/context/CustomerAuthContext';
 
 import Header from '@/components/common/HeaderCommon';
 import Footer from '@/components/common/FooterCommon';
+import { Maximize2, Star, BedDouble, User, Users, Check } from 'lucide-react';
 
 import { homeRoomApi } from '@/services/api/home-room.api';
 import {
@@ -40,6 +43,9 @@ const getImageUrl = (
 export default function HomeRooms({
   hotelId,
 }: HomeRoomsProps) {
+  const router = useRouter();
+  const { isCustomerAuthenticated } = useCustomerAuth();
+
   // ============================================================
   // ROOM DATA
   // ============================================================
@@ -286,6 +292,36 @@ export default function HomeRooms({
         top: 0,
         behavior: 'smooth',
       });
+    }
+  };
+
+  const handleBookRoom = (room: Room) => {
+    const bookingData = {
+      hotelId: room.hotelId || hotelId || null,
+      hotelName: (room as any).hotel?.name || 'Khách sạn',
+      hotelAddress: (room as any).hotel?.address || '',
+      hotelStar: (room as any).hotel?.starRating || 5,
+      hotelImage: (room as any).hotel?.images?.[0]?.imageUrl || getImageUrl(room.images?.[0]?.imageUrl),
+      roomId: room.id,
+      roomName: room.name,
+      roomPrice: room.pricePerNight,
+      bedCount: room.bedCount || 1,
+      bedType: room.bedType || 'Tiêu chuẩn',
+      maxAdults: room.maxAdults || 2,
+      availableRooms: room.availableRooms || 1,
+      checkInTime: '14:00:00',
+      checkOutTime: '12:00:00',
+    };
+
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('traveleke_pending_order', JSON.stringify(bookingData));
+    }
+
+    const targetUrl = `/process-order?roomId=${room.id}${room.hotelId || hotelId ? `&hotelId=${room.hotelId || hotelId}` : ''}`;
+    if (!isCustomerAuthenticated) {
+      router.push(`/customer-login?redirect=${encodeURIComponent(targetUrl)}`);
+    } else {
+      router.push(targetUrl);
     }
   };
 
@@ -593,184 +629,119 @@ export default function HomeRooms({
             rooms.length > 0 && (
               <>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {rooms.map((room) => (
-                    <article
-                      key={room.id}
-                      className="overflow-hidden rounded-2xl border bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg"
-                    >
-                      {/* IMAGE */}
+                  {rooms.map((room, idx) => {
+                    const priceNum = parseFloat(room.pricePerNight) || 350000;
+                    const discountRate = [15, 20, 25, 30][idx % 4];
+                    const origPrice = Math.round(priceNum / (1 - discountRate / 100));
 
-                      <div className="relative">
-                        <img
-                          src={getImageUrl(
-                            room.coverImageUrl,
-                          )}
-                          alt={room.name}
-                          className="h-56 w-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src =
-                              PLACEHOLDER_IMAGE;
-                          }}
-                        />
+                    return (
+                      <article
+                        key={room.id}
+                        className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+                      >
+                        {/* IMAGE */}
+                        <div className="relative h-56 w-full overflow-hidden bg-gray-100">
+                          <img
+                            src={getImageUrl(
+                              room.coverImageUrl,
+                            )}
+                            alt={room.name}
+                            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                            onError={(e) => {
+                              e.currentTarget.src =
+                                PLACEHOLDER_IMAGE;
+                            }}
+                          />
 
-                        {/* STATUS */}
+                          {/* Top-left Specs Badge */}
+                          <div className="absolute left-3 top-3 flex items-center gap-1 rounded-md bg-traveloka-navy/85 backdrop-blur-xs px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
+                            <Maximize2 className="h-3.5 w-3.5 text-white" />
+                            <span>{room.roomSize ? `${room.roomSize} m²` : '18 m²'}</span>
+                          </div>
 
-                        {room.status && (
-                          <span className="absolute right-3 top-3 rounded-full bg-white px-3 py-1 text-xs font-semibold text-green-600 shadow">
-                            {room.status}
-                          </span>
-                        )}
+                          {/* Top-right Rating */}
+                          <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-yellow-700 shadow-sm">
+                            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                            <span>{Number(room.rating || 4.5).toFixed(1)}</span>
+                          </div>
 
-                        {/* RATING */}
+                          {/* Bottom-right Discount tag */}
+                          <div className="absolute bottom-0 right-0 rounded-tl-lg bg-traveloka-orange px-2.5 py-1 text-xs font-bold text-white shadow-md">
+                            Save {discountRate}%
+                          </div>
+                        </div>
 
-                        <span className="absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-sm font-semibold text-yellow-600 shadow">
-                          ⭐{' '}
-                          {Number(
-                            room.rating,
-                          ).toFixed(1)}
-                        </span>
-                      </div>
+                        {/* CONTENT */}
+                        <div className="flex flex-1 flex-col justify-between p-5">
+                          <div>
+                            <h2 className="text-lg font-bold text-gray-900 group-hover:text-traveloka-blue transition-colors line-clamp-1">
+                              {room.name}
+                            </h2>
 
-                      {/* CONTENT */}
-
-                      <div className="p-5">
-                        <h2 className="text-xl font-bold text-gray-900">
-                          {room.name}
-                        </h2>
-
-                        {room.description && (
-                          <p className="mt-2 line-clamp-2 text-sm leading-6 text-gray-500">
-                            {
-                              room.description
-                            }
-                          </p>
-                        )}
-
-                        {/* ROOM INFO */}
-
-                        <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-gray-600">
-                          {room.bedType && (
-                            <div className="rounded-lg bg-gray-50 p-3">
-                              <p className="text-xs text-gray-400">
-                                Giường
+                            {room.description && (
+                              <p className="mt-1 line-clamp-2 text-xs leading-5 text-gray-500">
+                                {room.description}
                               </p>
+                            )}
 
-                              <p className="mt-1 font-medium">
-                                🛏{' '}
-                                {
-                                  room.bedType
-                                }
-                              </p>
+                            {/* ROOM INFO */}
+                            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                              <span className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-1 font-medium">
+                                <BedDouble className="h-3.5 w-3.5 text-gray-500" />
+                                <span>{room.bedCount} {room.bedType || 'giường'}</span>
+                              </span>
+                              <span className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-1 font-medium">
+                                <User className="h-3.5 w-3.5 text-gray-500" />
+                                <span>{room.maxAdults} người lớn</span>
+                              </span>
+                              {Number(room.maxChildren) > 0 && (
+                                <span className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-1 font-medium">
+                                  <Users className="h-3.5 w-3.5 text-gray-500" />
+                                  <span>{room.maxChildren} trẻ em</span>
+                                </span>
+                              )}
                             </div>
-                          )}
 
-                          {room.roomSize && (
-                            <div className="rounded-lg bg-gray-50 p-3">
-                              <p className="text-xs text-gray-400">
-                                Diện tích
-                              </p>
+                            {/* CANCELLATION */}
+                            <p className="mt-2.5 flex items-center gap-1 text-xs font-semibold text-emerald-600">
+                              <Check className="h-3.5 w-3.5 text-emerald-600" />
+                              <span>Miễn phí huỷ phòng</span>
+                            </p>
+                          </div>
 
-                              <p className="mt-1 font-medium">
-                                📐{' '}
-                                {
-                                  room.roomSize
-                                }{' '}
-                                m²
+                          {/* PRICE & ACTION */}
+                          <div className="mt-4 border-t border-gray-100 pt-3 flex items-end justify-between gap-2">
+                            <div>
+                              <p className="text-xs text-gray-400 line-through">
+                                {new Intl.NumberFormat('vi-VN').format(origPrice)} VND
                               </p>
+                              <div className="flex items-baseline gap-1">
+                                <span className="text-xl font-black text-traveloka-orange">
+                                  {new Intl.NumberFormat('vi-VN').format(priceNum)}
+                                </span>
+                                <span className="text-xs font-bold text-traveloka-orange">
+                                  VND
+                                </span>
+                              </div>
+                              {room.availableRooms <= 5 && room.availableRooms > 0 && (
+                                <p className="text-xs-plus font-bold text-red-500 mt-0.5">
+                                  Còn {room.availableRooms} phòng!
+                                </p>
+                              )}
                             </div>
-                          )}
 
-                          <div className="rounded-lg bg-gray-50 p-3">
-                            <p className="text-xs text-gray-400">
-                              Người lớn
-                            </p>
-
-                            <p className="mt-1 font-medium">
-                              👤{' '}
-                              {
-                                room.maxAdults
-                              }
-                            </p>
-                          </div>
-
-                          <div className="rounded-lg bg-gray-50 p-3">
-                            <p className="text-xs text-gray-400">
-                              Trẻ em
-                            </p>
-
-                            <p className="mt-1 font-medium">
-                              👶{' '}
-                              {
-                                room.maxChildren
-                              }
-                            </p>
+                            <button
+                              type="button"
+                              onClick={() => handleBookRoom(room)}
+                              className="rounded-xl bg-traveloka-blue hover:bg-traveloka-blue-hover px-5 py-2.5 text-xs font-bold text-white shadow-xs transition-colors cursor-pointer"
+                            >
+                              Đặt ngay
+                            </button>
                           </div>
                         </div>
-
-                        {/* AVAILABLE */}
-
-                        <div className="mt-4 rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-700">
-                          Còn{' '}
-                          <strong>
-                            {
-                              room.availableRooms
-                            }
-                          </strong>{' '}
-                          phòng
-                        </div>
-
-                        {/* CHECK IN / OUT */}
-
-                        <div className="mt-4 flex justify-between text-sm text-gray-500">
-                          <span>
-                            Nhận phòng:{' '}
-                            {
-                              room.checkInTime
-                            }
-                          </span>
-
-                          <span>
-                            Trả phòng:{' '}
-                            {
-                              room.checkOutTime
-                            }
-                          </span>
-                        </div>
-
-                        {/* PRICE */}
-
-                        <div className="mt-5 border-t pt-4">
-                          <p className="text-sm text-gray-500">
-                            Giá mỗi đêm
-                          </p>
-
-                          <div className="mt-1 flex items-end justify-between gap-3">
-                            <p className="text-2xl font-bold text-red-600">
-                              {Number(
-                                room.pricePerNight,
-                              ).toLocaleString(
-                                'vi-VN',
-                              )}{' '}
-                              ₫
-                            </p>
-
-                            <span className="text-sm text-gray-400">
-                              / đêm
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* BOOK BUTTON */}
-
-                        <Link
-                          href={`/booking/${room.id}`}
-                          className="mt-5 flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700"
-                        >
-                          Đặt phòng
-                        </Link>
-                      </div>
-                    </article>
-                  ))}
+                      </article>
+                    );
+                  })}
                 </div>
 
                 {/* ============================================ */}

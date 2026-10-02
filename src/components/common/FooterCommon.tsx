@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { FaFacebookF, FaInstagram, FaTiktok, FaYoutube, FaTelegramPlane } from 'react-icons/fa';
 
 import iata from '@/assets/image/all.png';
 import logo from '@/assets/image/logo.png';
@@ -96,57 +97,52 @@ export default function FooterCommon() {
             <div className="flex flex-col gap-3">
               <a
                 href="#"
-                className="flex items-center gap-2 text-gray-400 hover:text-white"
+                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-800 text-xs font-bold">
-                  f
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600/20 text-blue-400 text-xs">
+                  <FaFacebookF className="h-3.5 w-3.5" />
                 </span>
-
-                Facebook
+                <span>Facebook</span>
               </a>
 
               <a
                 href="#"
-                className="flex items-center gap-2 text-gray-400 hover:text-white"
+                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-800 text-xs font-bold">
-                  IG
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pink-600/20 text-pink-400 text-xs">
+                  <FaInstagram className="h-3.5 w-3.5" />
                 </span>
-
-                Instagram
+                <span>Instagram</span>
               </a>
 
               <a
                 href="#"
-                className="flex items-center gap-2 text-gray-400 hover:text-white"
+                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-800 text-xs font-bold">
-                  ♪
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-800 text-gray-300 text-xs">
+                  <FaTiktok className="h-3.5 w-3.5" />
                 </span>
-
-                TikTok
+                <span>TikTok</span>
               </a>
 
               <a
                 href="#"
-                className="flex items-center gap-2 text-gray-400 hover:text-white"
+                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-800 text-xs font-bold">
-                  ▶
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red-600/20 text-red-400 text-xs">
+                  <FaYoutube className="h-3.5 w-3.5" />
                 </span>
-
-                YouTube
+                <span>YouTube</span>
               </a>
 
               <a
                 href="#"
-                className="flex items-center gap-2 text-gray-400 hover:text-white"
+                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-800 text-xs">
-                  ✈
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-sky-600/20 text-sky-400 text-xs">
+                  <FaTelegramPlane className="h-3.5 w-3.5" />
                 </span>
-
-                Telegram
+                <span>Telegram</span>
               </a>
             </div>
           </div>

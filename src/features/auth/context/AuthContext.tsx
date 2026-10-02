@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { authApi } from '@/services/api/auth.api';
 import { LoginDto, UserProfile } from '@/types/auth';
@@ -19,42 +19,100 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const STAFF_PROTECTED_ROUTES = [
+  '/dashboard',
+  '/hotels',
+  '/rooms',
+  '/room-types',
+  '/bookings',
+  '/staff',
+  '/customers',
+  '/hotel-staff',
+  '/services',
+  '/staff-skills',
+  '/profile',
+];
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [token, setToken] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('traveleke_token');
+    }
+    return null;
+  });
+
+  const [user, setUser] = useState<UserProfile | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const storedUser = localStorage.getItem('traveleke_user');
+        return storedUser ? JSON.parse(storedUser) : null;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  });
+
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const storedToken = localStorage.getItem('traveleke_token');
+      const storedUser = localStorage.getItem('traveleke_user');
+      // Nếu không có token hoặc đã có user cache sẵn, không cần block UI
+      if (!storedToken || storedUser) {
+        return false;
+      }
+      return true;
+    }
+    return false;
+  });
 
   const router = useRouter();
   const pathname = usePathname();
 
-  // Khởi tạo trạng thái xác thực khi mở web
+  // Khởi tạo trạng thái xác thực khi mở web (khôi phục session tức thì, xác thực ngầm)
   const initAuth = useCallback(async () => {
     try {
-      const storedToken = localStorage.getItem('traveleke_token');
-      const storedUser = localStorage.getItem('traveleke_user');
+      const storedToken = typeof window !== 'undefined' ? localStorage.getItem('traveleke_token') : null;
+      const storedUser = typeof window !== 'undefined' ? localStorage.getItem('traveleke_user') : null;
 
-      if (storedToken) {
-        setToken(storedToken);
-        if (storedUser) {
-          try {
-            setUser(JSON.parse(storedUser));
-          } catch {
-            // bỏ qua parse error
-          }
-        }
+      if (!storedToken) {
+        setIsLoading(false);
+        return;
+      }
 
-        // Fetch fresh profile từ server
+      setToken(storedToken);
+      if (storedUser) {
         try {
-          const profile = await authApi.getMe();
-          setUser(profile);
-          localStorage.setItem('traveleke_user', JSON.stringify(profile));
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+          setIsLoading(false);
         } catch {
-          // Token hết hạn hoặc không hợp lệ
+          // ignore
+        }
+      }
+
+      // Fetch fresh profile từ server ở chế độ nền kèm timeout an toàn 1.5s tránh loading kéo dài
+      try {
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Auth request timeout')), 1500),
+        );
+        const profile = await Promise.race([authApi.getMe(), timeoutPromise]);
+        if (profile.role === 'CUSTOMER') {
           localStorage.removeItem('traveleke_token');
           localStorage.removeItem('traveleke_user');
           setToken(null);
           setUser(null);
+          setIsLoading(false);
+          return;
         }
+        setUser(profile);
+        localStorage.setItem('traveleke_user', JSON.stringify(profile));
+      } catch {
+        // Token hết hạn hoặc server timeout: xoá session cũ
+        localStorage.removeItem('traveleke_token');
+        localStorage.removeItem('traveleke_user');
+        setToken(null);
+        setUser(null);
       }
     } finally {
       setIsLoading(false);
@@ -65,49 +123,75 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initAuth();
   }, [initAuth]);
 
-  // Kiểm tra route bảo vệ và chuyển hướng nếu chưa đăng nhập
+  // Kiểm tra route bảo vệ: chỉ chặn các route của Admin/Nhân viên
   useEffect(() => {
     if (!isLoading) {
+      const isStaffProtected = STAFF_PROTECTED_ROUTES.some(
+        (r) => pathname === r || pathname.startsWith(r + '/'),
+      );
       const isLoginPage = pathname === '/login';
       const hasToken = !!token;
 
-      if (!hasToken && !isLoginPage) {
-        router.push('/login');
+      if (isStaffProtected) {
+        const customerToken = typeof window !== 'undefined' ? localStorage.getItem('traveleke_customer_token') : null;
+        const isCustomer = user?.role === 'CUSTOMER' || !!customerToken;
+
+        // Nếu là khách hàng hoặc chưa có token nhân viên, cấm truy cập
+        if (!hasToken || user?.role === 'CUSTOMER') {
+          // Khách hàng đã đăng nhập cố tình vô trang admin -> đá về trang chủ khách hàng (/home)
+          // Chưa đăng nhập gì cả cố tình vào -> đá về trang đăng nhập admin (/login)
+          router.replace(isCustomer ? '/home' : '/login');
+        }
       } else if (hasToken && isLoginPage) {
-        router.push('/hotels');
+        router.replace('/dashboard');
       }
     }
-  }, [isLoading, token, pathname, router]);
+  }, [isLoading, token, user, pathname, router]);
 
-  const login = async (dto: LoginDto) => {
-    setIsLoading(true);
-    try {
-      const data = await authApi.login(dto);
-      localStorage.setItem('traveleke_token', data.access_token);
-      localStorage.setItem('traveleke_user', JSON.stringify(data.user));
-      setToken(data.access_token);
-      setUser(data.user);
-      router.push('/hotels');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const login = useCallback(
+    async (dto: LoginDto) => {
+      setIsLoading(true);
+      try {
+        const data = await authApi.login(dto);
 
-  const logout = async () => {
+        if (data.user.role === 'CUSTOMER') {
+          throw new Error(
+            'Tài khoản khách hàng không có quyền truy cập bảng quản trị. Vui lòng đăng nhập tại trang người dùng.',
+          );
+        }
+
+        localStorage.setItem('traveleke_token', data.access_token);
+        if (data.refresh_token) {
+          localStorage.setItem('traveleke_refresh_token', data.refresh_token);
+        }
+        localStorage.setItem('traveleke_user', JSON.stringify(data.user));
+        setToken(data.access_token);
+        setUser(data.user);
+        router.push('/dashboard');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [router],
+  );
+
+  const logout = useCallback(async () => {
     setIsLoading(true);
     try {
       await authApi.logout();
     } finally {
       localStorage.removeItem('traveleke_token');
+      localStorage.removeItem('traveleke_refresh_token');
       localStorage.removeItem('traveleke_user');
       setToken(null);
       setUser(null);
       setIsLoading(false);
       router.push('/login');
     }
-  };
+  }, [router]);
 
-  const refreshProfile = async () => {
+
+  const refreshProfile = useCallback(async () => {
     try {
       const profile = await authApi.getMe();
       setUser(profile);
@@ -115,26 +199,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {
       // Ignored
     }
-  };
+  }, []);
 
   const isAuthenticated = !!token && !!user;
   const isAdmin = user?.role === 'ADMIN';
   const isEmployee = user?.role === 'EMPLOYEE' || user?.role === 'ADMIN';
 
+  const contextValue = useMemo(
+    () => ({
+      user,
+      token,
+      isLoading,
+      isAuthenticated,
+      isAdmin,
+      isEmployee,
+      login,
+      logout,
+      refreshProfile,
+    }),
+    [
+      user,
+      token,
+      isLoading,
+      isAuthenticated,
+      isAdmin,
+      isEmployee,
+      login,
+      logout,
+      refreshProfile,
+    ],
+  );
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        token,
-        isLoading,
-        isAuthenticated,
-        isAdmin,
-        isEmployee,
-        login,
-        logout,
-        refreshProfile,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

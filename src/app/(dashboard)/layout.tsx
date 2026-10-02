@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { PlaneTakeoff } from 'lucide-react';
 
 import { Sidebar } from '@/components/dashboard/Sidebar';
@@ -13,27 +14,52 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [mounted, setMounted] = useState(false);
+  const { isLoading, isAuthenticated, user } = useAuth();
 
-  const { isLoading, isAuthenticated } = useAuth();
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!mounted) return;
+
+    const staffToken = localStorage.getItem('traveleke_token');
+    if (!staffToken) {
+      const customerToken = localStorage.getItem('traveleke_customer_token');
+      router.replace(customerToken ? '/home' : '/login');
+      return;
+    }
+
+    if (!isLoading) {
+      if (!isAuthenticated || user?.role === 'CUSTOMER') {
+        const customerToken = localStorage.getItem('traveleke_customer_token');
+        if (customerToken || user?.role === 'CUSTOMER') {
+          router.replace('/home');
+        } else {
+          router.replace('/login');
+        }
+      }
+    }
+  }, [mounted, isLoading, isAuthenticated, user, router]);
+
+  if (!mounted || isLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
         <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-500 text-white shadow-xl shadow-brand-500/30 animate-pulse">
           <PlaneTakeoff className="h-7 w-7" />
         </div>
-
         <div className="mt-4 flex items-center gap-2 text-slate-400 text-xs font-semibold">
           <div className="h-3 w-3 rounded-full border-2 border-brand-500 border-t-transparent animate-spin" />
-
           <span>Đang xác thực phiên làm việc...</span>
         </div>
       </div>
     );
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated || user?.role === 'CUSTOMER') {
     return null;
   }
 

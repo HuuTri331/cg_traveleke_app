@@ -15,11 +15,14 @@ export interface UserProfile {
   fullName: string;
   email: string;
   phone: string | null;
+  address?: string | null;
   avatarUrl: string | null;
   dateOfBirth?: string | null;
   gender?: UserGender | null;
   role: UserRole;
   status: UserStatus;
+  isEmailVerified?: boolean;
+  emailVerifiedAt?: string | null;
   lastLoginAt: string | null;
   createdAt?: string;
   updatedAt?: string;
@@ -34,10 +37,12 @@ export interface LoginDto {
 
 export interface LoginResponseData {
   access_token: string;
+  refresh_token?: string;
   token_type: string;
   expires_in: string;
   user: UserProfile;
 }
+
 
 export interface CreateStaffDto {
   fullName: string;
