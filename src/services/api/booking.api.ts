@@ -2,7 +2,7 @@ import { apiClient } from './client';
 
 export interface CreateBookingData {
   roomId: string;
-  userId: string;
+  userId?: string;
   checkInAt: string;
   checkOutAt: string;
   totalGuests: number;
@@ -11,6 +11,7 @@ export interface CreateBookingData {
   contactEmail: string;
   contactPhone: string;
   specialRequest?: string;
+  idempotencyKey?: string;
 }
 
 export interface BookingHistory {
@@ -38,6 +39,11 @@ export interface BookingHistory {
   pricePerNight: string;
   nights: number;
   subtotal: string;
+  paymentStatus?: string | null;
+  vnpTransactionNo?: string | null;
+  gatewayExpireAt?: string | null;
+  holdExpiresAt?: string | null;
+  holdStatus?: string | null;
 }
 
 export interface AdminBookingItem {
@@ -53,7 +59,16 @@ export interface AdminBookingItem {
   totalGuests: number;
   requestedRoomCount: number;
   estimatedTotal: string;
-  status: 'PENDING' | 'CONFIRMED' | 'CHECKED_IN' | 'COMPLETED' | 'REJECTED' | 'CANCELLED';
+  status:
+    | 'PAYMENT_PENDING'
+    | 'PENDING'
+    | 'CONFIRMED'
+    | 'CHECKED_IN'
+    | 'COMPLETED'
+    | 'REJECTED'
+    | 'CANCELLED'
+    | 'PAYMENT_EXPIRED'
+    | 'PAYMENT_REVIEW';
   specialRequest?: string | null;
   handledBy?: string | null;
   assignmentType?: 'AUTO' | 'MANUAL';
@@ -72,6 +87,10 @@ export interface AdminBookingItem {
   hotelAddress?: string;
   customerName?: string;
   customerEmail?: string;
+  paymentStatus?: string | null;
+  vnpTransactionNo?: string | null;
+  paidAmount?: string | null;
+  holdStatus?: string | null;
 }
 
 export interface BookingStatusLogItem {
@@ -95,6 +114,7 @@ export interface AdminBookingDetail extends AdminBookingItem {
   subtotal?: string;
   customerPhone?: string;
   statusLogs?: BookingStatusLogItem[];
+  paidAt?: string | null;
 }
 
 export interface QueryBookingParams {
@@ -141,16 +161,40 @@ export const bookingApi = {
   // TẠO BOOKING (Khách hàng)
   // ===============================
   create: async (data: CreateBookingData) => {
-    const response = await apiClient.post('/bookings', data);
+    const response = await apiClient.post('/payments/checkout-sessions', data);
     return response.data;
   },
 
   // ===============================
   // LỊCH SỬ BOOKING (Khách hàng)
   // ===============================
-  getHistory: async (userId: string): Promise<BookingHistory[]> => {
-    const response = await apiClient.get(`/bookings/user/${userId}`);
-    return response.data.data;
+  getHistory: async (userId?: string): Promise<BookingHistory[]> => {
+    try {
+      const response = await apiClient.get('/bookings/me');
+      return response.data.data;
+    } catch {
+      if (userId) {
+        const response = await apiClient.get(`/bookings/user/${userId}`);
+        return response.data.data;
+      }
+      return [];
+    }
+  },
+
+  // ===============================
+  // TRẠNG THÁI THANH TOÁN
+  // ===============================
+  getPaymentStatus: async (bookingId: string) => {
+    const response = await apiClient.get(`/payments/status/${bookingId}`);
+    return response.data;
+  },
+
+  // ===============================
+  // THỬ LẠI THANH TOÁN (Payment Retry)
+  // ===============================
+  retryPayment: async (bookingId: string) => {
+    const response = await apiClient.post(`/payments/${bookingId}/attempts`);
+    return response.data;
   },
 
   // ===============================

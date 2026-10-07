@@ -51,8 +51,12 @@ const STATUS_CONFIG: Record<
     variant: 'warning' | 'info' | 'brand' | 'success' | 'danger' | 'neutral';
   }
 > = {
+  PAYMENT_PENDING: {
+    label: 'Chờ Thanh Toán VNPay',
+    variant: 'warning',
+  },
   PENDING: {
-    label: 'Chờ Duyệt',
+    label: 'Chờ Duyệt (Đã TT)',
     variant: 'warning',
   },
   CONFIRMED: {
@@ -74,6 +78,14 @@ const STATUS_CONFIG: Record<
   CANCELLED: {
     label: 'Đã Huỷ',
     variant: 'neutral',
+  },
+  PAYMENT_EXPIRED: {
+    label: 'Hết Hạn Thanh Toán',
+    variant: 'danger',
+  },
+  PAYMENT_REVIEW: {
+    label: 'Cần Đối Soát / Hoàn Tiền',
+    variant: 'danger',
   },
 };
 
@@ -666,11 +678,31 @@ export default function BookingsPage() {
                             {formatCurrency(Number(b.estimatedTotal))}
                           </td>
 
-                          {/* Trạng thái */}
+                          {/* Trạng thái & Thanh toán */}
                           <td className="px-5 py-3.5">
-                            <Badge variant={cfg.variant} dot>
-                              {cfg.label}
-                            </Badge>
+                            <div className="flex flex-col gap-1">
+                              <Badge variant={cfg.variant} dot>
+                                {cfg.label}
+                              </Badge>
+                              {b.paymentStatus === 'PAID' ? (
+                                <span className="text-2xs font-semibold text-emerald-600 dark:text-emerald-400">
+                                  ✓ VNPay Đã TT {b.vnpTransactionNo ? `(#${b.vnpTransactionNo})` : ''}
+                                </span>
+                              ) : b.paymentStatus === 'PENDING' || b.status === 'PAYMENT_PENDING' ? (
+                                <span className="text-2xs font-semibold text-amber-600 dark:text-amber-400">
+                                  ⏳ Chờ TT (15p)
+                                </span>
+                              ) : b.paymentStatus === 'EXPIRED' || b.status === 'PAYMENT_EXPIRED' ? (
+                                <span className="text-2xs font-semibold text-rose-600 dark:text-rose-400">
+                                  ✕ Hết hạn TT
+                                </span>
+                              ) : null}
+                              {b.holdStatus && (
+                                <span className="text-3xs text-gray-400">
+                                  Tồn phòng: {b.holdStatus === 'COMMITTED' ? 'Đã chốt (Committed)' : 'Đang giữ (Held)'}
+                                </span>
+                              )}
+                            </div>
                           </td>
 
                           {/* Hành động */}

@@ -29,6 +29,7 @@ import HeaderCommon from '@/components/common/HeaderCommon';
 import FooterCommon from '@/components/common/FooterCommon';
 import { useCustomerAuth } from '@/features/auth/context/CustomerAuthContext';
 import { hotelDetailApi, type HotelDetail } from '@/services/api/hotel-detail.api';
+import { bookingApi, type CreateBookingData } from '@/services/api/booking.api';
 
 interface PendingBookingData {
   hotelId?: string | number | null;
@@ -71,7 +72,7 @@ function ProcessOrderContent() {
   const [connectingRooms, setConnectingRooms] = useState(false);
   const [highFloor, setHighFloor] = useState(false);
 
-  // Countdown timer for price guarantee (15 minutes countdown)
+  // Countdown timer for price guarantee (15 minutes countdown) - Section 28
   const [secondsLeft, setSecondsLeft] = useState(899);
 
   // UI accordion state
@@ -80,13 +81,34 @@ function ProcessOrderContent() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  // Countdown clock effect
+  // Countdown clock effect based on absolute target timestamp
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
+    let targetTime = Date.now() + 15 * 60 * 1000;
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = sessionStorage.getItem('traveleke_order_cutoff');
+        if (stored && Number(stored) > Date.now()) {
+          targetTime = Number(stored);
+        } else {
+          sessionStorage.setItem('traveleke_order_cutoff', String(targetTime));
+        }
+      } catch {}
+    }
+
+    const updateTimer = () => {
+      const remaining = Math.max(0, Math.floor((targetTime - Date.now()) / 1000));
+      setSecondsLeft(remaining);
+      if (remaining <= 0) {
+        clearInterval(timer);
+        alert('Đã hết thời hạn giữ phòng tạm thời. Vui lòng chọn lại phòng.');
+        router.push('/hotels_home');
+      }
+    };
+
+    updateTimer();
+    const timer = setInterval(updateTimer, 1000);
+    return () => clearInterval(timer);
+  }, [router]);
 
   const timerDisplay = useMemo(() => {
     const mins = Math.floor(secondsLeft / 60);
@@ -226,10 +248,76 @@ function ProcessOrderContent() {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setShowSuccessModal(true);
-    }, 600);
+
+    // Tính toán ngày nhận và trả phòng
+    const checkInDate = new Date();
+    checkInDate.setDate(checkInDate.getDate() + 1);
+    checkInDate.setHours(14, 0, 0, 0);
+
+    const checkOutDate = new Date(checkInDate);
+    checkOutDate.setDate(checkOutDate.getDate() + 1);
+    checkOutDate.setHours(12, 0, 0, 0);
+
+    const specialReqs = [
+      nonSmoking ? 'Phòng không hút thuốc' : null,
+      connectingRooms ? 'Phòng thông nhau' : null,
+      highFloor ? 'Phòng tầng cao' : null,
+    ]
+      .filter(Boolean)
+      .join(', ');
+
+    const payload: CreateBookingData = {
+      roomId: String(bookingData?.roomId || roomIdParam || '1'),
+      checkInAt: checkInDate.toISOString(),
+      checkOutAt: checkOutDate.toISOString(),
+      totalGuests: bookingData?.maxAdults || 2,
+      roomCount: 1,
+      contactName: `${surname.trim()} ${givenName.trim()}`,
+      contactEmail: email.trim(),
+      contactPhone: `${countryCode}${mobileNumber.trim()}`,
+      specialRequest: specialReqs || undefined,
+      idempotencyKey:
+        typeof crypto !== 'undefined' && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `idemp-${Date.now()}-${Math.random()}`,
+    };
+
+    bookingApi
+      .create(payload)
+      .then((res: any) => {
+        const paymentUrl = res.data?.paymentUrl || res.paymentUrl;
+        if (paymentUrl) {
+          if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('traveleke_pending_order');
+            sessionStorage.removeItem('traveleke_order_cutoff');
+            window.location.assign(paymentUrl);
+          }
+        } else {
+          throw new Error('Không nhận được liên kết thanh toán từ cổng VNPay.');
+        }
+      })
+      .catch((err: any) => {
+        setIsSubmitting(false);
+        const status = err.response?.status;
+        const msg = err.response?.data?.message || err.message;
+
+        if (status === 409) {
+          alert(
+            'Loại phòng này vừa hết trong thời gian bạn chọn. Hệ thống sẽ đưa bạn quay lại trang thông tin khách sạn.',
+          );
+          if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('traveleke_pending_order');
+            sessionStorage.removeItem('traveleke_order_cutoff');
+          }
+          if (hotelIdParam || bookingData?.hotelId) {
+            router.push(`/hotels_home/${hotelIdParam || bookingData?.hotelId}`);
+          } else {
+            router.push('/hotels_home');
+          }
+        } else {
+          alert(msg || 'Có lỗi xảy ra trong quá trình khởi tạo thanh toán VNPay.');
+        }
+      });
   };
 
   if (isCustomerLoading || loadingDetails) {
