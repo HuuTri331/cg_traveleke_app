@@ -11,6 +11,7 @@ import {
   bookingApi,
   BookingHistory as BookingHistoryType,
 } from '@/services/api/booking.api';
+import { cancellationApi } from '@/services/api/cancellation.api';
 import { useCustomerAuth } from '@/features/auth/context/CustomerAuthContext';
 import { getSocket, REALTIME_EVENTS, RealtimeBookingStatusChanged } from '@/lib/socket';
 
@@ -54,6 +55,17 @@ export default function BookingHistory() {
   ] = useState('');
 
   const [retryingId, setRetryingId] = useState<string | null>(null);
+  const [cancelModal, setCancelModal] = useState<{
+    isOpen: boolean;
+    booking: BookingHistoryType | null;
+    reason: string;
+    submitting: boolean;
+  }>({
+    isOpen: false,
+    booking: null,
+    reason: '',
+    submitting: false,
+  });
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -143,6 +155,43 @@ export default function BookingHistory() {
       alert(msg || 'Không thể tạo phiên thanh toán mới.');
     } finally {
       setRetryingId(null);
+    }
+  };
+
+  const handleOpenCancelModal = (booking: BookingHistoryType) => {
+    if (new Date() >= new Date(booking.checkInAt)) {
+      alert('Đơn đã đến hoặc qua giờ nhận phòng nên không thể yêu cầu hủy/hoàn.');
+      return;
+    }
+    setCancelModal({
+      isOpen: true,
+      booking,
+      reason: '',
+      submitting: false,
+    });
+  };
+
+  const handleSubmitCancel = async () => {
+    if (!cancelModal.booking || !cancelModal.reason.trim()) return;
+    try {
+      setCancelModal((prev) => ({ ...prev, submitting: true }));
+      await cancellationApi.requestCancellation({
+        bookingId: cancelModal.booking.id,
+        reason: cancelModal.reason.trim(),
+      });
+      alert('Đã gửi yêu cầu hủy và hoàn tiền thành công. Quản lý khách sạn sẽ xét duyệt.');
+      setCancelModal({
+        isOpen: false,
+        booking: null,
+        reason: '',
+        submitting: false,
+      });
+      // Refresh
+      const data = await bookingApi.getHistory();
+      setBookings(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      alert(err.response?.data?.message || err.message || 'Không thể gửi yêu cầu hủy đơn.');
+      setCancelModal((prev) => ({ ...prev, submitting: false }));
     }
   };
 
@@ -335,6 +384,26 @@ export default function BookingHistory() {
                               {Number(booking.estimatedTotal).toLocaleString('vi-VN')} ₫
                             </span>
 
+                            {booking.paymentStatus === 'PAID' &&
+                              (booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
+                                <button
+                                  onClick={() => handleOpenCancelModal(booking)}
+                                  disabled={new Date() >= new Date(booking.checkInAt)}
+                                  title={
+                                    new Date() >= new Date(booking.checkInAt)
+                                      ? 'Đơn đã đến hoặc qua giờ nhận phòng nên không thể yêu cầu hủy/hoàn'
+                                      : 'Gửi yêu cầu hủy và hoàn tiền'
+                                  }
+                                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg shadow-xs transition ${
+                                    new Date() >= new Date(booking.checkInAt)
+                                      ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                                      : 'border border-red-200 text-red-600 hover:bg-red-50 cursor-pointer'
+                                  }`}
+                                >
+                                  Yêu cầu hủy
+                                </button>
+                              )}
+
                             {(booking.status === 'PAYMENT_PENDING' ||
                               booking.paymentStatus === 'PENDING' ||
                               booking.status === 'PAYMENT_EXPIRED' ||
@@ -362,6 +431,57 @@ export default function BookingHistory() {
           </div>
         )}
       </section>
+
+      {/* MODAL YÊU CẦU HỦY & HOÀN TIỀN */}
+      {cancelModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-gray-900">
+              Yêu Cầu Hủy Đơn & Hoàn Tiền
+            </h3>
+            <p className="mt-1 text-xs text-gray-500">
+              Mã đơn: <strong className="font-mono">{cancelModal.booking?.bookingCode || cancelModal.booking?.id}</strong>
+            </p>
+
+            <div className="mt-4 rounded-xl bg-amber-50 p-3 text-xs text-amber-800 border border-amber-200">
+              Lưu ý: Yêu cầu của bạn sẽ được gửi tới khách sạn để duyệt hoàn tiền theo chính sách. Số tiền hoàn sẽ được hoàn qua cổng thanh toán VNPay.
+            </div>
+
+            <div className="mt-4 space-y-1">
+              <label className="block text-xs font-semibold text-gray-700">
+                Lý do hủy đặt phòng <span className="text-red-500">*</span>:
+              </label>
+              <textarea
+                rows={3}
+                value={cancelModal.reason}
+                onChange={(e) => setCancelModal((prev) => ({ ...prev, reason: e.target.value }))}
+                placeholder="Nhập lý do chi tiết..."
+                className="w-full rounded-xl border border-gray-300 p-2.5 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                disabled={cancelModal.submitting}
+                onClick={() => setCancelModal((prev) => ({ ...prev, isOpen: false }))}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                Đóng
+              </button>
+              <button
+                type="button"
+                disabled={!cancelModal.reason.trim() || cancelModal.submitting}
+                onClick={handleSubmitCancel}
+                className="rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {cancelModal.submitting ? 'Đang gửi...' : 'Gửi Yêu Cầu'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mt-16 bg-white shadow-md">
         <Footer />
       </div>

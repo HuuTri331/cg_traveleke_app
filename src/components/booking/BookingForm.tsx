@@ -138,11 +138,6 @@ export default function BookingForm({
 
       await bookingApi.create({
         roomId,
-
-        // Tạm thời dùng userId = 1.
-        // Sau này lấy từ JWT.
-        userId: '1',
-
         ...form,
 
         contactName:

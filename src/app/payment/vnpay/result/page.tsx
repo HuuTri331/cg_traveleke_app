@@ -59,7 +59,7 @@ function PaymentResultContent() {
         if (!isMounted) return;
 
         setBookingDetails(data);
-        const pStatus = data.payment?.status;
+        const pStatus = data.paymentStatus || data.payment?.status;
 
         if (pStatus === 'PAID') {
           setPaymentStatus('PAID');
@@ -68,28 +68,26 @@ function PaymentResultContent() {
           setErrorMessage('Giao dịch thanh toán không thành công hoặc đã bị hủy.');
         } else if (pStatus === 'EXPIRED') {
           setPaymentStatus('EXPIRED');
-          setErrorMessage('Phiên giao dịch thanh toán đã quá thời hạn 15 phút.');
+          setErrorMessage('Phiên giao dịch thanh toán đã quá thời hạn.');
         } else {
-          // Vẫn đang PENDING: tiếp tục poll ngắn chờ IPN
+          // Vẫn đang PENDING: tiếp tục poll ngắn chờ IPN xử lý
           if (attempts < maxAttempts) {
             attempts++;
-            setTimeout(verifyStatus, 2000);
+            setTimeout(verifyStatus, 2500);
           } else {
-            // Hết lượt poll mà vẫn PENDING
-            if (vnpResponseCode === '00') {
-              setPaymentStatus('PAID');
-            } else {
-              setPaymentStatus('PENDING');
-            }
+            // Section 7: Tuyệt đối không tự suy diễn PAID từ vnp_ResponseCode!
+            setPaymentStatus('PENDING');
           }
         }
       } catch (err: any) {
         if (!isMounted) return;
         if (attempts < maxAttempts) {
           attempts++;
-          setTimeout(verifyStatus, 2000);
+          setTimeout(verifyStatus, 2500);
         } else {
-          setPaymentStatus(vnpResponseCode === '00' ? 'PAID' : 'FAILED');
+          // Lỗi backend hoặc timeout -> Chưa thể xác nhận
+          setPaymentStatus('PENDING');
+          setErrorMessage('Chưa thể nhận diện trạng thái cuối cùng. Vui lòng kiểm tra tại Lịch sử đặt phòng.');
         }
       }
     };

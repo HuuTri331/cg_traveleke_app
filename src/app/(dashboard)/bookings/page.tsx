@@ -12,6 +12,10 @@ import {
   AdminBookingDetail,
   ActivityLogItem,
 } from '@/services/api/booking.api';
+import {
+  cancellationApi,
+  CancellationRequestItem,
+} from '@/services/api/cancellation.api';
 import { formatCurrency } from '@/lib/utils';
 import { getSocket, REALTIME_EVENTS } from '@/lib/socket';
 import {
@@ -42,6 +46,7 @@ import {
   Star,
   Lightbulb,
   ArrowRight,
+  RotateCcw,
 } from 'lucide-react';
 
 const STATUS_CONFIG: Record<
@@ -90,8 +95,8 @@ const STATUS_CONFIG: Record<
 };
 
 export default function BookingsPage() {
-  // Tab chính: Bookings list vs Activity logs
-  const [mainTab, setMainTab] = useState<'bookings' | 'activity_logs'>('bookings');
+  // Tab chính: Bookings list vs Cancellations vs Activity logs
+  const [mainTab, setMainTab] = useState<'bookings' | 'cancellations' | 'activity_logs'>('bookings');
 
   // Bookings list states
   const [bookings, setBookings] = useState<AdminBookingItem[]>([]);
@@ -110,6 +115,11 @@ export default function BookingsPage() {
   const [activityLogs, setActivityLogs] = useState<ActivityLogItem[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [logSearch, setLogSearch] = useState('');
+
+  // Cancellation requests states
+  const [cancellationRequests, setCancellationRequests] = useState<CancellationRequestItem[]>([]);
+  const [loadingCancellations, setLoadingCancellations] = useState(false);
+  const [cancellationSearch, setCancellationSearch] = useState('');
 
   // Modals
   const [selectedBookingDetail, setSelectedBookingDetail] = useState<AdminBookingDetail | null>(null);
@@ -130,6 +140,34 @@ export default function BookingsPage() {
     nextStatus: '',
     statusLabel: '',
     note: '',
+    submitting: false,
+  });
+
+  // Modal: Yêu cầu hủy đơn & hoàn tiền
+  const [cancellationModal, setCancellationModal] = useState<{
+    isOpen: boolean;
+    booking: AdminBookingItem | AdminBookingDetail | null;
+    reason: string;
+    submitting: boolean;
+  }>({
+    isOpen: false,
+    booking: null,
+    reason: '',
+    submitting: false,
+  });
+
+  // Modal: Quản lý xét duyệt hủy đơn (APPROVE / REJECT)
+  const [reviewModal, setReviewModal] = useState<{
+    isOpen: boolean;
+    request: CancellationRequestItem | null;
+    action: 'APPROVE' | 'REJECT';
+    reviewNote: string;
+    submitting: boolean;
+  }>({
+    isOpen: false,
+    request: null,
+    action: 'APPROVE',
+    reviewNote: '',
     submitting: false,
   });
 
@@ -275,15 +313,32 @@ export default function BookingsPage() {
     }
   }, []);
 
+  // ==========================================
+  // FETCH CANCELLATIONS
+  // ==========================================
+  const fetchCancellations = useCallback(async () => {
+    try {
+      setLoadingCancellations(true);
+      const res = await cancellationApi.getAll();
+      setCancellationRequests(Array.isArray(res) ? res : []);
+    } catch (err: any) {
+      console.error('Lỗi tải danh sách yêu cầu hủy:', err);
+    } finally {
+      setLoadingCancellations(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (mainTab === 'bookings') {
       fetchBookings();
+    } else if (mainTab === 'cancellations') {
+      fetchCancellations();
     } else {
       fetchActivityLogs();
     }
-  }, [mainTab, fetchBookings, fetchActivityLogs]);
+  }, [mainTab, fetchBookings, fetchCancellations, fetchActivityLogs]);
 
-  // Lắng nghe sự kiện Realtime để đồng bộ hoá danh sách Booking tự động
+  // Lắng nghe sự kiện Realtime để đồng bộ hoá danh sách Booking, Payment, Inventory, Refund tự động
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return;
@@ -293,16 +348,125 @@ export default function BookingsPage() {
       if (mainTab === 'activity_logs') {
         fetchActivityLogs();
       }
+      if (mainTab === 'cancellations') {
+        fetchCancellations();
+      }
     };
 
     socket.on(REALTIME_EVENTS.BOOKING_CREATED, handleRealtimeUpdate);
     socket.on(REALTIME_EVENTS.BOOKING_STATUS_CHANGED, handleRealtimeUpdate);
+    socket.on(REALTIME_EVENTS.PAYMENT_STATUS_CHANGED, handleRealtimeUpdate);
+    socket.on(REALTIME_EVENTS.BOOKING_READY_FOR_CONFIRMATION, handleRealtimeUpdate);
+    socket.on(REALTIME_EVENTS.BOOKING_PAYMENT_EXPIRED, handleRealtimeUpdate);
+    socket.on(REALTIME_EVENTS.INVENTORY_UPDATED, handleRealtimeUpdate);
+    socket.on(REALTIME_EVENTS.REFUND_STATUS_CHANGED, handleRealtimeUpdate);
 
     return () => {
       socket.off(REALTIME_EVENTS.BOOKING_CREATED, handleRealtimeUpdate);
       socket.off(REALTIME_EVENTS.BOOKING_STATUS_CHANGED, handleRealtimeUpdate);
+      socket.off(REALTIME_EVENTS.PAYMENT_STATUS_CHANGED, handleRealtimeUpdate);
+      socket.off(REALTIME_EVENTS.BOOKING_READY_FOR_CONFIRMATION, handleRealtimeUpdate);
+      socket.off(REALTIME_EVENTS.BOOKING_PAYMENT_EXPIRED, handleRealtimeUpdate);
+      socket.off(REALTIME_EVENTS.INVENTORY_UPDATED, handleRealtimeUpdate);
+      socket.off(REALTIME_EVENTS.REFUND_STATUS_CHANGED, handleRealtimeUpdate);
     };
-  }, [fetchBookings, fetchActivityLogs, mainTab]);
+  }, [fetchBookings, fetchActivityLogs, fetchCancellations, mainTab]);
+
+  // ==========================================
+  // XỬ LÝ YÊU CẦU HỦY ĐƠN & HOÀN TIỀN
+  // ==========================================
+  const handleOpenCancellationModal = (booking: AdminBookingItem | AdminBookingDetail) => {
+    if (new Date() >= new Date(booking.checkInAt)) {
+      setActionNotice({
+        type: 'error',
+        message: 'Đơn đã đến hoặc qua giờ nhận phòng nên không thể yêu cầu hủy/hoàn.',
+      });
+      return;
+    }
+    setCancellationModal({
+      isOpen: true,
+      booking,
+      reason: '',
+      submitting: false,
+    });
+  };
+
+  const handleSubmitCancellation = async () => {
+    if (!cancellationModal.booking || !cancellationModal.reason.trim()) return;
+    try {
+      setCancellationModal((prev) => ({ ...prev, submitting: true }));
+      await cancellationApi.requestCancellation({
+        bookingId: cancellationModal.booking.id,
+        reason: cancellationModal.reason.trim(),
+      });
+      setActionNotice({
+        type: 'success',
+        message: `Đã gửi yêu cầu hủy và hoàn tiền cho đơn ${cancellationModal.booking.bookingCode} thành công. Vui lòng chờ quản lý duyệt hoàn tiền.`,
+      });
+      setCancellationModal({
+        isOpen: false,
+        booking: null,
+        reason: '',
+        submitting: false,
+      });
+      fetchBookings();
+      fetchCancellations();
+    } catch (err: any) {
+      console.error('Lỗi gửi yêu cầu hủy:', err);
+      setActionNotice({
+        type: 'error',
+        message: err.response?.data?.message || err.message || 'Không thể gửi yêu cầu hủy đơn.',
+      });
+      setCancellationModal((prev) => ({ ...prev, submitting: false }));
+    }
+  };
+
+  // ==========================================
+  // XÉT DUYỆT YÊU CẦU HỦY ĐƠN
+  // ==========================================
+  const handleOpenReviewModal = (request: CancellationRequestItem, action: 'APPROVE' | 'REJECT') => {
+    setReviewModal({
+      isOpen: true,
+      request,
+      action,
+      reviewNote: '',
+      submitting: false,
+    });
+  };
+
+  const handleConfirmReview = async () => {
+    if (!reviewModal.request) return;
+    try {
+      setReviewModal((prev) => ({ ...prev, submitting: true }));
+      await cancellationApi.reviewCancellation(reviewModal.request.id, {
+        action: reviewModal.action,
+        reviewNote: reviewModal.reviewNote.trim() || undefined,
+      });
+      setActionNotice({
+        type: 'success',
+        message:
+          reviewModal.action === 'APPROVE'
+            ? `Đã duyệt yêu cầu hủy cho đơn ${reviewModal.request.bookingCode || reviewModal.request.bookingId}. Hệ thống đang giải phóng phòng và xử lý hoàn tiền qua VNPay!`
+            : `Đã từ chối yêu cầu hủy đơn.`,
+      });
+      setReviewModal({
+        isOpen: false,
+        request: null,
+        action: 'APPROVE',
+        reviewNote: '',
+        submitting: false,
+      });
+      fetchCancellations();
+      fetchBookings();
+    } catch (err: any) {
+      console.error('Lỗi xét duyệt yêu cầu hủy:', err);
+      setActionNotice({
+        type: 'error',
+        message: err.response?.data?.message || err.message || 'Không thể xét duyệt yêu cầu hủy.',
+      });
+      setReviewModal((prev) => ({ ...prev, submitting: false }));
+    }
+  };
 
   // ==========================================
   // XEM CHI TIẾT BOOKING
@@ -450,6 +614,7 @@ export default function BookingsPage() {
               leftIcon={<RefreshCw className={`h-4 w-4 ${loadingBookings || loadingLogs ? 'animate-spin' : ''}`} />}
               onClick={() => {
                 if (mainTab === 'bookings') fetchBookings();
+                else if (mainTab === 'cancellations') fetchCancellations();
                 else fetchActivityLogs();
               }}
             >
@@ -458,8 +623,8 @@ export default function BookingsPage() {
           </div>
         </div>
 
-        {/* Primary Tabs (Bookings vs Activity Log) */}
-        <div className="flex border-b border-gray-200 bg-gray-50/70 px-5 dark:border-gray-800 dark:bg-gray-900/40">
+        {/* Primary Tabs (Bookings vs Cancellations vs Activity Log) */}
+        <div className="flex border-b border-gray-200 bg-gray-50/70 px-5 dark:border-gray-800 dark:bg-gray-900/40 overflow-x-auto">
           <button
             onClick={() => setMainTab('bookings')}
             className={`flex items-center gap-2 border-b-2 py-3.5 px-4 text-xs font-bold transition-colors cursor-pointer ${
@@ -473,6 +638,23 @@ export default function BookingsPage() {
             <span className="rounded-full bg-brand-100 px-2 py-0.5 text-2xs font-extrabold text-brand-700 dark:bg-brand-500/20 dark:text-brand-300">
               {meta.total}
             </span>
+          </button>
+
+          <button
+            onClick={() => setMainTab('cancellations')}
+            className={`flex items-center gap-2 border-b-2 py-3.5 px-4 text-xs font-bold transition-colors cursor-pointer ${
+              mainTab === 'cancellations'
+                ? 'border-brand-500 text-brand-600 dark:text-brand-400'
+                : 'border-transparent text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'
+            }`}
+          >
+            <RotateCcw className="h-4 w-4" />
+            <span>Yêu Cầu Hủy & Hoàn Tiền (VNPay)</span>
+            {cancellationRequests.filter((r) => r.status === 'PENDING').length > 0 && (
+              <span className="rounded-full bg-red-100 px-2 py-0.5 text-2xs font-extrabold text-red-700 dark:bg-red-500/20 dark:text-red-300">
+                {cancellationRequests.filter((r) => r.status === 'PENDING').length}
+              </span>
+            )}
           </button>
 
           <button
@@ -747,7 +929,7 @@ export default function BookingsPage() {
                                 <span>Đổi Phụ Trách</span>
                               </button>
 
-                              {/* PENDING: Xác nhận hoặc Từ chối */}
+                              {/* PENDING: Xác nhận hoặc Yêu cầu hủy/hoàn */}
                               {b.status === 'PENDING' && (
                                 <>
                                   <button
@@ -759,17 +941,26 @@ export default function BookingsPage() {
                                     <span>Xác nhận</span>
                                   </button>
                                   <button
-                                    onClick={() => openStatusChangeDialog(b, 'REJECTED', 'Từ Chối')}
-                                    title="Từ chối đơn"
-                                    className="flex h-8 items-center gap-1 rounded-lg bg-red-600 px-2.5 text-xs-plus font-bold text-white hover:bg-red-700 shadow-xs cursor-pointer"
+                                    onClick={() => handleOpenCancellationModal(b)}
+                                    disabled={new Date() >= new Date(b.checkInAt)}
+                                    title={
+                                      new Date() >= new Date(b.checkInAt)
+                                        ? 'Đơn đã đến hoặc qua giờ nhận phòng nên không thể yêu cầu hủy/hoàn'
+                                        : 'Gửi yêu cầu hủy và hoàn tiền'
+                                    }
+                                    className={`flex h-8 items-center gap-1 rounded-lg px-2.5 text-xs-plus font-bold shadow-xs ${
+                                      new Date() >= new Date(b.checkInAt)
+                                        ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed dark:bg-gray-800 dark:border-gray-700 dark:text-gray-500'
+                                        : 'border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30 cursor-pointer'
+                                    }`}
                                   >
-                                    <XCircle className="h-3.5 w-3.5" />
-                                    <span>Từ chối</span>
+                                    <Ban className="h-3.5 w-3.5" />
+                                    <span>Yêu cầu huỷ</span>
                                   </button>
                                 </>
                               )}
 
-                              {/* CONFIRMED: Check-in hoặc Huỷ */}
+                              {/* CONFIRMED: Check-in hoặc Yêu cầu hủy/hoàn */}
                               {b.status === 'CONFIRMED' && (
                                 <>
                                   <button
@@ -781,12 +972,21 @@ export default function BookingsPage() {
                                     <span>Nhận phòng</span>
                                   </button>
                                   <button
-                                    onClick={() => openStatusChangeDialog(b, 'CANCELLED', 'Huỷ Đơn')}
-                                    title="Huỷ đơn đặt phòng"
-                                    className="flex h-8 items-center gap-1 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30 px-2.5 text-xs-plus font-bold cursor-pointer"
+                                    onClick={() => handleOpenCancellationModal(b)}
+                                    disabled={new Date() >= new Date(b.checkInAt)}
+                                    title={
+                                      new Date() >= new Date(b.checkInAt)
+                                        ? 'Đơn đã đến hoặc qua giờ nhận phòng nên không thể yêu cầu hủy/hoàn'
+                                        : 'Gửi yêu cầu hủy và hoàn tiền'
+                                    }
+                                    className={`flex h-8 items-center gap-1 rounded-lg px-2.5 text-xs-plus font-bold ${
+                                      new Date() >= new Date(b.checkInAt)
+                                        ? 'border border-gray-200 text-gray-400 cursor-not-allowed dark:border-gray-800'
+                                        : 'border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30 cursor-pointer'
+                                    }`}
                                   >
                                     <Ban className="h-3.5 w-3.5" />
-                                    <span>Huỷ</span>
+                                    <span>Yêu cầu huỷ</span>
                                   </button>
                                 </>
                               )}
@@ -824,7 +1024,206 @@ export default function BookingsPage() {
           </div>
         )}
 
-        {/* TAB 2: NHẬT KÝ GIÁM SÁT VẬN HÀNH (Activity Log / Audit Trail) */}
+        {/* TAB 2: YÊU CẦU HỦY & HOÀN TIỀN (CANCELLATION REQUESTS) */}
+        {mainTab === 'cancellations' && (
+          <div>
+            <div className="border-b border-gray-200 px-5 py-3.5 dark:border-gray-800 bg-red-50/40 dark:bg-red-950/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <RotateCcw className="h-4 w-4 text-red-600" />
+                <span className="text-xs font-semibold text-gray-800 dark:text-gray-200">
+                  Danh sách yêu cầu hủy đơn & hoàn tiền (VNPay) từ khách hàng và nhân viên
+                </span>
+              </div>
+
+              <div className="relative flex-1 max-w-sm">
+                <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                  <Search className="h-3.5 w-3.5" />
+                </span>
+                <input
+                  type="text"
+                  value={cancellationSearch}
+                  onChange={(e) => setCancellationSearch(e.target.value)}
+                  placeholder="Lọc theo mã đơn, lý do, người yêu cầu..."
+                  className="h-8 w-full rounded-lg border border-gray-300 bg-white py-1 pl-9 pr-3 text-xs text-gray-800 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                />
+              </div>
+            </div>
+
+            <div className="overflow-x-auto custom-scrollbar">
+              <table className="w-full text-left text-xs">
+                <thead className="border-b border-gray-200 bg-gray-50/80 dark:border-gray-800 dark:bg-gray-850/60 text-gray-500 dark:text-gray-400 uppercase font-semibold">
+                  <tr>
+                    <th className="px-5 py-3.5">Mã Yêu Cầu & Ngày Tạo</th>
+                    <th className="px-5 py-3.5">Mã Đơn Đặt Phòng</th>
+                    <th className="px-5 py-3.5">Người Yêu Cầu</th>
+                    <th className="px-5 py-3.5">Lý Do Hủy</th>
+                    <th className="px-5 py-3.5">Số Tiền Hoàn</th>
+                    <th className="px-5 py-3.5">Trạng Thái</th>
+                    <th className="px-5 py-3.5">Xét Duyệt & Ghi Chú</th>
+                    <th className="px-5 py-3.5 text-right">Thao Tác</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                  {loadingCancellations ? (
+                    <tr>
+                      <td colSpan={8} className="py-12 text-center text-xs text-gray-400">
+                        <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2 text-red-500" />
+                        Đang tải danh sách yêu cầu hủy...
+                      </td>
+                    </tr>
+                  ) : cancellationRequests.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="py-12 text-center text-xs text-gray-500">
+                        Chưa có yêu cầu hủy nào được tạo.
+                      </td>
+                    </tr>
+                  ) : (
+                    cancellationRequests
+                      .filter((r) => {
+                        if (!cancellationSearch.trim()) return true;
+                        const q = cancellationSearch.toLowerCase();
+                        return (
+                          r.bookingCode?.toLowerCase().includes(q) ||
+                          r.bookingId?.toLowerCase().includes(q) ||
+                          r.reason?.toLowerCase().includes(q) ||
+                          r.requesterType?.toLowerCase().includes(q) ||
+                          r.requestedBy?.toLowerCase().includes(q)
+                        );
+                      })
+                      .map((req) => (
+                        <tr
+                          key={req.id}
+                          className="hover:bg-gray-50/60 dark:hover:bg-gray-800/40 transition-colors"
+                        >
+                          {/* Mã yêu cầu & Ngày tạo */}
+                          <td className="px-5 py-3.5 whitespace-nowrap text-gray-600 dark:text-gray-400 font-mono">
+                            <div className="font-semibold text-gray-800 dark:text-gray-200">
+                              #{req.id.slice(0, 8)}
+                            </div>
+                            <div className="text-xs-plus text-gray-400">
+                              {new Date(req.createdAt).toLocaleString('vi-VN')}
+                            </div>
+                          </td>
+
+                          {/* Mã đơn đặt phòng */}
+                          <td className="px-5 py-3.5">
+                            <div className="font-mono font-bold text-brand-600 dark:text-brand-400">
+                              {req.bookingCode || req.bookingId}
+                            </div>
+                            {req.hotelName && (
+                              <div className="text-2xs text-gray-500">
+                                {req.hotelName}
+                              </div>
+                            )}
+                          </td>
+
+                          {/* Người yêu cầu */}
+                          <td className="px-5 py-3.5">
+                            <div className="font-medium text-gray-800 dark:text-gray-200">
+                              {req.requestedBy}
+                            </div>
+                            <Badge
+                              size="sm"
+                              variant={
+                                req.requesterType === 'CUSTOMER'
+                                  ? 'info'
+                                  : req.requesterType === 'ADMIN'
+                                  ? 'brand'
+                                  : 'warning'
+                              }
+                            >
+                              {req.requesterType}
+                            </Badge>
+                          </td>
+
+                          {/* Lý do hủy */}
+                          <td className="px-5 py-3.5 max-w-xs text-gray-700 dark:text-gray-300">
+                            {req.reason}
+                          </td>
+
+                          {/* Số tiền hoàn */}
+                          <td className="px-5 py-3.5 font-bold font-mono text-emerald-600 dark:text-emerald-400">
+                            {formatCurrency(Number(req.refundAmount || 0))}
+                          </td>
+
+                          {/* Trạng thái */}
+                          <td className="px-5 py-3.5">
+                            <Badge
+                              size="sm"
+                              variant={
+                                req.status === 'PENDING'
+                                  ? 'warning'
+                                  : req.status === 'APPROVED'
+                                  ? 'success'
+                                  : 'danger'
+                              }
+                            >
+                              {req.status === 'PENDING'
+                                ? 'Chờ duyệt'
+                                : req.status === 'APPROVED'
+                                ? 'Đã duyệt (Hoàn tiền)'
+                                : req.status === 'REJECTED'
+                                ? 'Đã từ chối'
+                                : req.status}
+                            </Badge>
+                          </td>
+
+                          {/* Xét duyệt & Ghi chú */}
+                          <td className="px-5 py-3.5 max-w-xs text-gray-500 text-xs-plus">
+                            {req.reviewedBy ? (
+                              <div>
+                                <div>Duyệt bởi: <strong>{req.reviewedBy}</strong></div>
+                                {req.reviewedAt && (
+                                  <div className="text-2xs text-gray-400">
+                                    {new Date(req.reviewedAt).toLocaleString('vi-VN')}
+                                  </div>
+                                )}
+                                {req.reviewNote && (
+                                  <div className="italic text-gray-600 dark:text-gray-300 mt-0.5">
+                                    &ldquo;{req.reviewNote}&rdquo;
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="italic text-gray-400">Chưa xét duyệt</span>
+                            )}
+                          </td>
+
+                          {/* Thao tác */}
+                          <td className="px-5 py-3.5 text-right whitespace-nowrap">
+                            {req.status === 'PENDING' ? (
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={() => handleOpenReviewModal(req, 'APPROVE')}
+                                  title="Duyệt yêu cầu hủy & hoàn tiền"
+                                  className="flex h-8 items-center gap-1 rounded-lg bg-green-600 px-2.5 text-xs-plus font-bold text-white hover:bg-green-700 shadow-xs cursor-pointer"
+                                >
+                                  <Check className="h-3.5 w-3.5" />
+                                  <span>Duyệt Hoàn Tiền</span>
+                                </button>
+                                <button
+                                  onClick={() => handleOpenReviewModal(req, 'REJECT')}
+                                  title="Từ chối yêu cầu hủy"
+                                  className="flex h-8 items-center gap-1 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 dark:border-red-900/50 dark:text-red-400 dark:hover:bg-red-950/30 px-2.5 text-xs-plus font-bold cursor-pointer"
+                                >
+                                  <Ban className="h-3.5 w-3.5" />
+                                  <span>Từ Chối</span>
+                                </button>
+                              </div>
+                            ) : (
+                              <span className="text-2xs text-gray-400 italic">Đã kết thúc</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: NHẬT KÝ GIÁM SÁT VẬN HÀNH (Activity Log / Audit Trail) */}
         {mainTab === 'activity_logs' && (
           <div>
             <div className="border-b border-gray-200 px-5 py-3.5 dark:border-gray-800 bg-amber-50/40 dark:bg-amber-950/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1193,28 +1592,62 @@ export default function BookingsPage() {
                   </Button>
                   <Button
                     size="sm"
-                    variant="danger"
+                    variant="outline"
+                    disabled={new Date() >= new Date(selectedBookingDetail.checkInAt)}
+                    title={
+                      new Date() >= new Date(selectedBookingDetail.checkInAt)
+                        ? 'Đơn đã đến hoặc qua giờ nhận phòng nên không thể yêu cầu hủy/hoàn'
+                        : 'Yêu cầu hủy đơn và hoàn tiền'
+                    }
                     onClick={() => {
                       setIsDetailModalOpen(false);
-                      openStatusChangeDialog(selectedBookingDetail, 'REJECTED', 'Từ Chối');
+                      handleOpenCancellationModal(selectedBookingDetail);
                     }}
+                    className={
+                      new Date() >= new Date(selectedBookingDetail.checkInAt)
+                        ? 'opacity-50 cursor-not-allowed text-gray-400 border-gray-200'
+                        : 'text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:text-red-400'
+                    }
                   >
-                    Từ Chối Đơn
+                    Yêu Cầu Hủy & Hoàn Tiền
                   </Button>
                 </>
               )}
 
               {selectedBookingDetail.status === 'CONFIRMED' && (
-                <Button
-                  size="sm"
-                  variant="primary"
-                  onClick={() => {
-                    setIsDetailModalOpen(false);
-                    openStatusChangeDialog(selectedBookingDetail, 'CHECKED_IN', 'Nhận Phòng');
-                  }}
-                >
-                  Khách Làm Thủ Tục Nhận Phòng (Check-in)
-                </Button>
+                <>
+                  <Button
+                    size="sm"
+                    variant="primary"
+                    onClick={() => {
+                      setIsDetailModalOpen(false);
+                      openStatusChangeDialog(selectedBookingDetail, 'CHECKED_IN', 'Nhận Phòng');
+                    }}
+                  >
+                    Khách Làm Thủ Tục Nhận Phòng (Check-in)
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={new Date() >= new Date(selectedBookingDetail.checkInAt)}
+                    title={
+                      new Date() >= new Date(selectedBookingDetail.checkInAt)
+                        ? 'Đơn đã đến hoặc qua giờ nhận phòng nên không thể yêu cầu hủy/hoàn'
+                        : 'Yêu cầu hủy đơn và hoàn tiền'
+                    }
+                    onClick={() => {
+                      setIsDetailModalOpen(false);
+                      handleOpenCancellationModal(selectedBookingDetail);
+                    }}
+                    className={
+                      new Date() >= new Date(selectedBookingDetail.checkInAt)
+                        ? 'opacity-50 cursor-not-allowed text-gray-400 border-gray-200'
+                        : 'text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:text-red-400'
+                    }
+                  >
+                    Yêu Cầu Hủy & Hoàn Tiền
+                  </Button>
+                </>
               )}
 
               {selectedBookingDetail.status === 'CHECKED_IN' && (
@@ -1459,6 +1892,145 @@ export default function BookingsPage() {
               onClick={handleConfirmReassign}
             >
               Xác Nhận Phân Công Lại
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ======================================================== */}
+      {/* MODAL 4: YÊU CẦU HỦY ĐƠN & HOÀN TIỀN (VNPay) */}
+      {/* ======================================================== */}
+      <Modal
+        isOpen={cancellationModal.isOpen}
+        onClose={() =>
+          !cancellationModal.submitting &&
+          setCancellationModal((prev) => ({ ...prev, isOpen: false }))
+        }
+        title="Yêu Cầu Hủy Đơn & Hoàn Tiền (VNPay)"
+        subtitle={`Đơn đặt phòng: ${cancellationModal.booking?.bookingCode}`}
+        maxWidth="md"
+      >
+        <div className="space-y-4 text-xs">
+          <div className="rounded-xl bg-amber-50 p-3 text-amber-800 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-900/50 dark:text-amber-300">
+            <p className="font-semibold flex items-center gap-1.5">
+              <AlertCircle className="h-4 w-4" /> Lưu ý quy trình hủy đơn:
+            </p>
+            <p className="mt-1">
+              Đơn này đã được thanh toán. Sau khi gửi yêu cầu, Quản lý khách sạn hoặc Quản trị viên sẽ xét duyệt. Khi được duyệt, phòng giữ sẽ được giải phóng ngay lập tức và hệ thống tự động hoàn tiền giao dịch qua VNPay.
+            </p>
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+              Lý do yêu cầu hủy phòng <span className="text-red-500">*</span>:
+            </label>
+            <textarea
+              rows={3}
+              value={cancellationModal.reason}
+              onChange={(e) =>
+                setCancellationModal((prev) => ({ ...prev, reason: e.target.value }))
+              }
+              placeholder="Nhập lý do chi tiết (VD: Khách yêu cầu thay đổi lịch trình đột xuất, khách không thể đến,...)"
+              className="w-full rounded-xl border border-gray-300 p-2.5 text-xs text-gray-800 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-850 dark:text-white"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={cancellationModal.submitting}
+              onClick={() =>
+                setCancellationModal((prev) => ({ ...prev, isOpen: false }))
+              }
+            >
+              Đóng
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              disabled={!cancellationModal.reason.trim()}
+              isLoading={cancellationModal.submitting}
+              onClick={handleSubmitCancellation}
+            >
+              Gửi Yêu Cầu Hủy
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* ======================================================== */}
+      {/* MODAL 5: XÉT DUYỆT YÊU CẦU HỦY (APPROVE / REJECT) */}
+      {/* ======================================================== */}
+      <Modal
+        isOpen={reviewModal.isOpen}
+        onClose={() =>
+          !reviewModal.submitting &&
+          setReviewModal((prev) => ({ ...prev, isOpen: false }))
+        }
+        title={
+          reviewModal.action === 'APPROVE'
+            ? 'Duyệt Hủy Đơn & Kích Hoạt Hoàn Tiền'
+            : 'Từ Chối Yêu Cầu Hủy Đơn'
+        }
+        subtitle={`Mã đơn: ${reviewModal.request?.bookingCode || reviewModal.request?.bookingId}`}
+        maxWidth="md"
+      >
+        <div className="space-y-4 text-xs">
+          <p className="text-gray-700 dark:text-gray-300">
+            {reviewModal.action === 'APPROVE' ? (
+              <span>
+                Bạn sắp phê duyệt hủy đơn hàng này. Trạng thái đơn sẽ chuyển sang{' '}
+                <strong className="text-red-600">CANCELLED</strong>, phòng giữ sẽ được giải phóng lại kho phòng, và hệ thống sẽ tự động kích hoạt tiến trình hoàn tiền{' '}
+                <strong className="text-emerald-600 font-mono">
+                  {formatCurrency(Number(reviewModal.request?.refundAmount || 0))}
+                </strong>{' '}
+                qua VNPay.
+              </span>
+            ) : (
+              <span>
+                Bạn sắp từ chối yêu cầu hủy đơn hàng này. Đơn hàng sẽ giữ nguyên trạng thái hiện tại.
+              </span>
+            )}
+          </p>
+
+          <div className="rounded-lg bg-gray-50 p-2.5 dark:bg-gray-850 border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-400">
+            <strong>Lý do khách / nhân viên gửi:</strong> {reviewModal.request?.reason}
+          </div>
+
+          <div className="space-y-1">
+            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+              Ghi chú xét duyệt (Audit Trail):
+            </label>
+            <textarea
+              rows={2}
+              value={reviewModal.reviewNote}
+              onChange={(e) =>
+                setReviewModal((prev) => ({ ...prev, reviewNote: e.target.value }))
+              }
+              placeholder="Ghi chú nội bộ cho quản lý / kế toán..."
+              className="w-full rounded-xl border border-gray-300 p-2.5 text-xs text-gray-800 placeholder:text-gray-400 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-850 dark:text-white"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={reviewModal.submitting}
+              onClick={() =>
+                setReviewModal((prev) => ({ ...prev, isOpen: false }))
+              }
+            >
+              Hủy bỏ
+            </Button>
+            <Button
+              variant={reviewModal.action === 'APPROVE' ? 'primary' : 'danger'}
+              size="sm"
+              isLoading={reviewModal.submitting}
+              onClick={handleConfirmReview}
+            >
+              {reviewModal.action === 'APPROVE' ? 'Xác Nhận Duyệt Hoàn Tiền' : 'Xác Nhận Từ Chối'}
             </Button>
           </div>
         </div>

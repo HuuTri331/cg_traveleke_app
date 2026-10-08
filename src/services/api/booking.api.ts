@@ -167,18 +167,11 @@ export const bookingApi = {
 
   // ===============================
   // LỊCH SỬ BOOKING (Khách hàng)
+  // Section 22: Chỉ gọi GET /bookings/me, không fallback /bookings/user/:userId
   // ===============================
-  getHistory: async (userId?: string): Promise<BookingHistory[]> => {
-    try {
-      const response = await apiClient.get('/bookings/me');
-      return response.data.data;
-    } catch {
-      if (userId) {
-        const response = await apiClient.get(`/bookings/user/${userId}`);
-        return response.data.data;
-      }
-      return [];
-    }
+  getHistory: async (): Promise<BookingHistory[]> => {
+    const response = await apiClient.get('/bookings/me');
+    return response.data.data;
   },
 
   // ===============================
