@@ -6,6 +6,7 @@ import { ToastProvider } from '@/components/ui/Toast';
 import { AuthProvider } from '@/features/auth/context/AuthContext';
 import { CustomerAuthProvider } from '@/features/auth/context/CustomerAuthContext';
 import { RealtimeProvider } from '@/features/realtime/RealtimeContext';
+import ChatBox from '@/components/chat/ChatBox';
 
 const inter = Inter({
   subsets: ['latin', 'vietnamese'],
@@ -37,7 +38,10 @@ export default function RootLayout({
         <AuthProvider>
           <CustomerAuthProvider>
             <ToastProvider>
-              <RealtimeProvider>{children}</RealtimeProvider>
+              <RealtimeProvider>
+                {children}
+                <ChatBox />
+              </RealtimeProvider>
             </ToastProvider>
           </CustomerAuthProvider>
         </AuthProvider>
