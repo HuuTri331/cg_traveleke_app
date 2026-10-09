@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
@@ -6,7 +7,6 @@ import { ToastProvider } from '@/components/ui/Toast';
 import { AuthProvider } from '@/features/auth/context/AuthContext';
 import { CustomerAuthProvider } from '@/features/auth/context/CustomerAuthContext';
 import { RealtimeProvider } from '@/features/realtime/RealtimeContext';
-
 import ChatBox from '@/components/chat/ChatBox';
 
 const inter = Inter({
@@ -35,16 +35,16 @@ export default function RootLayout({
         <link rel="preconnect" href="https://images.unsplash.com" />
         <link rel="dns-prefetch" href="https://images.unsplash.com" />
       </head>
-      <body className={`${inter.className} min-h-screen bg-gray-50 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100`}>
+      <body
+        className={`${inter.className} min-h-screen bg-gray-50 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100`}
+      >
         <AuthProvider>
           <CustomerAuthProvider>
             <ToastProvider>
-              <ToastProvider>
-                <RealtimeProvider>
-                  {children}
-                  <ChatBox />
-                </RealtimeProvider>
-              </ToastProvider>
+              <RealtimeProvider>
+                {children}
+                <ChatBox />
+              </RealtimeProvider>
             </ToastProvider>
           </CustomerAuthProvider>
         </AuthProvider>
