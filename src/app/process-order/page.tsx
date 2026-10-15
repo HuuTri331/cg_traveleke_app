@@ -29,6 +29,7 @@ import HeaderCommon from '@/components/common/HeaderCommon';
 import FooterCommon from '@/components/common/FooterCommon';
 import { useCustomerAuth } from '@/features/auth/context/CustomerAuthContext';
 import { hotelDetailApi, type HotelDetail } from '@/services/api/hotel-detail.api';
+import { bookingApi, type CreateBookingData } from '@/services/api/booking.api';
 
 interface PendingBookingData {
   hotelId?: string | number | null;
@@ -45,6 +46,10 @@ interface PendingBookingData {
   availableRooms?: number;
   checkInTime?: string;
   checkOutTime?: string;
+  checkInAt?: string;
+  checkOutAt?: string;
+  roomCount?: number;
+  totalGuests?: number;
 }
 
 function ProcessOrderContent() {
@@ -54,6 +59,10 @@ function ProcessOrderContent() {
 
   const roomIdParam = searchParams.get('roomId');
   const hotelIdParam = searchParams.get('hotelId');
+  const checkInParam = searchParams.get('checkInAt');
+  const checkOutParam = searchParams.get('checkOutAt');
+  const roomCountParam = searchParams.get('roomCount');
+  const totalGuestsParam = searchParams.get('totalGuests');
 
   // Booking data state
   const [bookingData, setBookingData] = useState<PendingBookingData | null>(null);
@@ -71,8 +80,8 @@ function ProcessOrderContent() {
   const [connectingRooms, setConnectingRooms] = useState(false);
   const [highFloor, setHighFloor] = useState(false);
 
-  // Countdown timer for price guarantee (15 minutes countdown)
-  const [secondsLeft, setSecondsLeft] = useState(899);
+  // Countdown timer: Chỉ kích hoạt countdown khi đã có phiên giữ chỗ backend
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
 
   // UI accordion state
   const [isPriceOpen, setIsPriceOpen] = useState(true);
@@ -80,15 +89,37 @@ function ProcessOrderContent() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
-  // Countdown clock effect
+  // Countdown clock effect: Đọc thời điểm hết hạn từ backend response trong session
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSecondsLeft((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
+    let targetTime: number | null = null;
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = sessionStorage.getItem('traveleke_order_cutoff');
+        if (stored && Number(stored) > Date.now()) {
+          targetTime = Number(stored);
+        }
+      } catch {}
+    }
+
+    if (!targetTime) return;
+
+    const updateTimer = () => {
+      const remaining = Math.max(0, Math.floor((targetTime! - Date.now()) / 1000));
+      setSecondsLeft(remaining);
+      if (remaining <= 0) {
+        clearInterval(timer);
+        alert('Đã hết thời hạn giữ phòng tạm thời. Vui lòng chọn lại phòng.');
+        router.push('/hotels_home');
+      }
+    };
+
+    updateTimer();
+    const timer = setInterval(updateTimer, 1000);
+    return () => clearInterval(timer);
+  }, [router]);
 
   const timerDisplay = useMemo(() => {
+    if (secondsLeft === null) return '15:00';
     const mins = Math.floor(secondsLeft / 60);
     const secs = secondsLeft % 60;
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
@@ -193,9 +224,40 @@ function ProcessOrderContent() {
     return Number(totalPrice).toLocaleString('vi-VN');
   }, [totalPrice]);
 
-  // Dates formatting
-  const checkInDateStr = 'Thứ Ba, 29/09';
-  const checkOutDateStr = 'Thứ Tư, 30/09';
+  // Section 11: Real dates formatting
+  const checkInDateObj = useMemo(() => {
+    if (bookingData?.checkInAt) return new Date(bookingData.checkInAt);
+    if (checkInParam) return new Date(checkInParam);
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    d.setHours(14, 0, 0, 0);
+    return d;
+  }, [bookingData?.checkInAt, checkInParam]);
+
+  const checkOutDateObj = useMemo(() => {
+    if (bookingData?.checkOutAt) return new Date(bookingData.checkOutAt);
+    if (checkOutParam) return new Date(checkOutParam);
+    const d = new Date(checkInDateObj);
+    d.setDate(d.getDate() + 1);
+    d.setHours(12, 0, 0, 0);
+    return d;
+  }, [bookingData?.checkOutAt, checkOutParam, checkInDateObj]);
+
+  const checkInDateStr = useMemo(() => {
+    return checkInDateObj.toLocaleDateString('vi-VN', {
+      weekday: 'long',
+      day: '2-digit',
+      month: '2-digit',
+    });
+  }, [checkInDateObj]);
+
+  const checkOutDateStr = useMemo(() => {
+    return checkOutDateObj.toLocaleDateString('vi-VN', {
+      weekday: 'long',
+      day: '2-digit',
+      month: '2-digit',
+    });
+  }, [checkOutDateObj]);
 
   // Validation & Continue handler
   const handleContinue = (e: React.FormEvent) => {
@@ -226,10 +288,78 @@ function ProcessOrderContent() {
     }
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setShowSuccessModal(true);
-    }, 600);
+
+    const effectiveCheckIn = bookingData?.checkInAt || checkInParam || checkInDateObj.toISOString();
+    const effectiveCheckOut = bookingData?.checkOutAt || checkOutParam || checkOutDateObj.toISOString();
+    const effectiveGuests = bookingData?.totalGuests || Number(totalGuestsParam) || bookingData?.maxAdults || 2;
+    const effectiveRoomCount = bookingData?.roomCount || Number(roomCountParam) || 1;
+
+    const specialReqs = [
+      nonSmoking ? 'Phòng không hút thuốc' : null,
+      connectingRooms ? 'Phòng thông nhau' : null,
+      highFloor ? 'Phòng tầng cao' : null,
+    ]
+      .filter(Boolean)
+      .join(', ');
+
+    const payload: CreateBookingData = {
+      roomId: String(bookingData?.roomId || roomIdParam || '1'),
+      checkInAt: effectiveCheckIn,
+      checkOutAt: effectiveCheckOut,
+      totalGuests: effectiveGuests,
+      roomCount: effectiveRoomCount,
+      contactName: `${surname.trim()} ${givenName.trim()}`,
+      contactEmail: email.trim(),
+      contactPhone: `${countryCode}${mobileNumber.trim()}`,
+      specialRequest: specialReqs || undefined,
+      idempotencyKey:
+        typeof crypto !== 'undefined' && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `idemp-${Date.now()}-${Math.random()}`,
+    };
+
+    bookingApi
+      .create(payload)
+      .then((res: any) => {
+        const paymentUrl = res.data?.paymentUrl || res.paymentUrl;
+        const holdExpiresAtRes = res.data?.holdExpiresAt || res.holdExpiresAt;
+        if (paymentUrl) {
+          if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('traveleke_pending_order');
+            if (holdExpiresAtRes) {
+              sessionStorage.setItem(
+                'traveleke_order_cutoff',
+                String(new Date(holdExpiresAtRes).getTime()),
+              );
+            }
+            window.location.assign(paymentUrl);
+          }
+        } else {
+          throw new Error('Không nhận được liên kết thanh toán từ cổng VNPay.');
+        }
+      })
+      .catch((err: any) => {
+        setIsSubmitting(false);
+        const status = err.response?.status;
+        const msg = err.response?.data?.message || err.message;
+
+        if (status === 409) {
+          alert(
+            'Loại phòng này vừa hết trong thời gian bạn chọn. Hệ thống sẽ đưa bạn quay lại trang thông tin khách sạn.',
+          );
+          if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('traveleke_pending_order');
+            sessionStorage.removeItem('traveleke_order_cutoff');
+          }
+          if (hotelIdParam || bookingData?.hotelId) {
+            router.push(`/hotels_home/${hotelIdParam || bookingData?.hotelId}`);
+          } else {
+            router.push('/hotels_home');
+          }
+        } else {
+          alert(msg || 'Có lỗi xảy ra trong quá trình khởi tạo thanh toán VNPay.');
+        }
+      });
   };
 
   if (isCustomerLoading || loadingDetails) {

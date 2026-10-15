@@ -23,6 +23,11 @@ export const REALTIME_EVENTS = {
   BOOKING_STATUS_CHANGED: 'booking.status_changed',
   SERVICE_REQUESTED: 'service.requested',
   SYSTEM_NOTIFICATION: 'system.notification',
+  PAYMENT_STATUS_CHANGED: 'payment.status_changed',
+  BOOKING_READY_FOR_CONFIRMATION: 'booking.ready_for_confirmation',
+  BOOKING_PAYMENT_EXPIRED: 'booking.payment_expired',
+  INVENTORY_UPDATED: 'inventory.updated',
+  REFUND_STATUS_CHANGED: 'refund.status_changed',
 } as const;
 
 export interface RealtimeBookingCreated {

@@ -11,6 +11,7 @@ import {
   bookingApi,
   BookingHistory as BookingHistoryType,
 } from '@/services/api/booking.api';
+import { cancellationApi } from '@/services/api/cancellation.api';
 import { useCustomerAuth } from '@/features/auth/context/CustomerAuthContext';
 import { getSocket, REALTIME_EVENTS, RealtimeBookingStatusChanged } from '@/lib/socket';
 
@@ -53,46 +54,47 @@ export default function BookingHistory() {
     setError,
   ] = useState('');
 
-  const effectiveUserId = customer?.id ? String(customer.id) : '1';
+  const [retryingId, setRetryingId] = useState<string | null>(null);
+  const [cancelModal, setCancelModal] = useState<{
+    isOpen: boolean;
+    booking: BookingHistoryType | null;
+    reason: string;
+    submitting: boolean;
+  }>({
+    isOpen: false,
+    booking: null,
+    reason: '',
+    submitting: false,
+  });
 
   useEffect(() => {
-    const fetchBookings =
-      async () => {
-        try {
-          setLoading(true);
-          setError('');
+    const fetchBookings = async () => {
+      try {
+        setLoading(true);
+        setError('');
 
-          const data =
-            await bookingApi.getHistory(
-              effectiveUserId,
-            );
+        const data = await bookingApi.getHistory();
 
-          setBookings(
-            Array.isArray(data)
-              ? data
-              : [],
-          );
-        } catch (error) {
-          console.error(
-            'Lỗi lấy lịch sử booking:',
-            error,
-          );
-
-          setError(
-            'Không thể tải lịch sử đặt phòng.',
-          );
-        } finally {
-          setLoading(false);
-        }
-      };
+        setBookings(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Lỗi lấy lịch sử booking:', error);
+        setError('Không thể tải lịch sử đặt phòng.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchBookings();
-  }, [effectiveUserId]);
+  }, [customer?.id]);
 
   // Lắng nghe sự kiện Realtime cập nhật trạng thái đơn đặt phòng tức thì
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return;
+
+    if (customer?.id) {
+      socket.emit('subscribe:user', { userId: customer.id });
+    }
 
     const handleStatusChanged = (payload: RealtimeBookingStatusChanged) => {
       setBookings((prev) =>
@@ -111,12 +113,87 @@ export default function BookingHistory() {
       );
     };
 
+    const handlePaymentChanged = (payload: { bookingId: string; bookingCode: string; status: string }) => {
+      setBookings((prev) =>
+        prev.map((item) => {
+          if (
+            (item.bookingCode && item.bookingCode === payload.bookingCode) ||
+            String(item.id) === String(payload.bookingId)
+          ) {
+            return {
+              ...item,
+              paymentStatus: payload.status,
+              status: payload.status === 'PAID' ? 'PENDING' : item.status,
+            };
+          }
+          return item;
+        }),
+      );
+    };
+
     socket.on(REALTIME_EVENTS.BOOKING_STATUS_CHANGED, handleStatusChanged);
+    socket.on('payment.status_changed', handlePaymentChanged);
 
     return () => {
       socket.off(REALTIME_EVENTS.BOOKING_STATUS_CHANGED, handleStatusChanged);
+      socket.off('payment.status_changed', handlePaymentChanged);
     };
-  }, []);
+  }, [customer?.id]);
+
+  const handleRetryPayment = async (bookingId: string) => {
+    setRetryingId(bookingId);
+    try {
+      const res = await bookingApi.retryPayment(bookingId);
+      const paymentUrl = res.paymentUrl || res.data?.paymentUrl;
+      if (paymentUrl) {
+        window.location.assign(paymentUrl);
+      } else {
+        alert('Không nhận được liên kết thanh toán mới.');
+      }
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message;
+      alert(msg || 'Không thể tạo phiên thanh toán mới.');
+    } finally {
+      setRetryingId(null);
+    }
+  };
+
+  const handleOpenCancelModal = (booking: BookingHistoryType) => {
+    if (new Date() >= new Date(booking.checkInAt)) {
+      alert('Đơn đã đến hoặc qua giờ nhận phòng nên không thể yêu cầu hủy/hoàn.');
+      return;
+    }
+    setCancelModal({
+      isOpen: true,
+      booking,
+      reason: '',
+      submitting: false,
+    });
+  };
+
+  const handleSubmitCancel = async () => {
+    if (!cancelModal.booking || !cancelModal.reason.trim()) return;
+    try {
+      setCancelModal((prev) => ({ ...prev, submitting: true }));
+      await cancellationApi.requestCancellation({
+        bookingId: cancelModal.booking.id,
+        reason: cancelModal.reason.trim(),
+      });
+      alert('Đã gửi yêu cầu hủy và hoàn tiền thành công. Quản lý khách sạn sẽ xét duyệt.');
+      setCancelModal({
+        isOpen: false,
+        booking: null,
+        reason: '',
+        submitting: false,
+      });
+      // Refresh
+      const data = await bookingApi.getHistory();
+      setBookings(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      alert(err.response?.data?.message || err.message || 'Không thể gửi yêu cầu hủy đơn.');
+      setCancelModal((prev) => ({ ...prev, submitting: false }));
+    }
+  };
 
   if (loading) {
     return (
@@ -277,20 +354,73 @@ export default function BookingHistory() {
                         </div>
                       </div>
 
-                      <div className="mt-6 border-t pt-5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-600">
-                            Tổng tiền
-                          </span>
+                      <div className="mt-6 border-t pt-5 space-y-4">
+                        <div className="flex flex-wrap items-center justify-between gap-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-600 text-sm font-medium">Thanh toán:</span>
+                            {booking.paymentStatus === 'PAID' ? (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                                ✓ Đã thanh toán {booking.vnpTransactionNo ? `(#${booking.vnpTransactionNo})` : ''}
+                              </span>
+                            ) : booking.status === 'PAYMENT_PENDING' || booking.paymentStatus === 'PENDING' ? (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
+                                ⏳ Chờ thanh toán (15 phút)
+                              </span>
+                            ) : booking.status === 'PAYMENT_EXPIRED' || booking.paymentStatus === 'EXPIRED' ? (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700">
+                                ✕ Hết hạn thanh toán
+                              </span>
+                            ) : booking.status === 'PAYMENT_REVIEW' ? (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2.5 py-0.5 text-xs font-semibold text-purple-700">
+                                ⚠ Cần đối soát / Hoàn tiền
+                              </span>
+                            ) : (
+                              <span className="text-xs text-gray-500">Chưa ghi nhận</span>
+                            )}
+                          </div>
 
-                          <span className="text-xl font-bold text-red-600">
-                            {Number(
-                              booking.estimatedTotal,
-                            ).toLocaleString(
-                              'vi-VN',
-                            )}{' '}
-                            ₫
-                          </span>
+                          <div className="flex items-center gap-4">
+                            <span className="text-xl font-bold text-red-600">
+                              {Number(booking.estimatedTotal).toLocaleString('vi-VN')} ₫
+                            </span>
+
+                            {booking.paymentStatus === 'PAID' &&
+                              (booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
+                                <button
+                                  onClick={() => handleOpenCancelModal(booking)}
+                                  disabled={new Date() >= new Date(booking.checkInAt)}
+                                  title={
+                                    new Date() >= new Date(booking.checkInAt)
+                                      ? 'Đơn đã đến hoặc qua giờ nhận phòng nên không thể yêu cầu hủy/hoàn'
+                                      : 'Gửi yêu cầu hủy và hoàn tiền'
+                                  }
+                                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg shadow-xs transition ${
+                                    new Date() >= new Date(booking.checkInAt)
+                                      ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                                      : 'border border-red-200 text-red-600 hover:bg-red-50 cursor-pointer'
+                                  }`}
+                                >
+                                  Yêu cầu hủy
+                                </button>
+                              )}
+
+                            {(booking.status === 'PAYMENT_PENDING' ||
+                              booking.paymentStatus === 'PENDING' ||
+                              booking.status === 'PAYMENT_EXPIRED' ||
+                              booking.paymentStatus === 'EXPIRED') && (
+                              <button
+                                onClick={() => handleRetryPayment(booking.id)}
+                                disabled={retryingId === booking.id}
+                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg shadow-xs transition"
+                              >
+                                {retryingId === booking.id
+                                  ? 'Đang xử lý...'
+                                  : booking.status === 'PAYMENT_EXPIRED' || booking.paymentStatus === 'EXPIRED'
+                                  ? 'Thanh toán lại'
+                                  : 'Thanh toán ngay'}
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -301,51 +431,129 @@ export default function BookingHistory() {
           </div>
         )}
       </section>
+
+      {/* MODAL YÊU CẦU HỦY & HOÀN TIỀN */}
+      {cancelModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-gray-900">
+              Yêu Cầu Hủy Đơn & Hoàn Tiền
+            </h3>
+            <p className="mt-1 text-xs text-gray-500">
+              Mã đơn: <strong className="font-mono">{cancelModal.booking?.bookingCode || cancelModal.booking?.id}</strong>
+            </p>
+
+            <div className="mt-4 rounded-xl bg-amber-50 p-3 text-xs text-amber-800 border border-amber-200">
+              Lưu ý: Yêu cầu của bạn sẽ được gửi tới khách sạn để duyệt hoàn tiền theo chính sách. Số tiền hoàn sẽ được hoàn qua cổng thanh toán VNPay.
+            </div>
+
+            <div className="mt-4 space-y-1">
+              <label className="block text-xs font-semibold text-gray-700">
+                Lý do hủy đặt phòng <span className="text-red-500">*</span>:
+              </label>
+              <textarea
+                rows={3}
+                value={cancelModal.reason}
+                onChange={(e) => setCancelModal((prev) => ({ ...prev, reason: e.target.value }))}
+                placeholder="Nhập lý do chi tiết..."
+                className="w-full rounded-xl border border-gray-300 p-2.5 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                disabled={cancelModal.submitting}
+                onClick={() => setCancelModal((prev) => ({ ...prev, isOpen: false }))}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                Đóng
+              </button>
+              <button
+                type="button"
+                disabled={!cancelModal.reason.trim() || cancelModal.submitting}
+                onClick={handleSubmitCancel}
+                className="rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {cancelModal.submitting ? 'Đang gửi...' : 'Gửi Yêu Cầu'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mt-16 bg-white shadow-md">
-              <Footer/>
+        <Footer />
       </div>
     </main>
   );
 }
 
-function formatDate(
-  date: string,
-) {
-  return new Date(
-    date,
-  ).toLocaleString('vi-VN');
+function formatDate(date: string) {
+  return new Date(date).toLocaleString('vi-VN');
 }
 
-function BookingStatus({
-  status,
-}: {
-  status: string;
-}) {
-  const statusName: Record<
+function BookingStatus({ status }: { status: string }) {
+  const statusConfig: Record<
     string,
-    string
+    { label: string; bg: string; text: string }
   > = {
-    PENDING: 'Chờ xác nhận',
+    PAYMENT_PENDING: {
+      label: 'Chờ thanh toán VNPay',
+      bg: 'bg-amber-50',
+      text: 'text-amber-700',
+    },
+    PENDING: {
+      label: 'Đang chờ khách sạn duyệt',
+      bg: 'bg-blue-50',
+      text: 'text-blue-700',
+    },
+    CONFIRMED: {
+      label: 'Khách sạn đã xác nhận',
+      bg: 'bg-emerald-50',
+      text: 'text-emerald-700',
+    },
+    REJECTED: {
+      label: 'Đã từ chối',
+      bg: 'bg-rose-50',
+      text: 'text-rose-700',
+    },
+    CHECKED_IN: {
+      label: 'Đã nhận phòng',
+      bg: 'bg-indigo-50',
+      text: 'text-indigo-700',
+    },
+    COMPLETED: {
+      label: 'Hoàn thành',
+      bg: 'bg-teal-50',
+      text: 'text-teal-700',
+    },
+    CANCELLED: {
+      label: 'Đã hủy',
+      bg: 'bg-gray-100',
+      text: 'text-gray-700',
+    },
+    PAYMENT_EXPIRED: {
+      label: 'Hết hạn thanh toán',
+      bg: 'bg-rose-50',
+      text: 'text-rose-700',
+    },
+    PAYMENT_REVIEW: {
+      label: 'Cần kiểm tra hoàn tiền',
+      bg: 'bg-purple-50',
+      text: 'text-purple-700',
+    },
+  };
 
-    CONFIRMED:
-      'Đã xác nhận',
-
-    REJECTED: 'Đã từ chối',
-
-    CHECKED_IN:
-      'Đã nhận phòng',
-
-    COMPLETED:
-      'Hoàn thành',
-
-    CANCELLED:
-      'Đã hủy',
+  const config = statusConfig[status] ?? {
+    label: status,
+    bg: 'bg-gray-50',
+    text: 'text-gray-700',
   };
 
   return (
-    <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">
-      {statusName[status] ??
-        status}
+    <span className={`rounded-full px-3 py-1 text-sm font-medium ${config.bg} ${config.text}`}>
+      {config.label}
     </span>
   );
 }
