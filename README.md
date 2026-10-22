@@ -185,3 +185,7 @@ Website khách hàng
 → checkout
 → thanh toán
 → giao diện chuyến đi cá nhân
+
+đúng bạn nói ở vụ tính xử lý Check-in không được trừ số lượng khả dụng lần thứ hai nếu booking đã giữ tồn phòng cho các đêm đó. Check-in chỉ chuyển sang trạng thái đang lưu trú và ghi nhận việc sử dụng phòng thực tế.
+
+Hệ thống nên giữ chỗ theo khoảng ngày [check-in, check-out) — tức gồm đêm nhận phòng nhưng không gồm ngày trả phòng. Việc khách đã trả tiền mà chưa đến sẽ không tự làm mất đặt chỗ hợp lệ. này rất chuẩn việc mà đã thanh toán xong xuôi tiền đã đặt rồi thì tới các bước check in nhận phòng hay là đang ở phòng rồi chỉ việc chuyển trạng thái chứ không được đi trừ số phòng trống đang lưu trữ trong kho

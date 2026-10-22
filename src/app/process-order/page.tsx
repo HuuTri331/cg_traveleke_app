@@ -194,7 +194,7 @@ function ProcessOrderContent() {
             hotelImage: h?.images?.[0]?.imageUrl || h?.coverImageUrl || null,
             roomId: selectedRoom?.id || roomIdParam || '1',
             roomName: selectedRoom?.name || 'Phòng nghỉ cao cấp',
-            roomPrice: selectedRoom?.pricePerNight || 392990,
+            roomPrice: selectedRoom?.pricePerNight || 0,
             bedCount: selectedRoom?.bedCount || 1,
             bedType: selectedRoom?.bedType || 'Giường Đôi',
             maxAdults: selectedRoom?.maxAdults || 2,
@@ -210,8 +210,8 @@ function ProcessOrderContent() {
     }
   }, [hotelIdParam, roomIdParam]);
 
-  // Price calculations: parse strictly as clean numbers to avoid string concatenation bugs!
-  const roomPrice = Math.round(parseFloat(String(bookingData?.roomPrice || '0')) || 392990);
+  // Price calculations: parse strictly as clean numbers without arbitrary client fallbacks (Section 07.3)
+  const roomPrice = Math.round(parseFloat(String(bookingData?.roomPrice || '0')) || 0);
   // Giá phòng đã bao gồm đầy đủ thuế và phí
   const taxesAndFees = 0;
   const totalPrice = roomPrice;
@@ -224,12 +224,11 @@ function ProcessOrderContent() {
     return Number(totalPrice).toLocaleString('vi-VN');
   }, [totalPrice]);
 
-  // Section 11: Real dates formatting
+  // Section 02.9 & 07.2: Mặc định nhận phòng HÔM NAY, trả phòng NGÀY MAI
   const checkInDateObj = useMemo(() => {
     if (bookingData?.checkInAt) return new Date(bookingData.checkInAt);
     if (checkInParam) return new Date(checkInParam);
     const d = new Date();
-    d.setDate(d.getDate() + 1);
     d.setHours(14, 0, 0, 0);
     return d;
   }, [bookingData?.checkInAt, checkInParam]);
@@ -263,6 +262,11 @@ function ProcessOrderContent() {
   const handleContinue = (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: { [key: string]: string } = {};
+
+    if (roomPrice <= 0) {
+      alert('Không thể xác nhận thông tin giá phòng từ máy chủ. Vui lòng quay lại chọn phòng.');
+      return;
+    }
 
     if (!surname.trim()) {
       newErrors.surname = 'Vui lòng nhập họ của khách lưu trú';
@@ -302,8 +306,33 @@ function ProcessOrderContent() {
       .filter(Boolean)
       .join(', ');
 
+    const effectiveRoomId = String(bookingData?.roomId || roomIdParam || '1');
+    const idempotencyContext = `${effectiveRoomId}_${effectiveCheckIn}_${effectiveCheckOut}_${effectiveRoomCount}`;
+    let stableIdempotencyKey = '';
+    if (typeof window !== 'undefined') {
+      try {
+        const storedKey = sessionStorage.getItem('traveleke_checkout_idempotency_key');
+        const storedContext = sessionStorage.getItem('traveleke_checkout_idempotency_context');
+        if (storedKey && storedContext === idempotencyContext) {
+          stableIdempotencyKey = storedKey;
+        } else {
+          stableIdempotencyKey =
+            typeof crypto !== 'undefined' && crypto.randomUUID
+              ? crypto.randomUUID()
+              : `idemp-${Date.now()}-${Math.random()}`;
+          sessionStorage.setItem('traveleke_checkout_idempotency_key', stableIdempotencyKey);
+          sessionStorage.setItem('traveleke_checkout_idempotency_context', idempotencyContext);
+        }
+      } catch {
+        stableIdempotencyKey =
+          typeof crypto !== 'undefined' && crypto.randomUUID
+            ? crypto.randomUUID()
+            : `idemp-${Date.now()}-${Math.random()}`;
+      }
+    }
+
     const payload: CreateBookingData = {
-      roomId: String(bookingData?.roomId || roomIdParam || '1'),
+      roomId: effectiveRoomId,
       checkInAt: effectiveCheckIn,
       checkOutAt: effectiveCheckOut,
       totalGuests: effectiveGuests,
@@ -312,10 +341,7 @@ function ProcessOrderContent() {
       contactEmail: email.trim(),
       contactPhone: `${countryCode}${mobileNumber.trim()}`,
       specialRequest: specialReqs || undefined,
-      idempotencyKey:
-        typeof crypto !== 'undefined' && crypto.randomUUID
-          ? crypto.randomUUID()
-          : `idemp-${Date.now()}-${Math.random()}`,
+      idempotencyKey: stableIdempotencyKey,
     };
 
     bookingApi
@@ -326,6 +352,8 @@ function ProcessOrderContent() {
         if (paymentUrl) {
           if (typeof window !== 'undefined') {
             sessionStorage.removeItem('traveleke_pending_order');
+            sessionStorage.removeItem('traveleke_checkout_idempotency_key');
+            sessionStorage.removeItem('traveleke_checkout_idempotency_context');
             if (holdExpiresAtRes) {
               sessionStorage.setItem(
                 'traveleke_order_cutoff',

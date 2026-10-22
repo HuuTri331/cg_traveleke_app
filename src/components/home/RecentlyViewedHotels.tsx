@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Clock, Star, MapPin, Eye } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Star, MapPin, Eye, ArrowRight } from 'lucide-react';
 import { analyticsApi, type RecentlyViewedHotel } from '@/services/api/analytics.api';
+import LuxurySectionHeader from '@/components/hotel-shared/LuxurySectionHeader';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 const PLACEHOLDER_IMAGE = '/images/hotel-placeholder.png';
@@ -20,7 +21,7 @@ const formatVND = (amount?: number | null) => {
     new Intl.NumberFormat('vi-VN', {
       style: 'decimal',
       maximumFractionDigits: 0,
-    }).format(amount) + ' VND'
+    }).format(amount) + ' ₫'
   );
 };
 
@@ -33,10 +34,8 @@ export default function RecentlyViewedHotels() {
     const loadRecentlyViewed = async () => {
       try {
         setLoading(true);
-        // 1. Thử lấy từ Backend API (theo IP / User)
         const apiHotels = await analyticsApi.getRecentlyViewed(10);
 
-        // 2. Lấy thêm từ LocalStorage (đồng bộ tức thì phía client)
         let localHotels: RecentlyViewedHotel[] = [];
         if (typeof window !== 'undefined') {
           const raw = localStorage.getItem('traveleke_recently_viewed');
@@ -49,7 +48,6 @@ export default function RecentlyViewedHotels() {
           }
         }
 
-        // Hợp nhất dữ liệu không trùng lặp
         const mergedMap = new Map<string, RecentlyViewedHotel>();
         localHotels.forEach((h) => mergedMap.set(String(h.hotelId), h));
         apiHotels.forEach((h) => mergedMap.set(String(h.hotelId), h));
@@ -67,7 +65,7 @@ export default function RecentlyViewedHotels() {
   }, []);
 
   if (!loading && hotels.length === 0) {
-    return null; // Ẩn nếu người dùng mới tinh chưa xem khách sạn nào
+    return null;
   }
 
   const itemsPerPage = 4;
@@ -75,133 +73,115 @@ export default function RecentlyViewedHotels() {
   const canPrev = startIndex > 0;
 
   const handleNext = () => {
-    if (canNext) {
-      setStartIndex((prev) => prev + 1);
-    } else {
-      setStartIndex(0);
-    }
+    if (canNext) setStartIndex((prev) => prev + 1);
   };
 
   const handlePrev = () => {
-    if (canPrev) {
-      setStartIndex((prev) => prev - 1);
-    }
+    if (canPrev) setStartIndex((prev) => prev - 1);
   };
 
-  const visibleHotels = hotels.slice(startIndex, startIndex + itemsPerPage);
-
   return (
-    <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      {/* Tiêu đề mục */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-sky-100 text-sky-600 dark:bg-sky-900/40 dark:text-sky-400">
-              <Clock className="h-5 w-5" />
-            </span>
-            <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
-              Khách Sạn Bạn Đã Xem Gần Đây
-            </h2>
-          </div>
-          <p className="mt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-            Dễ dàng so sánh giá phòng và tiếp tục kế hoạch đặt phòng của bạn
-          </p>
-        </div>
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <LuxurySectionHeader
+        eyebrow="LỊCH SỬ DU KHÁCH"
+        title="Khách Sạn Bạn Đã Xem Gần Đây"
+        subtitle="Tiếp tục khám phá và hoàn tất kế hoạch lưu trú cho điểm đến yêu thích của bạn."
+        align="left"
+        action={
+          hotels.length > itemsPerPage && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={!canPrev}
+                onClick={handlePrev}
+                className="w-10 h-10 rounded-xl border border-[#1E4752]/20 text-[#1E4752] hover:bg-[#1E4752]/5 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
+                title="Trước"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <button
+                type="button"
+                disabled={!canNext}
+                onClick={handleNext}
+                className="w-10 h-10 rounded-xl border border-[#1E4752]/20 text-[#1E4752] hover:bg-[#1E4752]/5 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
+                title="Sau"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          )
+        }
+      />
 
-        {/* Nút điều hướng Carousel */}
-        {hotels.length > itemsPerPage && (
-          <div className="flex items-center gap-2 self-end sm:self-center">
-            <button
-              onClick={handlePrev}
-              disabled={!canPrev}
-              aria-label="Previous"
-              className={`flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white shadow-xs transition-all hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 ${
-                !canPrev ? 'opacity-40 cursor-not-allowed' : 'hover:scale-105 active:scale-95'
-              }`}
-            >
-              <ChevronLeft className="h-5 w-5 text-gray-700 dark:text-gray-200" />
-            </button>
-            <button
-              onClick={handleNext}
-              disabled={!canNext}
-              aria-label="Next"
-              className={`flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white shadow-xs transition-all hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 ${
-                !canNext ? 'opacity-40 cursor-not-allowed' : 'hover:scale-105 active:scale-95'
-              }`}
-            >
-              <ChevronRight className="h-5 w-5 text-gray-700 dark:text-gray-200" />
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Danh sách thẻ Khách sạn */}
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {[1, 2, 3, 4].map((i) => (
+      {loading && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
             <div
               key={i}
-              className="h-72 rounded-2xl bg-gray-100 dark:bg-gray-800 animate-pulse"
-            />
+              className="rounded-2xl border border-[#1E4752]/10 p-4 space-y-3 animate-pulse bg-white"
+            >
+              <div className="h-44 bg-[#1E4752]/10 rounded-xl" />
+              <div className="h-4 bg-[#1E4752]/10 rounded-md w-3/4" />
+            </div>
           ))}
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {visibleHotels.map((hotel) => (
-            <Link
-              key={hotel.hotelId}
-              href={`/hotels_home/${hotel.hotelId}`}
-              className="group flex flex-col overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-gray-800 dark:bg-gray-900"
-            >
-              {/* Ảnh bìa */}
-              <div className="relative h-44 w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
-                <img
-                  src={getImageUrl(hotel.coverImageUrl)}
-                  alt={hotel.name}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = PLACEHOLDER_IMAGE;
-                  }}
-                />
-                <div className="absolute top-2.5 left-2.5 flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-1 text-xs-plus font-semibold text-white backdrop-blur-xs">
-                  <Eye className="h-3 w-3 text-sky-400" />
-                  <span>Đã xem</span>
+      )}
+
+      {!loading && hotels.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {hotels.slice(startIndex, startIndex + itemsPerPage).map((hotel) => {
+            const stars = hotel.starRating || 5;
+
+            return (
+              <Link
+                key={hotel.hotelId}
+                href={`/hotels_home/${hotel.hotelId}`}
+                className="group flex flex-col h-full rounded-2xl bg-white border border-[#1E4752]/12 overflow-hidden shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+              >
+                <div className="relative h-44 w-full overflow-hidden bg-[#1E4752]/5">
+                  <img
+                    src={getImageUrl(hotel.coverImageUrl)}
+                    alt={hotel.name}
+                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = PLACEHOLDER_IMAGE;
+                    }}
+                  />
+                  <div className="absolute top-3 left-3 flex items-center gap-1 rounded-full bg-white/95 backdrop-blur-xs px-2.5 py-0.5 text-2xs font-bold text-[#1E4752] border border-[#1E4752]/10 shadow-xs">
+                    <Eye className="w-3 h-3 text-[#E8A700]" />
+                    <span>Đã xem</span>
+                  </div>
                 </div>
 
-                {hotel.starRating && (
-                  <div className="absolute top-2.5 right-2.5 flex items-center gap-1 rounded-full bg-amber-500/90 px-2 py-0.5 text-xs-plus font-bold text-white shadow-xs">
-                    <Star className="h-3 w-3 fill-current" />
-                    <span>{hotel.starRating} sao</span>
+                <div className="flex flex-1 flex-col p-4 justify-between space-y-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-0.5">
+                      {Array.from({ length: stars }).map((_, i) => (
+                        <Star key={i} className="w-3 h-3 text-[#E8A700] fill-[#E8A700]" />
+                      ))}
+                    </div>
+                    <h3 className="font-extrabold text-[#1E4752] text-sm line-clamp-1 group-hover:text-[#E8A700] transition-colors">
+                      {hotel.name}
+                    </h3>
+                    {hotel.address && (
+                      <p className="line-clamp-1 text-2xs text-[#1E4752]/65 flex items-center gap-1">
+                        <MapPin className="h-3 w-3 text-[#E8A700] shrink-0" />
+                        <span>{hotel.address}</span>
+                      </p>
+                    )}
                   </div>
-                )}
-              </div>
 
-              {/* Thông tin */}
-              <div className="flex flex-1 flex-col p-4">
-                <h3 className="line-clamp-1 text-base font-bold text-gray-900 group-hover:text-brand-500 dark:text-white transition-colors">
-                  {hotel.name}
-                </h3>
-
-                <p className="mt-1 line-clamp-1 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                  <MapPin className="h-3.5 w-3.5 shrink-0 text-gray-400" />
-                  <span>{hotel.address || 'Việt Nam'}</span>
-                </p>
-
-                <div className="mt-auto pt-3 border-t border-gray-100 dark:border-gray-800 flex items-end justify-between">
-                  <div>
-                    <span className="block text-2xs text-gray-400">Giá mỗi đêm từ</span>
-                    <span className="text-sm font-black text-brand-500">
-                      {formatVND(hotel.minPricePerNight)}
+                  <div className="pt-2 border-t border-[#1E4752]/10 flex items-center justify-between text-xs font-extrabold text-[#1E4752]">
+                    <span>{formatVND(hotel.minPricePerNight)}</span>
+                    <span className="text-[#E8A700] text-2xs flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                      <span>Xem lại</span>
+                      <ArrowRight className="w-3 h-3" />
                     </span>
                   </div>
-
-                  <span className="rounded-lg bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-600 group-hover:bg-brand-500 group-hover:text-white transition-all dark:bg-sky-950/60 dark:text-sky-300">
-                    Xem lại
-                  </span>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
     </section>

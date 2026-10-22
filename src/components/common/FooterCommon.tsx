@@ -1,13 +1,9 @@
 import Image from 'next/image';
+import Link from 'next/link';
 import { FaFacebookF, FaInstagram, FaTiktok, FaYoutube, FaTelegramPlane } from 'react-icons/fa';
+import { ShieldCheck, Headphones, CreditCard, Sparkles } from 'lucide-react';
 
-import iata from '@/assets/image/all.png';
 import logo from '@/assets/image/logo.png';
-import bsi from '@/assets/image/bsi.png';
-import check from '@/assets/image/check.png';
-import google from '@/assets/image/google.png';
-import appstort from '@/assets/image/AppSrore.png';
-
 import visa from '@/assets/image/visa.png';
 import visa1 from '@/assets/image/visa1.png';
 import visa2 from '@/assets/image/visa2.png';
@@ -30,384 +26,166 @@ export default function FooterCommon() {
   ];
 
   return (
-    <footer className="bg-gray-900 p-8 text-white">
-      <div className="container mx-auto">
-        {/* Footer top */}
-        <div className="flex flex-wrap items-start justify-between gap-8">
-          {/* Logo + chứng nhận */}
-          <div className="mb-4 w-full md:mb-0 md:w-1/4">
-            <Image
-              src={logo}
-              alt="Traveloke Logo"
-              className="mb-6 h-20 w-auto object-contain"
-            />
-
-            <div className="mb-4 flex items-center gap-6">
-              <Image
-                src={iata}
-                alt="IATA"
-                className="h-6 w-auto object-contain"
-              />
-
-              <Image
-                src={bsi}
-                alt="BSI"
-                className="h-6 w-auto object-contain"
-              />
-
-              <Image
-                src={check}
-                alt="Đã đăng ký"
-                className="h-6 w-auto object-contain"
-              />
+    <footer className="w-full bg-[#1E4752] text-white pt-16 pb-12 border-t border-[#1E4752]/40">
+      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Top Assurance Bar */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pb-12 mb-12 border-b border-white/10">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
+              <ShieldCheck className="w-5 h-5 text-[#E8A700]" />
             </div>
-
-            <button
-              type="button"
-              className="flex items-center rounded bg-gray-800 px-4 py-2 text-sm hover:bg-gray-700"
-            >
-              Hợp tác với Traveloka
-            </button>
+            <div>
+              <h4 className="text-sm font-bold text-white">Thanh Toán An Toàn</h4>
+              <p className="text-xs text-white/65">Cổng VNPay mã hóa bảo mật cao</p>
+            </div>
           </div>
 
-          {/* Đối tác thanh toán */}
-          <div className="mb-4 w-full md:mb-0 md:w-1/4">
-            <h2 className="mb-4 font-bold">Đối tác thanh toán</h2>
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
+              <Sparkles className="w-5 h-5 text-[#E8A700]" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-white">Chất Lượng Tinh Tuyển</h4>
+              <p className="text-xs text-white/65">Khách sạn & resort kiểm duyệt</p>
+            </div>
+          </div>
 
-            <div className="grid grid-cols-4 gap-2">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
+              <Headphones className="w-5 h-5 text-[#E8A700]" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-white">Hỗ Trợ 24/7</h4>
+              <p className="text-xs text-white/65">Chăm sóc khách hàng tận tâm</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center shrink-0 border border-white/10">
+              <CreditCard className="w-5 h-5 text-[#E8A700]" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-white">Xác Nhận Realtime</h4>
+              <p className="text-xs text-white/65">Giữ phòng và xử lý tức thì</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Footer Links */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-12 pb-12">
+          {/* Brand Col */}
+          <div className="lg:col-span-4 space-y-4">
+            <Link href="/" className="inline-block">
+              <Image
+                src={logo}
+                alt="Traveleke Hospitality"
+                className="h-12 w-auto object-contain brightness-0 invert opacity-95"
+              />
+            </Link>
+            <p className="text-xs text-white/70 leading-relaxed max-w-sm">
+              Traveleke — Nền tảng đặt phòng khách sạn và dịch vụ lưu trú cao cấp hàng đầu. Chúng tôi đồng hành cùng kỳ nghỉ trọn vẹn và xứng tầm của bạn.
+            </p>
+            <div className="pt-2 flex items-center gap-3">
+              <a
+                href="#"
+                aria-label="Facebook"
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-[#E8A700] hover:text-[#1E4752] flex items-center justify-center text-white text-xs transition-colors"
+              >
+                <FaFacebookF />
+              </a>
+              <a
+                href="#"
+                aria-label="Instagram"
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-[#E8A700] hover:text-[#1E4752] flex items-center justify-center text-white text-xs transition-colors"
+              >
+                <FaInstagram />
+              </a>
+              <a
+                href="#"
+                aria-label="Youtube"
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-[#E8A700] hover:text-[#1E4752] flex items-center justify-center text-white text-xs transition-colors"
+              >
+                <FaYoutube />
+              </a>
+              <a
+                href="#"
+                aria-label="TikTok"
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-[#E8A700] hover:text-[#1E4752] flex items-center justify-center text-white text-xs transition-colors"
+              >
+                <FaTiktok />
+              </a>
+            </div>
+          </div>
+
+          {/* Col 2: About */}
+          <div className="lg:col-span-2 space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-[#E8A700]">Về Traveleke</h3>
+            <ul className="space-y-2 text-xs text-white/70">
+              <li>
+                <Link href="/" className="hover:text-[#E8A700] transition-colors">Về chúng tôi</Link>
+              </li>
+              <li>
+                <Link href="/hotels_home" className="hover:text-[#E8A700] transition-colors">Hệ thống khách sạn</Link>
+              </li>
+              <li>
+                <a href="#" className="hover:text-[#E8A700] transition-colors">Quy chế hoạt động</a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-[#E8A700] transition-colors">Tuyển dụng</a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Col 3: Support & Policy */}
+          <div className="lg:col-span-3 space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-[#E8A700]">Chính Sách & Hỗ Trợ</h3>
+            <ul className="space-y-2 text-xs text-white/70">
+              <li>
+                <a href="#" className="hover:text-[#E8A700] transition-colors">Chính sách bảo mật</a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-[#E8A700] transition-colors">Điều khoản dịch vụ</a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-[#E8A700] transition-colors">Chính sách hủy & hoàn tiền</a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-[#E8A700] transition-colors">Hướng dẫn thanh toán VNPay</a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Col 4: Payment Partners */}
+          <div className="lg:col-span-3 space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-[#E8A700]">Cổng Thanh Toán</h3>
+            <p className="text-xs text-white/70">
+              Hỗ trợ thẻ ATM nội địa, Visa, Mastercard, JCB và QR Pay:
+            </p>
+            <div className="grid grid-cols-4 gap-2 pt-1">
               {paymentPartners.map((src, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-center rounded bg-white p-2"
+                  className="flex items-center justify-center rounded-lg bg-white p-1.5 shadow-xs"
                 >
                   <Image
                     src={src}
-                    alt={`Payment partner ${index + 1}`}
-                    className="h-8 w-auto object-contain"
+                    alt={`Đối tác thanh toán ${index + 1}`}
+                    className="h-6 w-auto object-contain"
                   />
                 </div>
               ))}
             </div>
           </div>
-
-          {/* Social */}
-          <div className="w-full md:w-1/4">
-            <h2 className="mb-4 font-bold">Theo dõi chúng tôi trên</h2>
-
-            <div className="flex flex-col gap-3">
-              <a
-                href="#"
-                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-              >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-600/20 text-blue-400 text-xs">
-                  <FaFacebookF className="h-3.5 w-3.5" />
-                </span>
-                <span>Facebook</span>
-              </a>
-
-              <a
-                href="#"
-                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-              >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-pink-600/20 text-pink-400 text-xs">
-                  <FaInstagram className="h-3.5 w-3.5" />
-                </span>
-                <span>Instagram</span>
-              </a>
-
-              <a
-                href="#"
-                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-              >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gray-800 text-gray-300 text-xs">
-                  <FaTiktok className="h-3.5 w-3.5" />
-                </span>
-                <span>TikTok</span>
-              </a>
-
-              <a
-                href="#"
-                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-              >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-red-600/20 text-red-400 text-xs">
-                  <FaYoutube className="h-3.5 w-3.5" />
-                </span>
-                <span>YouTube</span>
-              </a>
-
-              <a
-                href="#"
-                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-              >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-sky-600/20 text-sky-400 text-xs">
-                  <FaTelegramPlane className="h-3.5 w-3.5" />
-                </span>
-                <span>Telegram</span>
-              </a>
-            </div>
-          </div>
         </div>
 
-        {/* Footer links */}
-        <div className="mt-10 grid grid-cols-1 gap-8 text-sm md:grid-cols-2 lg:grid-cols-4">
-          {/* Về Traveloka */}
-          <div>
-            <h2 className="mb-4 font-bold">Về Traveloka</h2>
-
-            <ul className="space-y-2">
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Cách đặt chỗ
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Liên hệ chúng tôi
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Trợ giúp
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Tuyển dụng
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Về chúng tôi
-                </a>
-              </li>
-            </ul>
+        {/* Bottom Copyright */}
+        <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/50">
+          <p>© 2026 Traveleke Hospitality Platform. Bảo lưu mọi quyền.</p>
+          <div className="flex items-center gap-6">
+            <span className="hover:text-white cursor-pointer">Bảo mật thông tin</span>
+            <span className="hover:text-white cursor-pointer">Điều khoản sử dụng</span>
+            <span className="hover:text-white cursor-pointer">Trợ giúp</span>
           </div>
-
-          {/* Sản phẩm */}
-          <div>
-            <h2 className="mb-4 font-bold">Sản phẩm</h2>
-
-            <ul className="space-y-2">
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Khách sạn
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Vé máy bay
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Vé xe khách
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Đưa đón sân bay
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Cho thuê xe
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Xperience
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Du thuyền
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Biệt thự
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Căn hộ
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Khác */}
-          <div>
-            <h2 className="mb-4 font-bold">Khác</h2>
-
-            <ul className="space-y-2">
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Traveloke liên kết
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Traveloke Blog
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Chính sách quyền riêng tư
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Điều khoản & Điều kiện
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Quy chế hoạt động
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Đăng ký nơi nghỉ của bạn
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Đăng ký doanh nghiệp hoạt động du lịch của bạn
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Khu vực báo chí
-                </a>
-              </li>
-
-              <li>
-                <a
-                  href="#"
-                  className="text-gray-400 hover:text-white hover:underline"
-                >
-                  Chương trình tiết lộ lỗ hổng
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* App */}
-          <div>
-            <h2 className="mb-4 font-bold">Tải ứng dụng Traveloka</h2>
-
-            <div className="flex flex-col gap-3">
-              <Image
-                src={google}
-                alt="Google Play"
-                className="h-10 w-auto object-contain object-left"
-              />
-
-              <Image
-                src={appstort}
-                alt="App Store"
-                className="h-10 w-auto object-contain object-left"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Copyright */}
-        <div className="mt-10 border-t border-gray-700 pt-6">
-          <p className="text-center text-xs leading-6 text-gray-400">
-            Công ty TNHH Traveloka Việt Nam. Mã số ĐK: 0313581779.
-            Tòa nhà An Phú, 117-119 Lý Chính Thắng, P. 7, Q. 3, TPHCM
-          </p>
-
-          <p className="mt-2 text-center text-sm font-bold text-gray-300">
-            Copyright © 2024 Traveloka. All rights reserved.
-          </p>
         </div>
       </div>
     </footer>

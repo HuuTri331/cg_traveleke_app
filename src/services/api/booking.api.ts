@@ -130,15 +130,57 @@ export interface DashboardStatistics {
   totalRooms: number;
   totalCustomers: number;
   totalBookings: number;
+  paymentPendingBookings?: number;
   pendingBookings: number;
   confirmedBookings: number;
   checkedInBookings: number;
   completedBookings: number;
   rejectedBookings: number;
   cancelledBookings: number;
+  paymentExpiredBookings?: number;
   totalRevenue: number;
+  cashCollected?: number;
+  estimatedGrossBookingValue?: number;
+  bookedSales?: number;
+  realizedRevenue?: number;
+  directFrontDeskSales?: number;
+  websiteSales?: number;
   monthlyBookings: number;
   monthlyRevenue: number;
+}
+
+export interface StaffPerformanceData {
+  staff: {
+    id: string;
+    fullName?: string;
+    email?: string;
+    role?: string;
+    phone?: string;
+  };
+  directSales: {
+    bookingsCount: number;
+    netAmount: number;
+    cancelledAmount: number;
+  };
+  operations: {
+    totalHandledBookings: number;
+    handledVolumeAmount: number;
+    checkedInCount: number;
+    completedCount: number;
+  };
+  services: {
+    totalRequests: number;
+    completedCount: number;
+    totalUpsellAmount: number;
+    slaBreachedCount: number;
+    onTimeRate: number;
+  };
+  shifts: {
+    totalShifts: number;
+    closedShifts: number;
+    openShifts: number;
+    totalCashVariance: number;
+  };
 }
 
 export interface ActivityLogItem {
@@ -259,6 +301,44 @@ export const bookingApi = {
     data: { staffUserId: string; note?: string }
   ): Promise<{ success: boolean; message: string; data?: any }> => {
     const response = await apiClient.patch(`/bookings/${bookingId}/reassign`, data);
+    return response.data;
+  },
+
+  // ===============================
+  // LỄ TÂN TẠO ĐƠN TRỰC TIẾP (Walk-in / Phone)
+  // (Section 02.14, 16.1, 17.2, 17.3)
+  // ===============================
+  createFrontDeskBooking: async (
+    data: {
+      roomId: string;
+      checkInAt: string;
+      checkOutAt: string;
+      totalGuests: number;
+      roomCount: number;
+      contactName: string;
+      contactEmail: string;
+      contactPhone: string;
+      bookingSource: 'WALK_IN' | 'PHONE';
+      specialRequest?: string;
+      note?: string;
+      callReference?: string;
+    }
+  ): Promise<{ message: string; data: any }> => {
+    const response = await apiClient.post('/bookings/front-desk', data);
+    return response.data;
+  },
+
+  // ===============================
+  // BÁO CÁO HIỆU SUẤT & KPI LỄ TÂN
+  // (Section 18 & 21)
+  // ===============================
+  getMyPerformance: async (): Promise<StaffPerformanceData> => {
+    const response = await apiClient.get('/bookings/performance/me');
+    return response.data;
+  },
+
+  getStaffPerformance: async (staffId: string): Promise<StaffPerformanceData> => {
+    const response = await apiClient.get(`/bookings/performance/staff/${staffId}`);
     return response.data;
   },
 };

@@ -26,8 +26,10 @@ import {
 } from 'lucide-react';
 
 const STAFF_ROLE_MAP: Record<string, { label: string; variant: 'brand' | 'info' | 'success' | 'warning' }> = {
-  QUAN_LY: { label: 'Quản Lý Khách Sạn', variant: 'brand' },
-  LE_TAN: { label: 'Lễ Tân Khách Sạn', variant: 'info' },
+  MANAGER: { label: 'Quản Lý Khách Sạn (Hotel Manager)', variant: 'brand' },
+  EMPLOYEE: { label: 'Lễ Tân Khách Sạn (Front Desk)', variant: 'info' },
+  QUAN_LY: { label: 'Quản Lý Khách Sạn (Hotel Manager)', variant: 'brand' },
+  LE_TAN: { label: 'Lễ Tân Khách Sạn (Front Desk)', variant: 'info' },
   BUONG_PHONG: { label: 'Buồng Phòng', variant: 'warning' },
   KE_TOAN: { label: 'Kế Toán / Thu Ngân', variant: 'success' },
 };

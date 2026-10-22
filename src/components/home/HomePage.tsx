@@ -1,27 +1,20 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
-
-import { homeApi } from '@/services/api/home.api';
-
 import Header from '@/components/common/HeaderCommon';
 import Footer from '@/components/common/FooterCommon';
 
+import LuxuryHero from '@/components/home/LuxuryHero';
+import LuxuryHotelSearch from '@/components/hotel-shared/LuxuryHotelSearch';
+import LuxuryTrustStrip from '@/components/home/LuxuryTrustStrip';
+import LuxuryIntroSection from '@/components/home/LuxuryIntroSection';
 import HotelDealsSection from '@/components/home/HotelDealsSection';
 import TopMonthHotelsSection from '@/components/home/TopMonthHotelsSection';
-import RecentlyViewedHotels from '@/components/home/RecentlyViewedHotels';
-import TravelDestinations from '@/components/home/TravelDestinations';
 import TravelokeLayout from '@/components/home/TravelokeLayout';
+import TravelDestinations from '@/components/home/TravelDestinations';
+import RecentlyViewedHotels from '@/components/home/RecentlyViewedHotels';
 
-import backgroundImage from '@/assets/image/background.png';
-import all from '@/assets/image/all.png';
-import arouipelago from '@/assets/image/arouipelago.png';
-import bw from '@/assets/image/bw.png';
-import ihg from '@/assets/image/ihg.png';
-import marriott from '@/assets/image/marriott.png';
-import banner from '@/assets/image/banner.png';
-import banner2 from '@/assets/image/banner2.png';
+import { homeApi } from '@/services/api/home.api';
 
 export default function HomePage() {
   const [data, setData] = useState<any>(null);
@@ -31,7 +24,6 @@ export default function HomePage() {
     const fetchHomeData = async () => {
       try {
         const result = await homeApi.getHomeData();
-
         setData(result);
       } catch (error) {
         console.error('Lỗi lấy dữ liệu homepage:', error);
@@ -43,138 +35,64 @@ export default function HomePage() {
     fetchHomeData();
   }, []);
 
+  const bannerTitle = data?.banners?.[0]?.title;
+  const bannerSubtitle = data?.banners?.[0]?.subtitle;
+
   return (
-    <>
-      <div className="sticky top-0 z-50 w-full bg-white shadow-md">
+    <div className="luxury-site flex flex-col min-h-screen bg-white">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-50 w-full bg-white shadow-xs">
         <Header />
       </div>
 
-      
-      <div
-        className="h-[400px] flex-grow bg-cover bg-center"
-        style={{
-          backgroundImage: `url(${backgroundImage.src})`,
-        }}
-      >
-        <div className="flex h-full flex-col items-center text-white">
-          <h1 className="m-10 text-3xl font-bold">
-            Từ Đông Nam Á Đến Thế Giới, Trong Tầm Tay Bạn
-          </h1>
+      <main className="flex-1">
+        {/* 1. Cinematic Luxury Hero */}
+        <div className="relative">
+          <LuxuryHero
+            bannerTitle={bannerTitle}
+            bannerSubtitle={bannerSubtitle}
+          />
 
-          <p className="m-5 mt-2 text-lg">
-            Tìm kiếm địa điểm, khách sạn và dịch vụ của bạn
-          </p>
-
-          {/* TRUSTED BY */}
-          <div className="mt-6 flex items-center justify-center space-x-6 rounded-lg p-4">
-            <span className="mr-4 font-bold text-white">
-              Trusted by
-            </span>
-
-            <Image
-              src={all}
-              alt="Accor"
-              className="rounded p-2 hover:bg-gray-100"
-            />
-
-            <Image
-              src={arouipelago}
-              alt="Archipelago"
-              className="rounded p-2 hover:bg-gray-100"
-            />
-
-            <Image
-              src={bw}
-              alt="Best Western"
-              className="rounded p-2 hover:bg-gray-100"
-            />
-
-            <Image
-              src={ihg}
-              alt="IHG"
-              className="rounded p-2 hover:bg-gray-100"
-            />
-
-            <Image
-              src={marriott}
-              alt="Marriott"
-              className="rounded p-2 hover:bg-gray-100"
-            />
+          {/* 2. Floating Search Bar Overlapping Bottom of Hero */}
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 z-20">
+            <LuxuryHotelSearch mode="hero" />
           </div>
         </div>
-      </div>
 
-      {/* BANNER */}
-      <div className="mt-8 flex justify-center">
-        <div className="space-y-16">
-          {/* BANNER 1 */}
-          <div className="relative flex items-center justify-center">
-            <div className="absolute left-2 top-2 z-10 rounded-md shadow-md">
-              <h2 className="text-lg font-bold text-gray-800">
-                Săn Vé Máy Bay Tết
-              </h2>
-            </div>
+        {/* 3. Verified Platform Trust Strip */}
+        <LuxuryTrustStrip />
 
-            <Image
-              src={banner}
-              alt="Săn vé máy bay Tết"
-              className="w-full rounded-lg"
-            />
-          </div>
+        {/* 4. Editorial Brand Story & Pillars */}
+        <LuxuryIntroSection />
 
-          {/* BANNER 2 */}
-          <div className="relative flex items-center justify-center">
-            <div className="absolute left-2 top-2 z-10 rounded-md shadow-md">
-              <h2 className="text-lg font-bold text-gray-800">
-                Ưu đãi dành cho bạn mới
-              </h2>
-            </div>
-
-            <Image
-              src={banner2}
-              alt="Ưu đãi dành cho bạn mới"
-              className="w-full rounded-lg"
-            />
-          </div>
+        {/* 5. Curated Hotel Deals (Real Data Only) */}
+        <div className="border-t border-[#1E4752]/8 bg-white">
+          <HotelDealsSection />
         </div>
-      </div>
 
-      <div className="mt-12 bg-white shadow-xs">
-        <HotelDealsSection />
-      </div>
-
-      {/* KHÁCH SẠN ĐƯỢC TÌM KIẾM NHIỀU NHẤT THÁNG */}
-      <div className="mt-12 bg-gradient-to-b from-orange-50/50 to-white dark:from-gray-900 dark:to-gray-950 py-4 border-y border-orange-100/60 dark:border-gray-800">
-        <TopMonthHotelsSection />
-      </div>
-
-      <div className="mt-16 bg-white shadow-md">
-        <TravelDestinations />
-      </div>
-
-      <div className="mt-16 bg-white shadow-md">
-        <TravelokeLayout />
-      </div>
-
-      {/* KHÁCH SẠN BẠN ĐÃ XEM GẦN ĐÂY (NẰM DƯỚI CÙNG SÁT BÊN TRÊN FOOTER) */}
-      <div className="mt-16 bg-gray-50/80 dark:bg-gray-900/60 py-6 border-t border-gray-200/60 dark:border-gray-800">
-        <RecentlyViewedHotels />
-      </div>
-
-      {/* API TEST */}
-      {loading ? (
-        <div className="py-10 text-center">
-          Đang tải dữ liệu...
+        {/* 6. Top Hotels of the Month (Real Analytics Data) */}
+        <div className="border-t border-[#1E4752]/8 bg-[#1E4752]/2">
+          <TopMonthHotelsSection />
         </div>
-      ) : (
-        <div className="mx-auto my-10 hidden max-w-7xl">
-          <pre>{JSON.stringify(data, null, 2)}</pre>
-        </div>
-      )}
 
-      <div className="mt-16 bg-white shadow-md">
-        <Footer/>
-      </div>
-    </>
+        {/* 7. Platform Standard Premium Services 01 - 06 */}
+        <div className="border-t border-[#1E4752]/8 bg-white">
+          <TravelokeLayout />
+        </div>
+
+        {/* 8. Luxury Destinations (Inspiration from Real Hotels) */}
+        <div className="border-t border-[#1E4752]/8 bg-[#1E4752]/2">
+          <TravelDestinations />
+        </div>
+
+        {/* 9. Recently Viewed Hotels */}
+        <div className="border-t border-[#1E4752]/8 bg-white">
+          <RecentlyViewedHotels />
+        </div>
+      </main>
+
+      {/* Footer */}
+      <Footer />
+    </div>
   );
 }

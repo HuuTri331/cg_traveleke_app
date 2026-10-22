@@ -30,6 +30,8 @@ const STAFF_PROTECTED_ROUTES = [
   '/hotel-staff',
   '/services',
   '/staff-skills',
+  '/shifts',
+  '/approvals',
   '/profile',
 ];
 

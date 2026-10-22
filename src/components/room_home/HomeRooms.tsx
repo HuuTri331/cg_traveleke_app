@@ -629,10 +629,8 @@ export default function HomeRooms({
             rooms.length > 0 && (
               <>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {rooms.map((room, idx) => {
-                    const priceNum = parseFloat(room.pricePerNight) || 350000;
-                    const discountRate = [15, 20, 25, 30][idx % 4];
-                    const origPrice = Math.round(priceNum / (1 - discountRate / 100));
+                  {rooms.map((room) => {
+                    const priceNum = parseFloat(room.pricePerNight) || 0;
 
                     return (
                       <article
@@ -663,11 +661,6 @@ export default function HomeRooms({
                           <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-yellow-700 shadow-sm">
                             <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                             <span>{Number(room.rating || 4.5).toFixed(1)}</span>
-                          </div>
-
-                          {/* Bottom-right Discount tag */}
-                          <div className="absolute bottom-0 right-0 rounded-tl-lg bg-traveloka-orange px-2.5 py-1 text-xs font-bold text-white shadow-md">
-                            Save {discountRate}%
                           </div>
                         </div>
 
@@ -712,9 +705,6 @@ export default function HomeRooms({
                           {/* PRICE & ACTION */}
                           <div className="mt-4 border-t border-gray-100 pt-3 flex items-end justify-between gap-2">
                             <div>
-                              <p className="text-xs text-gray-400 line-through">
-                                {new Intl.NumberFormat('vi-VN').format(origPrice)} VND
-                              </p>
                               <div className="flex items-baseline gap-1">
                                 <span className="text-xl font-black text-traveloka-orange">
                                   {new Intl.NumberFormat('vi-VN').format(priceNum)}
@@ -723,6 +713,7 @@ export default function HomeRooms({
                                   VND
                                 </span>
                               </div>
+                              <p className="text-xs text-gray-500">/ phòng / đêm</p>
                               {room.availableRooms <= 5 && room.availableRooms > 0 && (
                                 <p className="text-xs-plus font-bold text-red-500 mt-0.5">
                                   Còn {room.availableRooms} phòng!

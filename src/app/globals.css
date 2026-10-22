@@ -66,3 +66,23 @@ nextjs-portal,
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ==========================================================================
+   TRAVELEKE LUXURY HOSPITALITY SYSTEM
+   Palette: Strictly White (#FFFFFF), Deep Teal (#1E4752), Gold (#E8A700)
+   Scoped to .luxury-site so Admin / Dashboard UI remains completely unaffected
+   ========================================================================== */
+.luxury-site {
+  --lux-bg: #ffffff;
+  --lux-ink: #1e4752;
+  --lux-gold: #e8a700;
+  --lux-ink-subtle: rgba(30, 71, 82, 0.65);
+  --lux-ink-faint: rgba(30, 71, 82, 0.06);
+  --lux-ink-border: rgba(30, 71, 82, 0.12);
+  --lux-gold-subtle: rgba(232, 167, 0, 0.08);
+  --lux-gold-border: rgba(232, 167, 0, 0.3);
+  background-color: #ffffff;
+  color: #1e4752;
+  min-height: 100vh;
+}
+

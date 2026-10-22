@@ -271,6 +271,9 @@ function StaffSkillCard({
   onRemoveSkill: (staffId: number, skillId: number) => void;
   onVerify: (entryId: number) => void;
 }) {
+  const { user } = useAuth();
+  const canEdit = isAdmin || String(user?.id) === String(staff.id);
+  const canVerify = isAdmin && String(user?.id) !== String(staff.id);
   const [expanded, setExpanded] = useState(false);
   const avgLevel = skills.length > 0 ? skills.reduce((s, sk) => s + sk.level, 0) / skills.length : 0;
 
@@ -377,44 +380,50 @@ function StaffSkillCard({
                       </div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      {isAdmin && !sk.verifiedAt && (
+                      {canVerify && !sk.verifiedAt && (
                         <button
                           onClick={() => onVerify(sk.id)}
                           className="p-1 rounded-lg text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-                          title="Xác nhận kỹ năng"
+                          title="Xác nhận kỹ năng (Maker-checker: Quản lý/Admin duyệt)"
                         >
                           <CheckCircle2 className="h-3.5 w-3.5" />
                         </button>
                       )}
-                      <button
-                        onClick={() => onEditSkill(Number(staff.id), sk)}
-                        className="p-1 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-                        title="Sửa kỹ năng"
-                      >
-                        <Edit2 className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        onClick={() => onRemoveSkill(Number(staff.id), sk.skillId)}
-                        className="p-1 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-                        title="Xoá kỹ năng"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
+                      {canEdit && (
+                        <>
+                          <button
+                            onClick={() => onEditSkill(Number(staff.id), sk)}
+                            className="p-1 rounded-lg text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                            title="Sửa kỹ năng"
+                          >
+                            <Edit2 className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => onRemoveSkill(Number(staff.id), sk.skillId)}
+                            className="p-1 rounded-lg text-gray-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                            title="Xoá kỹ năng"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 );
               })}
             </div>
           )}
-          <div className="p-3 border-t border-gray-100 dark:border-gray-800">
-            <button
-              onClick={() => onAddSkill(Number(staff.id))}
-              className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-xl transition-colors cursor-pointer"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              Thêm kỹ năng cho nhân viên này
-            </button>
-          </div>
+          {canEdit && (
+            <div className="p-3 border-t border-gray-100 dark:border-gray-800">
+              <button
+                onClick={() => onAddSkill(Number(staff.id))}
+                className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10 rounded-xl transition-colors cursor-pointer"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Thêm kỹ năng cho nhân viên này
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

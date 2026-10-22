@@ -16,6 +16,7 @@ import {
   cancellationApi,
   CancellationRequestItem,
 } from '@/services/api/cancellation.api';
+import { roomsApi } from '@/services/api/rooms.api';
 import { formatCurrency } from '@/lib/utils';
 import { getSocket, REALTIME_EVENTS } from '@/lib/socket';
 import {
@@ -47,6 +48,8 @@ import {
   Lightbulb,
   ArrowRight,
   RotateCcw,
+  Plus,
+  PhoneCall,
 } from 'lucide-react';
 
 const STATUS_CONFIG: Record<
@@ -196,6 +199,85 @@ export default function BookingsPage() {
     roomInfo: null,
     canReassign: true,
   });
+
+  // Modal: Lễ tân tạo đơn trực tiếp tại quầy / điện thoại (Walk-in / Phone)
+  // (Section 02.14, 16.1, 17.2, 17.3, 30.3)
+  const [frontDeskModal, setFrontDeskModal] = useState({
+    isOpen: false,
+    submitting: false,
+    rooms: [] as any[],
+    loadingRooms: false,
+    formData: {
+      roomId: '',
+      bookingSource: 'WALK_IN' as 'WALK_IN' | 'PHONE',
+      contactName: '',
+      contactPhone: '',
+      contactEmail: '',
+      checkInAt: new Date().toISOString().split('T')[0],
+      checkOutAt: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+      totalGuests: 2,
+      roomCount: 1,
+      specialRequest: '',
+      note: '',
+      callReference: '',
+    },
+  });
+
+  const handleOpenFrontDeskModal = async () => {
+    setFrontDeskModal((prev) => ({
+      ...prev,
+      isOpen: true,
+      loadingRooms: true,
+      formData: {
+        ...prev.formData,
+        checkInAt: new Date().toISOString().split('T')[0],
+        checkOutAt: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+      },
+    }));
+    try {
+      const res = await roomsApi.getAll({ perPage: 100 });
+      setFrontDeskModal((prev) => ({
+        ...prev,
+        rooms: res.data || [],
+        loadingRooms: false,
+      }));
+    } catch {
+      setFrontDeskModal((prev) => ({ ...prev, loadingRooms: false }));
+    }
+  };
+
+  const handleSubmitFrontDeskBooking = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setFrontDeskModal((prev) => ({ ...prev, submitting: true }));
+      const res = await bookingApi.createFrontDeskBooking({
+        roomId: frontDeskModal.formData.roomId,
+        bookingSource: frontDeskModal.formData.bookingSource,
+        contactName: frontDeskModal.formData.contactName,
+        contactPhone: frontDeskModal.formData.contactPhone,
+        contactEmail: frontDeskModal.formData.contactEmail,
+        checkInAt: frontDeskModal.formData.checkInAt,
+        checkOutAt: frontDeskModal.formData.checkOutAt,
+        totalGuests: Number(frontDeskModal.formData.totalGuests),
+        roomCount: Number(frontDeskModal.formData.roomCount),
+        specialRequest: frontDeskModal.formData.specialRequest || undefined,
+        note: frontDeskModal.formData.note || undefined,
+        callReference: frontDeskModal.formData.callReference || undefined,
+      });
+      setActionNotice({
+        type: 'success',
+        message: res.message || 'Tạo đơn đặt phòng thành công!',
+      });
+      setFrontDeskModal((prev) => ({ ...prev, isOpen: false, submitting: false }));
+      fetchBookings();
+    } catch (err: any) {
+      setActionNotice({
+        type: 'error',
+        message: err.message || 'Không thể tạo đơn đặt phòng tại quầy.',
+      });
+      setFrontDeskModal((prev) => ({ ...prev, submitting: false }));
+    }
+  };
 
   const openReassignModal = async (booking: AdminBookingItem) => {
     // Ràng buộc nghiệp vụ nghiêm ngặt: Nếu khách đã nhận phòng thì chặn ngay
@@ -608,6 +690,14 @@ export default function BookingsPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            <Button
+              variant="primary"
+              size="sm"
+              leftIcon={<Plus className="h-4 w-4" />}
+              onClick={handleOpenFrontDeskModal}
+            >
+              Tạo Booking (Quầy / Điện Thoại)
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -2034,6 +2124,291 @@ export default function BookingsPage() {
             </Button>
           </div>
         </div>
+      </Modal>
+
+      {/* Front Desk Walk-in / Phone Booking Modal */}
+      {/* (Section 02.14, 16.1, 17.2, 17.3, 30.3) */}
+      <Modal
+        isOpen={frontDeskModal.isOpen}
+        onClose={() => setFrontDeskModal((prev) => ({ ...prev, isOpen: false }))}
+        title="Tạo Đơn Đặt Phòng Trực Tiếp Tại Khách Sạn (Lễ Tân Chốt)"
+        maxWidth="2xl"
+      >
+        <form onSubmit={handleSubmitFrontDeskBooking} className="space-y-4 text-xs">
+          <div className="rounded-xl bg-blue-50/70 p-3 text-blue-800 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
+            <p className="font-semibold flex items-center gap-1.5">
+              <Sparkles className="h-4 w-4 text-brand-600" />
+              Nghiệp Vụ Lễ Tân Đa Nhiệm (Section 02.14, 16.1, 17.2, 17.3):
+            </p>
+            <p className="mt-0.5 text-2xs text-blue-700 dark:text-blue-400">
+              Đơn tạo sẽ được ghi nhận doanh số và KPI trực tiếp cho bạn (lễ tân chốt đơn qua JWT). Trạng thái đơn được chuyển ngay sang CONFIRMED và trừ phòng khả dụng.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* Nguồn đơn */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Kênh Bán / Nguồn Đơn <span className="text-red-500">*</span>
+              </label>
+              <select
+                required
+                value={frontDeskModal.formData.bookingSource}
+                onChange={(e) =>
+                  setFrontDeskModal((prev) => ({
+                    ...prev,
+                    formData: { ...prev.formData, bookingSource: e.target.value as 'WALK_IN' | 'PHONE' },
+                  }))
+                }
+                className="w-full rounded-xl border border-gray-300 bg-white p-2.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-850 dark:text-white"
+              >
+                <option value="WALK_IN">Khách Vãng Lai Tại Quầy (Walk-in)</option>
+                <option value="PHONE">Khách Gọi Điện Thoại Đặt (Phone Call)</option>
+              </select>
+            </div>
+
+            {/* Chọn Phòng */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Chọn Loại Phòng <span className="text-red-500">*</span>
+              </label>
+              <select
+                required
+                value={frontDeskModal.formData.roomId}
+                onChange={(e) =>
+                  setFrontDeskModal((prev) => ({
+                    ...prev,
+                    formData: { ...prev.formData, roomId: e.target.value },
+                  }))
+                }
+                className="w-full rounded-xl border border-gray-300 bg-white p-2.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-850 dark:text-white"
+              >
+                <option value="">-- {frontDeskModal.loadingRooms ? 'Đang tải danh sách phòng...' : 'Chọn phòng khả dụng'} --</option>
+                {frontDeskModal.rooms.map((r: any) => (
+                  <option key={r.id} value={r.id}>
+                    {r.name} - Giá: {formatCurrency(Number(r.pricePerNight || 0))}/đêm (Còn {r.availableRooms ?? 'N/A'} phòng)
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {/* Tên khách */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Tên Khách Hàng <span className="text-red-500">*</span>
+              </label>
+              <input
+                required
+                type="text"
+                placeholder="Nguyễn Văn A"
+                value={frontDeskModal.formData.contactName}
+                onChange={(e) =>
+                  setFrontDeskModal((prev) => ({
+                    ...prev,
+                    formData: { ...prev.formData, contactName: e.target.value },
+                  }))
+                }
+                className="w-full rounded-xl border border-gray-300 bg-white p-2.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-850 dark:text-white"
+              />
+            </div>
+
+            {/* Số điện thoại */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Số Điện Thoại <span className="text-red-500">*</span>
+              </label>
+              <input
+                required
+                type="tel"
+                placeholder="0912345678"
+                value={frontDeskModal.formData.contactPhone}
+                onChange={(e) =>
+                  setFrontDeskModal((prev) => ({
+                    ...prev,
+                    formData: { ...prev.formData, contactPhone: e.target.value },
+                  }))
+                }
+                className="w-full rounded-xl border border-gray-300 bg-white p-2.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-850 dark:text-white"
+              />
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Email Khách Hàng <span className="text-red-500">*</span>
+              </label>
+              <input
+                required
+                type="email"
+                placeholder="khach@gmail.com"
+                value={frontDeskModal.formData.contactEmail}
+                onChange={(e) =>
+                  setFrontDeskModal((prev) => ({
+                    ...prev,
+                    formData: { ...prev.formData, contactEmail: e.target.value },
+                  }))
+                }
+                className="w-full rounded-xl border border-gray-300 bg-white p-2.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-850 dark:text-white"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {/* Check-in */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Ngày Nhận Phòng
+              </label>
+              <input
+                required
+                type="date"
+                value={frontDeskModal.formData.checkInAt}
+                onChange={(e) =>
+                  setFrontDeskModal((prev) => ({
+                    ...prev,
+                    formData: { ...prev.formData, checkInAt: e.target.value },
+                  }))
+                }
+                className="w-full rounded-xl border border-gray-300 bg-white p-2.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-850 dark:text-white"
+              />
+            </div>
+
+            {/* Check-out */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Ngày Trả Phòng
+              </label>
+              <input
+                required
+                type="date"
+                value={frontDeskModal.formData.checkOutAt}
+                onChange={(e) =>
+                  setFrontDeskModal((prev) => ({
+                    ...prev,
+                    formData: { ...prev.formData, checkOutAt: e.target.value },
+                  }))
+                }
+                className="w-full rounded-xl border border-gray-300 bg-white p-2.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-850 dark:text-white"
+              />
+            </div>
+
+            {/* Số phòng */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Số Lượng Phòng
+              </label>
+              <input
+                type="number"
+                min={1}
+                value={frontDeskModal.formData.roomCount}
+                onChange={(e) =>
+                  setFrontDeskModal((prev) => ({
+                    ...prev,
+                    formData: { ...prev.formData, roomCount: Number(e.target.value) },
+                  }))
+                }
+                className="w-full rounded-xl border border-gray-300 bg-white p-2.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-850 dark:text-white"
+              />
+            </div>
+
+            {/* Số khách */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Số Lượng Khách
+              </label>
+              <input
+                type="number"
+                min={1}
+                value={frontDeskModal.formData.totalGuests}
+                onChange={(e) =>
+                  setFrontDeskModal((prev) => ({
+                    ...prev,
+                    formData: { ...prev.formData, totalGuests: Number(e.target.value) },
+                  }))
+                }
+                className="w-full rounded-xl border border-gray-300 bg-white p-2.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-850 dark:text-white"
+              />
+            </div>
+          </div>
+
+          {/* Ghi chú & Mã cuộc gọi */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Mã / Tham Chiếu Cuộc Gọi (Nếu có)
+              </label>
+              <input
+                type="text"
+                placeholder="VD: CALL-2026-1025 hoặc Line 01"
+                value={frontDeskModal.formData.callReference}
+                onChange={(e) =>
+                  setFrontDeskModal((prev) => ({
+                    ...prev,
+                    formData: { ...prev.formData, callReference: e.target.value },
+                  }))
+                }
+                className="w-full rounded-xl border border-gray-300 bg-white p-2.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-850 dark:text-white"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Yêu Cầu Đặc Biệt
+              </label>
+              <input
+                type="text"
+                placeholder="Tầng cao, không hút thuốc..."
+                value={frontDeskModal.formData.specialRequest}
+                onChange={(e) =>
+                  setFrontDeskModal((prev) => ({
+                    ...prev,
+                    formData: { ...prev.formData, specialRequest: e.target.value },
+                  }))
+                }
+                className="w-full rounded-xl border border-gray-300 bg-white p-2.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-850 dark:text-white"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+              Ghi Chú Vận Hành Của Lễ Tân
+            </label>
+            <textarea
+              rows={2}
+              placeholder="Khách thanh toán tiền mặt tại quầy / Đã nhận phòng / Ghi chú khác..."
+              value={frontDeskModal.formData.note}
+              onChange={(e) =>
+                setFrontDeskModal((prev) => ({
+                  ...prev,
+                  formData: { ...prev.formData, note: e.target.value },
+                }))
+              }
+              className="w-full rounded-xl border border-gray-300 bg-white p-2.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-850 dark:text-white"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100 dark:border-gray-800">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={frontDeskModal.submitting}
+              onClick={() => setFrontDeskModal((prev) => ({ ...prev, isOpen: false }))}
+            >
+              Hủy bỏ
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              isLoading={frontDeskModal.submitting}
+              type="submit"
+            >
+              Xác Nhận Tạo Đơn Phòng
+            </Button>
+          </div>
+        </form>
       </Modal>
     </div>
   );

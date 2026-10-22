@@ -27,6 +27,7 @@ export interface HotelSearchItem {
   checkOutTime: string;
 
   coverImageUrl: string | null;
+  minPricePerNight?: number | null;
 
   status: HotelStatus;
 

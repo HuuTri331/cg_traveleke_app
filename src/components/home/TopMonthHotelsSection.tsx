@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Flame, Star, MapPin, ChevronLeft, ChevronRight, Tag, ArrowRight } from 'lucide-react';
+import { Star, MapPin, ChevronLeft, ChevronRight, ArrowRight, Trophy } from 'lucide-react';
 import { analyticsApi, type TopHotelOfMonth } from '@/services/api/analytics.api';
+import LuxurySectionHeader from '@/components/hotel-shared/LuxurySectionHeader';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 const PLACEHOLDER_IMAGE = '/images/hotel-placeholder.png';
@@ -20,7 +21,7 @@ const formatVND = (amount?: number | null) => {
     new Intl.NumberFormat('vi-VN', {
       style: 'decimal',
       maximumFractionDigits: 0,
-    }).format(amount) + ' VND'
+    }).format(amount) + ' ₫'
   );
 };
 
@@ -70,134 +71,125 @@ export default function TopMonthHotelsSection() {
     }
   };
 
-  const visibleHotels = hotels.slice(startIndex, startIndex + itemsPerPage);
-
   return (
-    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      {/* Tiêu đề mục */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <div>
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <LuxurySectionHeader
+        eyebrow={`BẢNG XẾP HẠNG THÁNG ${currentMonth}/${currentYear}`}
+        title="Top Khách Sạn Được Yêu Thích Nhất"
+        subtitle="Những điểm đến ghi nhận lượt quan tâm và lựa chọn nghỉ dưỡng hàng đầu từ cộng đồng du khách."
+        align="left"
+        action={
           <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-950/50 dark:text-orange-400">
-              <Flame className="h-5 w-5 fill-current animate-pulse" />
-            </span>
-            <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
-              Khách Sạn Được Tìm Kiếm Nhiều Nhất Tháng {currentMonth}/{currentYear}
-            </h2>
-          </div>
-          <p className="mt-1 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
-            Dựa trên số lượt quan tâm, tìm kiếm và xem phòng thực tế của du khách trong tháng
-          </p>
-        </div>
-
-        {/* Nút điều hướng Carousel */}
-        {hotels.length > itemsPerPage && (
-          <div className="flex items-center gap-2 self-end sm:self-center">
             <button
-              onClick={handlePrev}
+              type="button"
               disabled={!canPrev}
-              aria-label="Previous"
-              className={`flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white shadow-xs transition-all hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 ${
-                !canPrev ? 'opacity-40 cursor-not-allowed' : 'hover:scale-105 active:scale-95'
-              }`}
+              onClick={handlePrev}
+              className="w-10 h-10 rounded-xl border border-[#1E4752]/20 text-[#1E4752] hover:bg-[#1E4752]/5 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
+              title="Trước"
             >
-              <ChevronLeft className="h-5 w-5 text-gray-700 dark:text-gray-200" />
+              <ChevronLeft className="w-5 h-5" />
             </button>
             <button
-              onClick={handleNext}
+              type="button"
               disabled={!canNext}
-              aria-label="Next"
-              className={`flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white shadow-xs transition-all hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 ${
-                !canNext ? 'opacity-40 cursor-not-allowed' : 'hover:scale-105 active:scale-95'
-              }`}
+              onClick={handleNext}
+              className="w-10 h-10 rounded-xl border border-[#1E4752]/20 text-[#1E4752] hover:bg-[#1E4752]/5 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors cursor-pointer"
+              title="Sau"
             >
-              <ChevronRight className="h-5 w-5 text-gray-700 dark:text-gray-200" />
+              <ChevronRight className="w-5 h-5" />
             </button>
           </div>
-        )}
-      </div>
+        }
+      />
 
-      {/* Grid danh sách */}
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {[1, 2, 3, 4].map((i) => (
+      {loading && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 py-4">
+          {[...Array(4)].map((_, i) => (
             <div
               key={i}
-              className="h-80 rounded-2xl bg-gray-100 dark:bg-gray-800 animate-pulse"
-            />
+              className="rounded-2xl border border-[#1E4752]/10 p-4 space-y-3 animate-pulse bg-white"
+            >
+              <div className="h-48 bg-[#1E4752]/10 rounded-xl" />
+              <div className="h-4 bg-[#1E4752]/10 rounded-md w-3/4" />
+              <div className="h-3 bg-[#1E4752]/10 rounded-md w-1/2" />
+            </div>
           ))}
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {visibleHotels.map((hotel) => (
-            <Link
-              key={hotel.hotelId}
-              href={`/hotels_home/${hotel.hotelId}`}
-              className="group relative flex flex-col overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-xs transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl dark:border-gray-800 dark:bg-gray-900"
-            >
-              {/* Badge Xếp hạng Top */}
-              <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-3 py-1 text-xs font-black text-white shadow-md">
-                <Flame className="h-3.5 w-3.5 fill-current" />
-                <span>Top #{hotel.rank}</span>
-              </div>
+      )}
 
-              {/* Lượt quan tâm badge */}
-              <div className="absolute top-2.5 right-2.5 z-10 rounded-full bg-black/60 px-2.5 py-1 text-xs-plus font-semibold text-white backdrop-blur-xs">
-                {hotel.totalInteractions} lượt xem
-              </div>
+      {!loading && hotels.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {hotels.slice(startIndex, startIndex + itemsPerPage).map((hotel, idx) => {
+            const rank = startIndex + idx + 1;
+            const stars = hotel.starRating || 5;
 
-              {/* Ảnh bìa */}
-              <div className="relative h-48 w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
-                <img
-                  src={getImageUrl(hotel.coverImageUrl)}
-                  alt={hotel.name}
-                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = PLACEHOLDER_IMAGE;
-                  }}
-                />
-              </div>
+            return (
+              <Link
+                key={hotel.hotelId}
+                href={`/hotels_home/${hotel.hotelId}`}
+                className="group flex flex-col h-full rounded-2xl bg-white border border-[#1E4752]/12 overflow-hidden shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+              >
+                {/* Image with Rank Badge */}
+                <div className="relative h-52 w-full overflow-hidden bg-[#1E4752]/5">
+                  <img
+                    src={getImageUrl(hotel.coverImageUrl)}
+                    alt={hotel.name}
+                    className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = PLACEHOLDER_IMAGE;
+                    }}
+                  />
 
-              {/* Thông tin */}
-              <div className="flex flex-1 flex-col p-4">
-                {/* Hạng sao & Khoảng giá phổ biến */}
-                <div className="flex items-center justify-between gap-2 mb-1.5">
-                  <div className="flex items-center gap-1 text-amber-500 text-xs font-bold">
-                    <Star className="h-3.5 w-3.5 fill-current" />
-                    <span>{hotel.starRating || 5} sao</span>
+                  {/* Rank Badge in Gold */}
+                  <div className="absolute top-3 left-3 w-8 h-8 rounded-lg bg-[#E8A700] text-[#1E4752] flex items-center justify-center font-black text-xs shadow-md">
+                    #{rank}
                   </div>
 
-                  <span className="flex items-center gap-1 rounded-md bg-sky-50 px-2 py-0.5 text-xs-plus font-semibold text-sky-700 dark:bg-sky-950/60 dark:text-sky-300">
-                    <Tag className="h-3 w-3 shrink-0" />
-                    <span className="truncate max-w-[120px]">{hotel.popularPriceRange}</span>
-                  </span>
+                  {/* Star Rating */}
+                  <div className="absolute top-3 right-3 flex items-center gap-0.5 rounded-full bg-white/95 backdrop-blur-xs px-2.5 py-1 text-2xs font-extrabold text-[#1E4752] shadow-sm">
+                    <Star className="w-3 h-3 text-[#E8A700] fill-[#E8A700]" />
+                    <span>{stars} sao</span>
+                  </div>
                 </div>
 
-                <h3 className="line-clamp-1 text-base font-bold text-gray-900 group-hover:text-brand-500 dark:text-white transition-colors">
-                  {hotel.name}
-                </h3>
+                {/* Card Content */}
+                <div className="flex flex-1 flex-col p-5 justify-between space-y-4">
+                  <div className="space-y-1.5">
+                    <h3 className="font-extrabold text-[#1E4752] text-base line-clamp-1 group-hover:text-[#E8A700] transition-colors">
+                      {hotel.name}
+                    </h3>
 
-                <p className="mt-1 line-clamp-1 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                  <MapPin className="h-3.5 w-3.5 shrink-0 text-gray-400" />
-                  <span>{hotel.address || 'Việt Nam'}</span>
-                </p>
+                    {hotel.address && (
+                      <p className="line-clamp-1 text-xs text-[#1E4752]/65 flex items-center gap-1.5 font-normal">
+                        <MapPin className="h-3.5 w-3.5 text-[#E8A700] shrink-0" />
+                        <span>{hotel.address}</span>
+                      </p>
+                    )}
+                  </div>
 
-                {/* Chân thẻ */}
-                <div className="mt-auto pt-3 border-t border-gray-100 dark:border-gray-800 flex items-end justify-between">
-                  <div>
-                    <span className="block text-2xs text-gray-400">Giá phòng từ</span>
-                    <span className="text-base font-black text-brand-500">
-                      {formatVND(hotel.minPricePerNight)}
+                  {/* Bottom Bar */}
+                  <div className="pt-3 border-t border-[#1E4752]/10 flex items-center justify-between">
+                    <div>
+                      <span className="block text-2xs uppercase tracking-wider text-[#1E4752]/60 font-semibold">
+                        Từ
+                      </span>
+                      <span className="text-sm font-black text-[#1E4752]">
+                        {formatVND(hotel.minPricePerNight)}
+                      </span>
+                      {hotel.minPricePerNight && (
+                        <span className="text-2xs text-[#1E4752]/60"> / đêm</span>
+                      )}
+                    </div>
+
+                    <span className="inline-flex items-center gap-1 text-xs font-extrabold text-[#E8A700] group-hover:translate-x-0.5 transition-transform">
+                      <span>Chi tiết</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-[#E8A700]" />
                     </span>
                   </div>
-
-                  <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gray-100 text-gray-700 group-hover:bg-brand-500 group-hover:text-white transition-all dark:bg-gray-800 dark:text-gray-300">
-                    <ArrowRight className="h-4 w-4" />
-                  </span>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       )}
     </section>

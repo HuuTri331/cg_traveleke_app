@@ -22,6 +22,12 @@ import {
   Star,
   Clock,
   Sparkles,
+  Receipt,
+  PhoneCall,
+  Globe,
+  Clock3,
+  ShieldCheck,
+  CheckCircle2,
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -71,16 +77,16 @@ export default function DashboardPage() {
     {
       title: 'Lượt Đặt Phòng (Booking)',
       value: statistics?.totalBookings ?? 0,
-      growth: `${statistics?.pendingBookings ?? 0} chờ duyệt`,
-      desc: 'tổng đơn hệ thống',
+      growth: `${statistics?.pendingBookings ?? 0} chờ xử lý`,
+      desc: `${statistics?.checkedInBookings ?? 0} đang ở`,
       icon: <CalendarCheck className="h-6 w-6 text-green-500" />,
       bg: 'bg-green-50 dark:bg-green-500/15',
     },
     {
-      title: 'Ước Tính Doanh Thu',
-      value: formatCurrency(statistics?.totalRevenue ?? 0),
+      title: 'Thực Thu (Đã Thanh Toán)',
+      value: formatCurrency(statistics?.cashCollected ?? statistics?.totalRevenue ?? 0),
       growth: `${formatCurrency(statistics?.monthlyRevenue ?? 0)}/tháng`,
-      desc: 'tổng giao dịch hệ thống',
+      desc: 'tiền thực tế sau đối soát',
       icon: <TrendingUp className="h-6 w-6 text-amber-500" />,
       bg: 'bg-amber-50 dark:bg-amber-500/15',
     },
@@ -95,7 +101,7 @@ export default function DashboardPage() {
             Tổng Quan Hệ Thống Traveleke
           </h1>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Chào mừng trở lại, xem thống kê hoạt động lưu trú và quản lý dịch vụ
+            Chào mừng trở lại, xem thống kê hoạt động lưu trú, doanh số lễ tân và ca trực
           </p>
         </div>
 
@@ -143,6 +149,53 @@ export default function DashboardPage() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Sales Attribution & Operational Breakdown (Section 18 & 22) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-800 dark:bg-white/[0.03]">
+          <div className="flex items-center justify-between text-xs font-medium text-gray-500">
+            <span>Doanh Số Đã Chốt (Booked)</span>
+            <Receipt className="h-4 w-4 text-brand-500" />
+          </div>
+          <div className="mt-2 text-lg font-bold text-gray-900 dark:text-white">
+            {formatCurrency(statistics?.bookedSales ?? 0)}
+          </div>
+          <p className="text-[11px] text-gray-400 mt-0.5">Đơn xác nhận, đang ở và hoàn tất</p>
+        </div>
+
+        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-800 dark:bg-white/[0.03]">
+          <div className="flex items-center justify-between text-xs font-medium text-gray-500">
+            <span>Doanh Thu Thực Hiện</span>
+            <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+          </div>
+          <div className="mt-2 text-lg font-bold text-gray-900 dark:text-white">
+            {formatCurrency(statistics?.realizedRevenue ?? 0)}
+          </div>
+          <p className="text-[11px] text-gray-400 mt-0.5">Khách đã nhận phòng và lưu trú</p>
+        </div>
+
+        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-800 dark:bg-white/[0.03]">
+          <div className="flex items-center justify-between text-xs font-medium text-gray-500">
+            <span>Bán Tại Quầy / Điện Thoại</span>
+            <PhoneCall className="h-4 w-4 text-blue-500" />
+          </div>
+          <div className="mt-2 text-lg font-bold text-blue-600 dark:text-blue-400">
+            {formatCurrency(statistics?.directFrontDeskSales ?? 0)}
+          </div>
+          <p className="text-[11px] text-gray-400 mt-0.5">Doanh số do Lễ tân trực tiếp chốt</p>
+        </div>
+
+        <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-800 dark:bg-white/[0.03]">
+          <div className="flex items-center justify-between text-xs font-medium text-gray-500">
+            <span>Kênh Trực Tuyến (Website)</span>
+            <Globe className="h-4 w-4 text-purple-500" />
+          </div>
+          <div className="mt-2 text-lg font-bold text-purple-600 dark:text-purple-400">
+            {formatCurrency(statistics?.websiteSales ?? 0)}
+          </div>
+          <p className="text-[11px] text-gray-400 mt-0.5">Khách tự đặt trực tuyến</p>
+        </div>
       </div>
 
       {/* Main Grid: Recent Hotels List + Quick Navigation Cards */}
@@ -223,18 +276,18 @@ export default function DashboardPage() {
           <div className="rounded-2xl bg-gradient-to-br from-brand-600 to-indigo-700 p-5 text-white shadow-lg shadow-brand-500/20">
             <div className="flex items-center gap-2 text-brand-200 text-xs font-semibold uppercase tracking-wider mb-2">
               <Sparkles className="h-4 w-4 text-amber-300" />
-              Traveleke AI Module
+              Traveleke Front Desk
             </div>
             <h4 className="text-base font-bold">
-              Quản Lý Khách Sạn & Đặt Phòng
+              Vận Hành & Điều Phối Lễ Tân
             </h4>
             <p className="mt-1 text-xs text-brand-100 leading-relaxed">
-              Quản lý danh sách khách sạn, phòng nghỉ, dịch vụ buồng phòng và điều phối nhân sự thông minh.
+              Quản lý ca trực, bàn giao chênh quỹ, tiếp nhận booking quầy/điện thoại và duyệt hạn mức tài chính.
             </p>
             <div className="mt-4 flex gap-2">
-              <Link href="/hotels" className="w-full">
+              <Link href="/shifts" className="w-full">
                 <button className="w-full rounded-xl bg-white/20 hover:bg-white/30 py-2 text-xs font-bold text-white transition-colors cursor-pointer">
-                  Xem Khách Sạn
+                  Vào Ca Trực
                 </button>
               </Link>
             </div>
@@ -243,14 +296,23 @@ export default function DashboardPage() {
           {/* Quick Links Menu */}
           <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-800 dark:bg-white/[0.03] space-y-2">
             <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3 px-2">
-              Lối Tắt Quản Trị
+              Lối Tắt Vận Hành Lễ Tân
             </h4>
             <Link
-              href="/rooms"
+              href="/shifts"
               className="flex items-center justify-between p-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-medium text-gray-700 dark:text-gray-300 transition-colors"
             >
               <span className="flex items-center gap-2">
-                <BedDouble className="h-4 w-4 text-brand-500" /> Quản lý danh sách phòng
+                <Clock3 className="h-4 w-4 text-emerald-500" /> Ca trực & Bàn giao ca
+              </span>
+              <span className="text-gray-400">→</span>
+            </Link>
+            <Link
+              href="/approvals"
+              className="flex items-center justify-between p-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-medium text-gray-700 dark:text-gray-300 transition-colors"
+            >
+              <span className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-amber-500" /> Hàng đợi duyệt hạn mức
               </span>
               <span className="text-gray-400">→</span>
             </Link>
@@ -259,16 +321,25 @@ export default function DashboardPage() {
               className="flex items-center justify-between p-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-medium text-gray-700 dark:text-gray-300 transition-colors"
             >
               <span className="flex items-center gap-2">
-                <CalendarCheck className="h-4 w-4 text-green-500" /> Danh sách đơn đặt phòng
+                <CalendarCheck className="h-4 w-4 text-green-500" /> Quản lý đơn đặt phòng
               </span>
               <span className="text-gray-400">→</span>
             </Link>
             <Link
-              href="/staff"
+              href="/staff-skills"
               className="flex items-center justify-between p-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-medium text-gray-700 dark:text-gray-300 transition-colors"
             >
               <span className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-indigo-500" /> Phân công nhân viên khách sạn
+                <Users className="h-4 w-4 text-indigo-500" /> Hồ sơ năng lực & Kỹ năng
+              </span>
+              <span className="text-gray-400">→</span>
+            </Link>
+            <Link
+              href="/hotel-staff"
+              className="flex items-center justify-between p-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-medium text-gray-700 dark:text-gray-300 transition-colors"
+            >
+              <span className="flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-brand-500" /> Nhân sự theo khách sạn
               </span>
               <span className="text-gray-400">→</span>
             </Link>
