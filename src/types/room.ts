@@ -1,4 +1,5 @@
 export type RoomStatus = 'AVAILABLE' | 'UNAVAILABLE' | 'MAINTENANCE';
+export type RoomServiceTier = 'ECONOMY' | 'STANDARD' | 'VIP';
 
 export interface RoomImage {
   id: string;
@@ -33,6 +34,7 @@ export interface Room {
   slug: string;
   description: string | null;
   pricePerNight: string;
+  serviceTier?: RoomServiceTier;
   checkInTime: string;
   checkOutTime: string;
   maxAdults: number;
@@ -58,6 +60,7 @@ export interface CreateRoomInput {
   name: string;
   slug?: string;
   description?: string | null;
+  serviceTier?: RoomServiceTier;
   pricePerNight: number;
   checkInTime?: string;
   checkOutTime?: string;

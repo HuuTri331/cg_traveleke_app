@@ -11,6 +11,7 @@ import {
   bookingApi,
   BookingHistory as BookingHistoryType,
 } from '@/services/api/booking.api';
+import { bookingPresenceApi } from '@/services/api/booking-presence.api';
 import { cancellationApi } from '@/services/api/cancellation.api';
 import { useCustomerAuth } from '@/features/auth/context/CustomerAuthContext';
 import { getSocket, REALTIME_EVENTS, RealtimeBookingStatusChanged } from '@/lib/socket';
@@ -64,6 +65,20 @@ export default function BookingHistory() {
     isOpen: false,
     booking: null,
     reason: '',
+    submitting: false,
+  });
+
+  const [lateNoticeModal, setLateNoticeModal] = useState<{
+    isOpen: boolean;
+    booking: BookingHistoryType | null;
+    expectedArrivalAt: string;
+    note: string;
+    submitting: boolean;
+  }>({
+    isOpen: false,
+    booking: null,
+    expectedArrivalAt: '',
+    note: '',
     submitting: false,
   });
 
@@ -192,6 +207,30 @@ export default function BookingHistory() {
     } catch (err: any) {
       alert(err.response?.data?.message || err.message || 'Không thể gửi yêu cầu hủy đơn.');
       setCancelModal((prev) => ({ ...prev, submitting: false }));
+    }
+  };
+
+  const handleSubmitLateNotice = async () => {
+    if (!lateNoticeModal.booking || !lateNoticeModal.expectedArrivalAt) return;
+    try {
+      setLateNoticeModal((prev) => ({ ...prev, submitting: true }));
+      await bookingPresenceApi.recordLateArrivalNotice(lateNoticeModal.booking.id, {
+        expectedArrivalAt: new Date(lateNoticeModal.expectedArrivalAt).toISOString(),
+        note: lateNoticeModal.note.trim() || undefined,
+      });
+      alert('Đã gửi thông báo dự kiến đến muộn tới lễ tân khách sạn thành công!');
+      setLateNoticeModal({
+        isOpen: false,
+        booking: null,
+        expectedArrivalAt: '',
+        note: '',
+        submitting: false,
+      });
+      const data = await bookingApi.getHistory();
+      setBookings(Array.isArray(data) ? data : []);
+    } catch (err: any) {
+      alert(err.response?.data?.message || err.message || 'Không thể gửi thông báo.');
+      setLateNoticeModal((prev) => ({ ...prev, submitting: false }));
     }
   };
 
@@ -354,6 +393,57 @@ export default function BookingHistory() {
                         </div>
                       </div>
 
+                      {/* BANNERS FOR PRESENCE (NO_SHOW, CLOSED_NO_SHOW, CHECKED_IN) */}
+                      {booking.status === 'NO_SHOW' && (
+                        <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-4">
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                            <div className="space-y-1">
+                              <h4 className="font-semibold text-amber-900 text-sm flex items-center gap-1.5">
+                                <span>🏨</span> Khách sạn đang tiếp tục giữ phòng cho bạn
+                              </h4>
+                              <p className="text-xs text-amber-800 leading-relaxed">
+                                Đơn đặt phòng của bạn đã thanh toán và được bảo đảm suất phòng cho đến hạn trả phòng (<strong>{formatDate(booking.checkOutAt)}</strong>). Khi đến khách sạn, bạn chỉ cần xuất trình mã <strong>{booking.bookingCode}</strong> tại quầy lễ tân để làm thủ tục nhận phòng.
+                              </p>
+                              {booking.lateArrivalExpectedAt && (
+                                <p className="mt-2 text-xs text-amber-950 bg-amber-100/80 rounded-md p-2 border border-amber-200">
+                                  ⏰ Bạn đã thông báo dự kiến đến lúc: <strong>{formatDate(booking.lateArrivalExpectedAt)}</strong>
+                                  {booking.lateArrivalNote ? ` ("${booking.lateArrivalNote}")` : ''}
+                                </p>
+                              )}
+                            </div>
+                            {new Date() < new Date(booking.checkOutAt) && (
+                              <button
+                                onClick={() => {
+                                  setLateNoticeModal({
+                                    isOpen: true,
+                                    booking,
+                                    expectedArrivalAt: booking.lateArrivalExpectedAt ? new Date(booking.lateArrivalExpectedAt).toISOString().slice(0, 16) : '',
+                                    note: booking.lateArrivalNote || '',
+                                    submitting: false,
+                                  });
+                                }}
+                                className="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-600 hover:bg-amber-700 text-white shadow-xs transition"
+                              >
+                                {booking.lateArrivalExpectedAt ? 'Cập nhật giờ đến' : 'Báo dự kiến đến muộn'}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {booking.status === 'CLOSED_NO_SHOW' && (
+                        <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-600">
+                          Đơn đặt phòng này đã kết thúc kỳ lưu trú mà không có lượt nhận phòng tại quầy lễ tân.
+                        </div>
+                      )}
+
+                      {booking.status === 'CHECKED_IN' && booking.actualCheckInAt && (
+                        <div className="mt-4 rounded-xl border border-indigo-200 bg-indigo-50/70 p-3 text-xs text-indigo-800 flex items-center gap-2">
+                          <span>✓</span>
+                          <span>Đã nhận phòng thực tế lúc: <strong>{formatDate(booking.actualCheckInAt)}</strong></span>
+                        </div>
+                      )}
+
                       <div className="mt-6 border-t pt-5 space-y-4">
                         <div className="flex flex-wrap items-center justify-between gap-4">
                           <div className="flex items-center gap-2">
@@ -482,6 +572,72 @@ export default function BookingHistory() {
         </div>
       )}
 
+      {/* MODAL BÁO DỰ KIẾN ĐẾN MUỘN (ARRIVAL INTENT) */}
+      {lateNoticeModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+              <span>⏰</span> Báo Dự Kiến Đến Muộn
+            </h3>
+            <p className="mt-1 text-xs text-gray-500">
+              Mã đơn: <strong className="font-mono">{lateNoticeModal.booking?.bookingCode || lateNoticeModal.booking?.id}</strong>
+            </p>
+
+            <div className="mt-4 rounded-xl bg-blue-50 p-3 text-xs text-blue-800 border border-blue-200 leading-relaxed">
+              Khách sạn luôn giữ phòng cho bạn trong toàn bộ kỳ lưu trú đã thanh toán. Thông báo này giúp lễ tân chuẩn bị phòng chu đáo nhất khi bạn tới nhận phòng.
+            </div>
+
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Thời gian dự kiến bạn sẽ tới khách sạn <span className="text-red-500">*</span>:
+                </label>
+                <input
+                  type="datetime-local"
+                  value={lateNoticeModal.expectedArrivalAt}
+                  min={lateNoticeModal.booking ? new Date(lateNoticeModal.booking.checkInAt).toISOString().slice(0, 16) : undefined}
+                  max={lateNoticeModal.booking ? new Date(lateNoticeModal.booking.checkOutAt).toISOString().slice(0, 16) : undefined}
+                  onChange={(e) => setLateNoticeModal((prev) => ({ ...prev, expectedArrivalAt: e.target.value }))}
+                  className="w-full rounded-xl border border-gray-300 p-2.5 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Ghi chú cho quầy lễ tân (tùy chọn):
+                </label>
+                <textarea
+                  rows={2}
+                  value={lateNoticeModal.note}
+                  onChange={(e) => setLateNoticeModal((prev) => ({ ...prev, note: e.target.value }))}
+                  placeholder="Ví dụ: Chuyến bay bị delay 2 tiếng, tôi sẽ tới nhận phòng khoảng nửa đêm..."
+                  className="w-full rounded-xl border border-gray-300 p-2.5 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                disabled={lateNoticeModal.submitting}
+                onClick={() => setLateNoticeModal((prev) => ({ ...prev, isOpen: false }))}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                Đóng
+              </button>
+              <button
+                type="button"
+                disabled={!lateNoticeModal.expectedArrivalAt || lateNoticeModal.submitting}
+                onClick={handleSubmitLateNotice}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                {lateNoticeModal.submitting ? 'Đang gửi...' : 'Gửi Thông Báo'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mt-16 bg-white shadow-md">
         <Footer />
       </div>
@@ -542,6 +698,16 @@ function BookingStatus({ status }: { status: string }) {
       label: 'Cần kiểm tra hoàn tiền',
       bg: 'bg-purple-50',
       text: 'text-purple-700',
+    },
+    NO_SHOW: {
+      label: 'Chưa nhận phòng (Đang giữ phòng)',
+      bg: 'bg-amber-100',
+      text: 'text-amber-800',
+    },
+    CLOSED_NO_SHOW: {
+      label: 'Hết hạn nhận phòng (Vắng mặt)',
+      bg: 'bg-gray-100',
+      text: 'text-gray-700',
     },
   };
 

@@ -44,6 +44,12 @@ export interface BookingHistory {
   gatewayExpireAt?: string | null;
   holdExpiresAt?: string | null;
   holdStatus?: string | null;
+  actualCheckInAt?: string | null;
+  actualCheckOutAt?: string | null;
+  noShowAt?: string | null;
+  noShowClosedAt?: string | null;
+  lateArrivalExpectedAt?: string | null;
+  lateArrivalNote?: string | null;
 }
 
 export interface AdminBookingItem {
@@ -68,7 +74,9 @@ export interface AdminBookingItem {
     | 'REJECTED'
     | 'CANCELLED'
     | 'PAYMENT_EXPIRED'
-    | 'PAYMENT_REVIEW';
+    | 'PAYMENT_REVIEW'
+    | 'NO_SHOW'
+    | 'CLOSED_NO_SHOW';
   specialRequest?: string | null;
   handledBy?: string | null;
   assignmentType?: 'AUTO' | 'MANUAL';
@@ -82,6 +90,16 @@ export interface AdminBookingItem {
   confirmedAt?: string | null;
   rejectedAt?: string | null;
   cancelledAt?: string | null;
+  actualCheckInAt?: string | null;
+  actualCheckOutAt?: string | null;
+  noShowAt?: string | null;
+  noShowClosedAt?: string | null;
+  lateCheckInRecoveredAt?: string | null;
+  checkInConfirmedBy?: string | null;
+  checkOutConfirmedBy?: string | null;
+  presenceVersion?: number;
+  lateArrivalExpectedAt?: string | null;
+  lateArrivalNote?: string | null;
   createdAt: string;
   hotelName?: string;
   hotelAddress?: string;
@@ -91,6 +109,9 @@ export interface AdminBookingItem {
   vnpTransactionNo?: string | null;
   paidAmount?: string | null;
   holdStatus?: string | null;
+  assignmentStatus?: 'ASSIGNMENT_PENDING' | 'ASSIGNED' | 'UNASSIGNED_CRITICAL' | string;
+  assignmentReason?: string;
+  assignmentVersion?: number;
 }
 
 export interface BookingStatusLogItem {
@@ -138,6 +159,8 @@ export interface DashboardStatistics {
   rejectedBookings: number;
   cancelledBookings: number;
   paymentExpiredBookings?: number;
+  noShowBookings?: number;
+  closedNoShowBookings?: number;
   totalRevenue: number;
   cashCollected?: number;
   estimatedGrossBookingValue?: number;

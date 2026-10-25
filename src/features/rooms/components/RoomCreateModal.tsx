@@ -62,6 +62,7 @@ export function RoomCreateModal({
     reviewCount: 0,
     coverImageUrl: '',
     description: '',
+    serviceTier: 'STANDARD',
     status: 'AVAILABLE' as RoomStatus,
   });
 
@@ -171,7 +172,8 @@ export function RoomCreateModal({
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Hàng 1: Khách sạn & Trạng thái */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Hàng 1: Khách sạn, Phân hạng dịch vụ & Trạng thái */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Select
             label="Thuộc Khách sạn *"
             value={formData.hotelId}
@@ -180,6 +182,18 @@ export function RoomCreateModal({
             }
             options={hotels.map((h) => ({ value: h.id, label: `${h.name} (#${h.id})` }))}
             required
+          />
+          <Select
+            label="Phân hạng dịch vụ"
+            value={formData.serviceTier || 'STANDARD'}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, serviceTier: e.target.value as any }))
+            }
+            options={[
+              { value: 'ECONOMY', label: 'ECONOMY (Phổ thông)' },
+              { value: 'STANDARD', label: 'STANDARD (Tiêu chuẩn)' },
+              { value: 'VIP', label: 'VIP (Cao cấp / Thượng hạng)' },
+            ]}
           />
           <Select
             label="Trạng thái phòng"

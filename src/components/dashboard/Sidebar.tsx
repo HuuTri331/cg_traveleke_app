@@ -19,6 +19,8 @@ import {
   TrendingUp,
   Clock,
   CheckSquare,
+  CalendarOff,
+  UserCog,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { cn } from '@/lib/utils';
@@ -46,6 +48,18 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           href: '/bookings',
           icon: <CalendarCheck className="h-5 w-5" />,
           badge: 'Mới',
+        },
+        {
+          label: 'Đơn Nghỉ / Đi Muộn',
+          href: '/staff-requests',
+          icon: <CalendarOff className="h-5 w-5" />,
+          badge: 'Khả Dụng',
+        },
+        {
+          label: 'Duyệt Đơn & Khả Dụng',
+          href: '/staff-requests/management',
+          icon: <UserCog className="h-5 w-5" />,
+          badge: 'Quản Lý',
         },
         {
           label: 'Ca Trực & Bàn Giao',

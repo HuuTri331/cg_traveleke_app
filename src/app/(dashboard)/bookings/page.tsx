@@ -13,6 +13,12 @@ import {
   ActivityLogItem,
 } from '@/services/api/booking.api';
 import {
+  bookingAssignmentApi,
+  BookingAssignmentHistoryItem,
+} from '@/services/api/booking-assignment.api';
+import { PresenceTimeline } from '@/components/booking/PresenceTimeline';
+import { LateCheckInDialog } from '@/components/booking/LateCheckInDialog';
+import {
   cancellationApi,
   CancellationRequestItem,
 } from '@/services/api/cancellation.api';
@@ -50,6 +56,7 @@ import {
   RotateCcw,
   Plus,
   PhoneCall,
+  BellRing,
 } from 'lucide-react';
 
 const STATUS_CONFIG: Record<
@@ -94,6 +101,14 @@ const STATUS_CONFIG: Record<
   PAYMENT_REVIEW: {
     label: 'Cần Đối Soát / Hoàn Tiền',
     variant: 'danger',
+  },
+  NO_SHOW: {
+    label: 'Vắng Mặt (No-Show) - Đang Giữ Phòng',
+    variant: 'warning',
+  },
+  CLOSED_NO_SHOW: {
+    label: 'Đóng No-Show (Hết Kỳ)',
+    variant: 'neutral',
   },
 };
 
@@ -199,6 +214,77 @@ export default function BookingsPage() {
     roomInfo: null,
     canReassign: true,
   });
+
+  // Modal: Lịch sử phân công V2 (Đợt 1: 40/120p, Năng Lực, Khả Dụng)
+  const [assignmentHistoryModal, setAssignmentHistoryModal] = useState<{
+    isOpen: boolean;
+    booking: AdminBookingItem | AdminBookingDetail | null;
+    history: BookingAssignmentHistoryItem[];
+    loading: boolean;
+  }>({
+    isOpen: false,
+    booking: null,
+    history: [],
+    loading: false,
+  });
+
+  const handleOpenAssignmentHistory = async (booking: AdminBookingItem | AdminBookingDetail) => {
+    setAssignmentHistoryModal({
+      isOpen: true,
+      booking,
+      history: [],
+      loading: true,
+    });
+    try {
+      const res = await bookingAssignmentApi.getHistory(booking.id);
+      setAssignmentHistoryModal((prev) => ({
+        ...prev,
+        history: res.data || [],
+        loading: false,
+      }));
+    } catch {
+      setAssignmentHistoryModal((prev) => ({
+        ...prev,
+        history: [],
+        loading: false,
+      }));
+    }
+  };
+
+  // Modal: Tiếp nhận khách nhận phòng / khôi phục nhận phòng muộn (Đợt 2)
+  const [lateCheckInModal, setLateCheckInModal] = useState<{
+    isOpen: boolean;
+    booking: AdminBookingItem | AdminBookingDetail | null;
+  }>({
+    isOpen: false,
+    booking: null,
+  });
+
+  const handleOpenLateCheckIn = (booking: AdminBookingItem | AdminBookingDetail) => {
+    setLateCheckInModal({
+      isOpen: true,
+      booking,
+    });
+  };
+
+  // Modal: Dòng thời gian hiện diện (Presence Timeline) (Đợt 2)
+  const [presenceTimelineModal, setPresenceTimelineModal] = useState<{
+    isOpen: boolean;
+    bookingId: string;
+    bookingCode: string;
+  }>({
+    isOpen: false,
+    bookingId: '',
+    bookingCode: '',
+  });
+
+  const handleOpenPresenceTimeline = (bookingId: string, bookingCode: string) => {
+    setPresenceTimelineModal({
+      isOpen: true,
+      bookingId,
+      bookingCode,
+    });
+  };
 
   // Modal: Lễ tân tạo đơn trực tiếp tại quầy / điện thoại (Walk-in / Phone)
   // (Section 02.14, 16.1, 17.2, 17.3, 30.3)
@@ -773,6 +859,8 @@ export default function BookingsPage() {
                 { key: 'PENDING', label: 'Chờ duyệt' },
                 { key: 'CONFIRMED', label: 'Đã xác nhận' },
                 { key: 'CHECKED_IN', label: 'Đã nhận phòng' },
+                { key: 'NO_SHOW', label: 'No-Show (Đang giữ phòng)' },
+                { key: 'CLOSED_NO_SHOW', label: 'Đã đóng No-Show' },
                 { key: 'COMPLETED', label: 'Hoàn thành' },
                 { key: 'REJECTED', label: 'Đã từ chối' },
                 { key: 'CANCELLED', label: 'Đã huỷ' },
@@ -910,7 +998,7 @@ export default function BookingsPage() {
                                   <User className="h-3.5 w-3.5 text-brand-500 shrink-0" />
                                   <span className="truncate max-w-[130px]">{b.handledByName}</span>
                                 </div>
-                                <div className="mt-1 flex items-center gap-1.5">
+                                <div className="mt-1 flex items-center gap-1.5 flex-wrap">
                                   <span
                                     className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-2xs font-bold ${
                                       b.assignmentType === 'AUTO'
@@ -921,7 +1009,7 @@ export default function BookingsPage() {
                                     {b.assignmentType === 'AUTO' ? (
                                       <>
                                         <Sparkles className="h-2.5 w-2.5" />
-                                        Tự Động
+                                        Tự Động V2
                                       </>
                                     ) : (
                                       <>
@@ -930,10 +1018,30 @@ export default function BookingsPage() {
                                       </>
                                     )}
                                   </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenAssignmentHistory(b)}
+                                    title="Xem phân công 40/120p & năng lực"
+                                    className="text-2xs text-gray-400 hover:text-brand-600 dark:hover:text-brand-400 flex items-center gap-0.5 transition-colors cursor-pointer"
+                                  >
+                                    <History className="h-2.5 w-2.5" />
+                                    Lịch sử
+                                  </button>
                                 </div>
                               </div>
                             ) : (
-                              <span className="text-xs-plus text-gray-400 italic">Chưa phân công</span>
+                              <div>
+                                <span className="text-xs-plus text-gray-400 italic">Chưa phân công</span>
+                                <div className="mt-0.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenAssignmentHistory(b)}
+                                    className="text-2xs text-brand-600 hover:underline flex items-center gap-0.5 cursor-pointer"
+                                  >
+                                    <History className="h-2.5 w-2.5" /> Phân công V2
+                                  </button>
+                                </div>
+                              </div>
                             )}
                           </td>
 
@@ -1054,8 +1162,8 @@ export default function BookingsPage() {
                               {b.status === 'CONFIRMED' && (
                                 <>
                                   <button
-                                    onClick={() => openStatusChangeDialog(b, 'CHECKED_IN', 'Nhận Phòng')}
-                                    title="Khách làm thủ tục nhận phòng"
+                                    onClick={() => handleOpenLateCheckIn(b)}
+                                    title="Khách làm thủ tục nhận phòng tại quầy"
                                     className="flex h-8 items-center gap-1 rounded-lg bg-indigo-600 px-2.5 text-xs-plus font-bold text-white hover:bg-indigo-700 shadow-xs cursor-pointer"
                                   >
                                     <LogIn className="h-3.5 w-3.5" />
@@ -1078,6 +1186,26 @@ export default function BookingsPage() {
                                     <Ban className="h-3.5 w-3.5" />
                                     <span>Yêu cầu huỷ</span>
                                   </button>
+                                </>
+                              )}
+
+                              {/* NO_SHOW: Khôi phục nhận phòng muộn (Recovery) */}
+                              {b.status === 'NO_SHOW' && (
+                                <>
+                                  {new Date() < new Date(b.checkOutAt) ? (
+                                    <button
+                                      onClick={() => handleOpenLateCheckIn(b)}
+                                      title="Khách đến quầy sau No-show, khôi phục nhận phòng"
+                                      className="flex h-8 items-center gap-1 rounded-lg bg-purple-600 px-2.5 text-xs-plus font-bold text-white hover:bg-purple-700 shadow-xs cursor-pointer"
+                                    >
+                                      <RotateCcw className="h-3.5 w-3.5" />
+                                      <span>Nhận phòng muộn</span>
+                                    </button>
+                                  ) : (
+                                    <span className="text-2xs text-gray-400 italic font-semibold px-2 py-1 bg-gray-100 rounded-lg dark:bg-gray-800">
+                                      Đã hết kỳ
+                                    </span>
+                                  )}
                                 </>
                               )}
 
@@ -1585,7 +1713,15 @@ export default function BookingsPage() {
                   )}
                 </div>
 
-                <div className="shrink-0">
+                <div className="shrink-0 flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleOpenAssignmentHistory(selectedBookingDetail)}
+                  >
+                    <History className="h-3.5 w-3.5 mr-1 text-purple-600 dark:text-purple-400" />
+                    Lịch Sử Phân Công V2
+                  </Button>
                   <Button
                     size="sm"
                     variant="outline"
@@ -1608,6 +1744,114 @@ export default function BookingsPage() {
                   <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                   <span>Khách hàng đã nhận phòng (CHECKED_IN) - Theo quy định vận hành, không thể thay đổi nhân viên phụ trách.</span>
                 </p>
+              )}
+            </div>
+
+            {/* ĐỢT 2: Thông tin hiện diện & Check-in / No-show thực tế */}
+            <div className="rounded-xl border border-indigo-200 p-4 dark:border-indigo-800 bg-indigo-50/40 dark:bg-indigo-900/10 space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <h4 className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5 text-xs uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
+                  <Clock className="h-4 w-4" />
+                  Hiện Diện Thực Tế & Vòng Đời Lưu Trú (Đợt 2)
+                </h4>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      handleOpenPresenceTimeline(
+                        selectedBookingDetail.id,
+                        selectedBookingDetail.bookingCode,
+                      )
+                    }
+                  >
+                    <History className="h-3.5 w-3.5 mr-1 text-indigo-600 dark:text-indigo-400" />
+                    Dòng Thời Gian Hiện Diện
+                  </Button>
+                  {selectedBookingDetail.status === 'NO_SHOW' &&
+                    new Date() < new Date(selectedBookingDetail.checkOutAt) && (
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onClick={() => {
+                          handleOpenLateCheckIn(selectedBookingDetail);
+                        }}
+                      >
+                        <RotateCcw className="h-3.5 w-3.5 mr-1" />
+                        Tiếp Nhận Khách Đến Muộn (Recovery)
+                      </Button>
+                    )}
+                  {selectedBookingDetail.status === 'CONFIRMED' && (
+                    <Button
+                      size="sm"
+                      variant="primary"
+                      onClick={() => {
+                        handleOpenLateCheckIn(selectedBookingDetail);
+                      }}
+                    >
+                      <LogIn className="h-3.5 w-3.5 mr-1" />
+                      Nhận Phòng Tại Quầy
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Thông tin mốc thời gian thực tế */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1 text-xs">
+                <div className="bg-white/80 dark:bg-gray-850/80 p-2.5 rounded-xl border border-indigo-100 dark:border-indigo-900/40">
+                  <span className="text-gray-400 text-2xs block">Nhận phòng thực tế:</span>
+                  <span className="font-bold text-gray-800 dark:text-gray-200">
+                    {selectedBookingDetail.actualCheckInAt
+                      ? new Date(selectedBookingDetail.actualCheckInAt).toLocaleString('vi-VN')
+                      : 'Chưa nhận phòng'}
+                  </span>
+                  {selectedBookingDetail.lateCheckInRecoveredAt && (
+                    <span className="text-3xs block font-bold text-purple-600 dark:text-purple-400 mt-0.5">
+                      (Khôi phục sau No-Show)
+                    </span>
+                  )}
+                </div>
+
+                <div className="bg-white/80 dark:bg-gray-850/80 p-2.5 rounded-xl border border-indigo-100 dark:border-indigo-900/40">
+                  <span className="text-gray-400 text-2xs block">Trả phòng thực tế:</span>
+                  <span className="font-bold text-gray-800 dark:text-gray-200">
+                    {selectedBookingDetail.actualCheckOutAt
+                      ? new Date(selectedBookingDetail.actualCheckOutAt).toLocaleString('vi-VN')
+                      : 'Chưa trả phòng'}
+                  </span>
+                </div>
+
+                <div className="bg-white/80 dark:bg-gray-850/80 p-2.5 rounded-xl border border-indigo-100 dark:border-indigo-900/40">
+                  <span className="text-gray-400 text-2xs block">Trạng thái No-Show:</span>
+                  <span className="font-bold text-gray-800 dark:text-gray-200">
+                    {selectedBookingDetail.noShowAt
+                      ? `No-Show lúc ${new Date(selectedBookingDetail.noShowAt).toLocaleTimeString('vi-VN')}`
+                      : 'Không có'}
+                  </span>
+                  {selectedBookingDetail.noShowClosedAt && (
+                    <span className="text-3xs block font-bold text-gray-500 mt-0.5">
+                      (Đã đóng hết kỳ lúc {new Date(selectedBookingDetail.noShowClosedAt).toLocaleDateString('vi-VN')})
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Thông báo khách báo dự kiến đến muộn */}
+              {selectedBookingDetail.lateArrivalExpectedAt && (
+                <div className="rounded-lg bg-amber-50 p-2.5 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-200 border border-amber-200 dark:border-amber-800 flex items-start gap-2">
+                  <BellRing className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
+                  <div>
+                    <span className="font-bold">Khách đã thông báo dự kiến đến muộn: </span>
+                    <span>
+                      {new Date(selectedBookingDetail.lateArrivalExpectedAt).toLocaleString('vi-VN')}
+                    </span>
+                    {selectedBookingDetail.lateArrivalNote && (
+                      <p className="mt-0.5 italic text-gray-600 dark:text-gray-300">
+                        Lý do: {selectedBookingDetail.lateArrivalNote}
+                      </p>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
 
@@ -2409,6 +2653,160 @@ export default function BookingsPage() {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Modal: Lịch Sử Phân Công V2 (Đợt 1 - 40/120p, Năng Lực, Khả Dụng) */}
+      <Modal
+        isOpen={assignmentHistoryModal.isOpen}
+        onClose={() => setAssignmentHistoryModal((prev) => ({ ...prev, isOpen: false }))}
+        title={`Lịch Sử Phân Công Lễ Tân - ${assignmentHistoryModal.booking?.bookingCode || ''}`}
+        maxWidth="lg"
+      >
+        <div className="space-y-4">
+          <div className="rounded-xl bg-purple-50 p-3 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 text-xs">
+            <p className="font-bold text-purple-900 dark:text-purple-200 flex items-center gap-1.5">
+              <Sparkles className="h-4 w-4 text-purple-600 shrink-0" />
+              Thuật toán phân công công bằng V2 (Đợt 1)
+            </p>
+            <p className="text-purple-700 dark:text-purple-300 mt-1">
+              Phân công tự động kích hoạt sau khi thanh toán thành công (PAID) và giữ phòng COMMITTED.
+              Áp dụng cửa sổ công bằng 40/120 phút, quét năng lực theo hạng phòng (Economy / Standard / VIP),
+              loại trừ nhân viên có đơn nghỉ / đi muộn đã duyệt, và fallback Quản lý nếu cần.
+            </p>
+          </div>
+
+          {assignmentHistoryModal.loading ? (
+            <div className="py-8 text-center text-xs text-gray-500">
+              <RefreshCw className="h-5 w-5 animate-spin mx-auto mb-2 text-brand-500" />
+              Đang tải lịch sử phân công...
+            </div>
+          ) : assignmentHistoryModal.history.length === 0 ? (
+            <div className="py-8 text-center text-xs text-gray-500">
+              Chưa có bản ghi phân công V2 nào cho đơn đặt này (hoặc đơn được phân công theo cơ chế cũ / chưa thanh toán).
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {assignmentHistoryModal.history.map((item, idx) => (
+                <div
+                  key={item.id || idx}
+                  className="rounded-xl border border-gray-200 dark:border-gray-800 p-4 bg-white dark:bg-gray-850 shadow-xs"
+                >
+                  <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-gray-100 dark:border-gray-800">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-sm text-gray-900 dark:text-white">
+                        {item.staffName || `Nhân viên #${item.staffUserId}`}
+                      </span>
+                      {item.staffRole && (
+                        <span className="text-2xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-700 font-semibold dark:bg-gray-800 dark:text-gray-300">
+                          {item.staffRole}
+                        </span>
+                      )}
+                      <span className="text-2xs px-2 py-0.5 rounded-full font-bold bg-brand-50 text-brand-600 dark:bg-brand-950/40 dark:text-brand-300">
+                        Phiên bản #{item.assignmentVersion}
+                      </span>
+                    </div>
+                    <span className="text-2xs text-gray-400">
+                      {new Date(item.assignedAt).toLocaleString('vi-VN')}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-3 text-xs">
+                    <div>
+                      <span className="text-gray-400 text-2xs block">Nhóm Công Bằng (40/120p)</span>
+                      <span className="font-bold text-gray-700 dark:text-gray-200">
+                        {item.freshnessBucket === 'FRESH_120'
+                          ? 'FRESH (>= 120 phút)'
+                          : item.freshnessBucket === 'SOFT_RECENT_40_120'
+                          ? 'SOFT RECENT (40 - 120 phút)'
+                          : item.freshnessBucket === 'HARD_COOLDOWN'
+                          ? 'HARD COOLDOWN (< 40 phút)'
+                          : item.freshnessBucket || 'N/A'}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-gray-400 text-2xs block">Hạng Kỹ Năng / Phân Cấp</span>
+                      <span className="font-bold text-gray-700 dark:text-gray-200">
+                        {item.skillTier || 'STANDARD'}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-gray-400 text-2xs block">Hình Thức Phân Công</span>
+                      <span className="font-bold text-gray-700 dark:text-gray-200">
+                        {item.type === 'AUTO_DISPATCH'
+                          ? 'Tự Động (Outbox V2)'
+                          : item.type === 'MANAGER_FALLBACK'
+                          ? 'Quản Lý Nhận Thay (Fallback)'
+                          : item.type === 'FRONT_DESK'
+                          ? 'Lễ Tân Tại Quầy'
+                          : item.type || 'Chỉ Định'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {item.reason && (
+                    <div className="mt-3 p-2.5 rounded-lg bg-gray-50 dark:bg-gray-800 text-xs text-gray-600 dark:text-gray-300">
+                      <span className="font-semibold block text-2xs text-gray-400 uppercase tracking-wider mb-0.5">
+                        Lý do lựa chọn
+                      </span>
+                      {item.reason}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex justify-end pt-3 border-t border-gray-100 dark:border-gray-800">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setAssignmentHistoryModal((prev) => ({ ...prev, isOpen: false }))}
+            >
+              Đóng
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Modal: Tiếp Nhận Khách Nhận Phòng Tại Quầy / Khôi Phục No-Show (Đợt 2) */}
+      <LateCheckInDialog
+        isOpen={lateCheckInModal.isOpen}
+        onClose={() => setLateCheckInModal((prev) => ({ ...prev, isOpen: false }))}
+        booking={lateCheckInModal.booking}
+        onSuccess={(updatedBooking) => {
+          fetchBookings();
+          if (selectedBookingDetail && selectedBookingDetail.id === updatedBooking.id) {
+            handleOpenDetail(updatedBooking.id);
+          }
+          setActionNotice({
+            type: 'success',
+            message: `Xác nhận nhận phòng thành công cho đơn #${updatedBooking.bookingCode}!`,
+          });
+        }}
+      />
+
+      {/* Modal: Dòng Thời Gian Hiện Diện (Presence Timeline) (Đợt 2) */}
+      <Modal
+        isOpen={presenceTimelineModal.isOpen}
+        onClose={() => setPresenceTimelineModal((prev) => ({ ...prev, isOpen: false }))}
+        title={`Dòng Thời Gian Hiện Diện - ${presenceTimelineModal.bookingCode}`}
+        maxWidth="lg"
+      >
+        <div className="space-y-4">
+          <PresenceTimeline bookingId={presenceTimelineModal.bookingId} />
+
+          <div className="flex justify-end pt-3 border-t border-gray-100 dark:border-gray-800">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPresenceTimelineModal((prev) => ({ ...prev, isOpen: false }))}
+            >
+              Đóng
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
