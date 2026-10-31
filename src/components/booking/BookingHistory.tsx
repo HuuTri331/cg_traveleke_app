@@ -394,6 +394,43 @@ export default function BookingHistory() {
                       </div>
 
                       {/* BANNERS FOR PRESENCE (NO_SHOW, CLOSED_NO_SHOW, CHECKED_IN) */}
+                      {(booking.status === 'CONFIRMED' || booking.status === 'PENDING') &&
+                        booking.paymentStatus === 'PAID' &&
+                        !booking.actualCheckInAt &&
+                        new Date() < new Date(booking.checkOutAt) && (
+                          <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50/70 p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="space-y-1">
+                              <h4 className="font-semibold text-blue-900 text-xs flex items-center gap-1.5">
+                                <span>⏰</span> Kế hoạch nhận phòng
+                              </h4>
+                              {booking.lateArrivalExpectedAt ? (
+                                <p className="text-xs text-blue-800">
+                                  Bạn đã báo dự kiến đến lúc: <strong>{formatDate(booking.lateArrivalExpectedAt)}</strong>
+                                  {booking.lateArrivalNote ? ` ("${booking.lateArrivalNote}")` : ''}.
+                                </p>
+                              ) : (
+                                <p className="text-xs text-blue-800">
+                                  Nếu bạn dự kiến đến muộn sau giờ nhận phòng tiêu chuẩn, hãy gửi thông báo để khách sạn chuẩn bị chu đáo nhất.
+                                </p>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => {
+                                setLateNoticeModal({
+                                  isOpen: true,
+                                  booking,
+                                  expectedArrivalAt: toLocalDatetimeInput(booking.lateArrivalExpectedAt || booking.checkInAt),
+                                  note: booking.lateArrivalNote || '',
+                                  submitting: false,
+                                });
+                              }}
+                              className="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition"
+                            >
+                              {booking.lateArrivalExpectedAt ? 'Cập nhật giờ đến' : 'Báo dự kiến đến muộn'}
+                            </button>
+                          </div>
+                        )}
+
                       {booking.status === 'NO_SHOW' && (
                         <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-4">
                           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
@@ -417,7 +454,7 @@ export default function BookingHistory() {
                                   setLateNoticeModal({
                                     isOpen: true,
                                     booking,
-                                    expectedArrivalAt: booking.lateArrivalExpectedAt ? new Date(booking.lateArrivalExpectedAt).toISOString().slice(0, 16) : '',
+                                    expectedArrivalAt: toLocalDatetimeInput(booking.lateArrivalExpectedAt),
                                     note: booking.lateArrivalNote || '',
                                     submitting: false,
                                   });
@@ -595,8 +632,8 @@ export default function BookingHistory() {
                 <input
                   type="datetime-local"
                   value={lateNoticeModal.expectedArrivalAt}
-                  min={lateNoticeModal.booking ? new Date(lateNoticeModal.booking.checkInAt).toISOString().slice(0, 16) : undefined}
-                  max={lateNoticeModal.booking ? new Date(lateNoticeModal.booking.checkOutAt).toISOString().slice(0, 16) : undefined}
+                  min={lateNoticeModal.booking ? toLocalDatetimeInput(lateNoticeModal.booking.checkInAt) : undefined}
+                  max={lateNoticeModal.booking ? toLocalDatetimeInput(lateNoticeModal.booking.checkOutAt) : undefined}
                   onChange={(e) => setLateNoticeModal((prev) => ({ ...prev, expectedArrivalAt: e.target.value }))}
                   className="w-full rounded-xl border border-gray-300 p-2.5 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
@@ -647,6 +684,14 @@ export default function BookingHistory() {
 
 function formatDate(date: string) {
   return new Date(date).toLocaleString('vi-VN');
+}
+
+function toLocalDatetimeInput(dateStr?: string | null): string {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 function BookingStatus({ status }: { status: string }) {

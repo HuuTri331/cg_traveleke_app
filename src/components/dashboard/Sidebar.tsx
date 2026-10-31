@@ -21,6 +21,8 @@ import {
   CheckSquare,
   CalendarOff,
   UserCog,
+  Award,
+  Sliders,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { cn } from '@/lib/utils';
@@ -48,6 +50,24 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           href: '/bookings',
           icon: <CalendarCheck className="h-5 w-5" />,
           badge: 'Mới',
+        },
+        {
+          label: 'Nhiệm Vụ Phục Vụ',
+          href: '/my-tasks',
+          icon: <CheckSquare className="h-5 w-5" />,
+          badge: 'SLA',
+        },
+        {
+          label: 'KPI Của Tôi',
+          href: '/my-kpi',
+          icon: <Award className="h-5 w-5" />,
+          badge: 'KPI',
+        },
+        {
+          label: 'Quản Lý KPI',
+          href: '/kpi-management',
+          icon: <Sliders className="h-5 w-5" />,
+          badge: 'Quản Lý',
         },
         {
           label: 'Đơn Nghỉ / Đi Muộn',
