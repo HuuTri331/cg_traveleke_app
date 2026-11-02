@@ -30,7 +30,6 @@ export function TemporaryCoverageDialog({
   const [delegateStaffId, setDelegateStaffId] = useState('');
   const [durationMinutes, setDurationMinutes] = useState(120); // Mặc định 2 giờ
   const [taskType, setTaskType] = useState<CoverageTaskType>('CHECK_IN');
-  const [includeServiceTasks, setIncludeServiceTasks] = useState(true);
   const [reason, setReason] = useState('');
   const [commandId] = useState(() => `cov_${bookingId}_${Date.now()}`);
   const [submitting, setSubmitting] = useState(false);
@@ -48,12 +47,8 @@ export function TemporaryCoverageDialog({
 
     const now = new Date();
     const endAt = new Date(now.getTime() + durationMinutes * 60 * 1000);
-    const allowedTaskTypes: CoverageTaskType[] = Array.from(
-      new Set([
-        taskType,
-        ...(includeServiceTasks ? (['ALL_SERVICE_TASKS', 'CHECK_IN'] as CoverageTaskType[]) : []),
-      ]),
-    );
+    // Never silently add CHECK_IN when the manager selects a service scope.
+    const allowedTaskTypes: CoverageTaskType[] = [taskType];
 
     try {
       await bookingCoverageApi.createTemporary(bookingId, {

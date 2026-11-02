@@ -100,6 +100,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 icon: <Sliders className="h-5 w-5" />,
                 badge: 'Quản Lý',
               },
+              {
+                label: 'Khuyến Mãi & Giá Đêm',
+                href: '/promotions',
+                icon: <Sparkles className="h-5 w-5" />,
+                badge: 'Promo',
+              },
             ]
           : []),
         {

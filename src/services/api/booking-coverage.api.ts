@@ -44,7 +44,11 @@ export interface CreateTemporaryCoveragePayload {
   delegateStaffUserId: string;
   startAt: string;
   endAt: string;
+  scopeMode?: 'TASK_IDS' | 'TASK_TYPES' | 'BOOKING_TASKS';
   allowedTaskTypes?: CoverageTaskType[];
+  taskIds?: string[];
+  absenceRequestId?: string;
+  completionDeadline?: string;
   reason?: string;
   expectedAssignmentVersion?: number;
   commandId?: string;
@@ -56,12 +60,20 @@ export interface ExtendCoveragePayload {
   expectedVersion: number;
 }
 
+export interface TaskHandoverDecisionPayload {
+  taskId: string;
+  action: 'HANDOVER' | 'CONTINUE';
+  leaseUntil?: string;
+  reason: string;
+}
+
 export interface PermanentTransferPayload {
   toStaffUserId: string;
   reasonCode: string;
   reason: string;
   expectedAssignmentVersion?: number;
   commandId?: string;
+  taskDecisions?: TaskHandoverDecisionPayload[];
 }
 
 export const bookingCoverageApi = {

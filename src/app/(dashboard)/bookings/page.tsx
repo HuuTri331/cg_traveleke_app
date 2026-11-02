@@ -20,11 +20,13 @@ import { PresenceTimeline } from '@/components/booking/PresenceTimeline';
 import { LateCheckInDialog } from '@/components/booking/LateCheckInDialog';
 import { TemporaryCoverageDialog } from '@/components/booking/TemporaryCoverageDialog';
 import { PermanentTransferDialog } from '@/components/booking/PermanentTransferDialog';
+import { BookingBenefitPanel } from '@/components/promotions/BookingBenefitPanel';
 import { bookingPresenceApi } from '@/services/api/booking-presence.api';
 import {
   guestConversationsApi,
   GuestMessageItem,
 } from '@/services/api/guest-conversations.api';
+import { guestWorkApi, GuestWorkTaskItem } from '@/services/api/guest-work.api';
 import {
   cancellationApi,
   CancellationRequestItem,
@@ -334,6 +336,8 @@ export default function BookingsPage() {
 
   // Đợt 4: Hộp trao đổi tin nhắn với khách hàng ngay trong chi tiết booking
   const [guestMessages, setGuestMessages] = useState<GuestMessageItem[]>([]);
+  const [bookingTasks, setBookingTasks] = useState<GuestWorkTaskItem[]>([]);
+  const [selectedReplyTaskId, setSelectedReplyTaskId] = useState('');
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [replyBody, setReplyBody] = useState('');
   const [sendingReply, setSendingReply] = useState(false);
@@ -341,10 +345,19 @@ export default function BookingsPage() {
   const fetchBookingMessages = async (bookingId: string) => {
     try {
       setLoadingMessages(true);
-      const msgs = await guestConversationsApi.getMessages(bookingId);
+      const [msgs, tasks] = await Promise.all([
+        guestConversationsApi.getMessages(bookingId),
+        guestWorkApi.getTasksForBooking(bookingId).catch(() => []),
+      ]);
       setGuestMessages(Array.isArray(msgs) ? msgs : []);
+      const openTasks = (Array.isArray(tasks) ? tasks : []).filter(
+        (t) => !['CANCELLED', 'VERIFIED', 'FAILED'].includes(t.status),
+      );
+      setBookingTasks(openTasks);
+      setSelectedReplyTaskId((prev) => prev || openTasks.find((t) => !t.firstResponseAt)?.id || '');
     } catch {
       setGuestMessages([]);
+      setBookingTasks([]);
     } finally {
       setLoadingMessages(false);
     }
@@ -357,6 +370,7 @@ export default function BookingsPage() {
       await guestConversationsApi.sendMessage(bookingId, {
         body: replyBody.trim(),
         clientMsgId: `staff_msg_${bookingId}_${Date.now()}`,
+        taskId: selectedReplyTaskId || undefined,
       });
       setReplyBody('');
       await fetchBookingMessages(bookingId);
@@ -1199,7 +1213,7 @@ export default function BookingsPage() {
 
                               {/* Đổi nhân sự phụ trách (Đợt 3: Cho phép cả khi đang lưu trú CHECKED_IN hoặc NO_SHOW) */}
                               <button
-                                onClick={() => openReassignModal(b)}
+                                onClick={() => handleOpenCoverageModal(b, 'PERMANENT')}
                                 disabled={
                                   b.status === 'COMPLETED' ||
                                   b.status === 'CANCELLED' ||
@@ -1911,7 +1925,19 @@ export default function BookingsPage() {
                 )}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <select
+                  value={selectedReplyTaskId}
+                  onChange={(e) => setSelectedReplyTaskId(e.target.value)}
+                  className="rounded-lg border border-gray-300 bg-white px-2.5 py-2 text-xs text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                >
+                  <option value="">Tin nhắn chung (không tính SLA ticket)</option>
+                  {bookingTasks.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      Ticket #{t.id}: {t.title || t.type} {t.firstResponseAt ? '(Đã phản hồi)' : '(Chờ phản hồi)'}
+                    </option>
+                  ))}
+                </select>
                 <input
                   type="text"
                   value={replyBody}
@@ -1929,6 +1955,9 @@ export default function BookingsPage() {
                 </Button>
               </div>
             </div>
+
+            {/* MODULE PRICING & PROMOTIONS: Sổ quyền lợi khuyến mãi, hoàn tiền & cấn trừ dịch vụ */}
+            <BookingBenefitPanel bookingId={selectedBookingDetail.id} mode="STAFF" />
 
             {/* ĐỢT 2: Thông tin hiện diện & Check-in / No-show thực tế */}
             <div className="rounded-xl border border-indigo-200 p-4 dark:border-indigo-800 bg-indigo-50/40 dark:bg-indigo-900/10 space-y-3">
@@ -2975,7 +3004,7 @@ export default function BookingsPage() {
           isOpen={coverageModal.isOpen}
           onClose={() => setCoverageModal((prev) => ({ ...prev, isOpen: false }))}
           bookingId={coverageModal.booking.id}
-          hotelId={(coverageModal.booking as any).hotelId || 1}
+          hotelId={(coverageModal.booking as any).hotelId || ""}
           availableStaffList={coverageModal.staffList}
           onSuccess={() => {
             fetchBookings();

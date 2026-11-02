@@ -58,7 +58,7 @@ export default function MyKpiPage() {
       } catch {
         // Fallback
       }
-      setHotelId('1');
+      setHotelId('');
     };
     loadUserHotels();
   }, [user?.id]);

@@ -18,6 +18,7 @@ import {
   GuestMessageItem,
 } from '@/services/api/guest-conversations.api';
 import { StaffRatingForm } from '@/components/booking/StaffRatingForm';
+import { BookingBenefitPanel } from '@/components/promotions/BookingBenefitPanel';
 import { useCustomerAuth } from '@/features/auth/context/CustomerAuthContext';
 import { getSocket, REALTIME_EVENTS, RealtimeBookingStatusChanged } from '@/lib/socket';
 
@@ -553,6 +554,9 @@ export default function BookingHistory() {
                       )}
 
                       <div className="mt-6 border-t pt-5 space-y-4">
+                        {booking.paymentStatus === 'PAID' && (
+                          <BookingBenefitPanel bookingId={booking.id} mode="CUSTOMER" />
+                        )}
                         <div className="flex flex-wrap items-center justify-between gap-4">
                           <div className="flex items-center gap-2">
                             <span className="text-gray-600 text-sm font-medium">Thanh toán:</span>

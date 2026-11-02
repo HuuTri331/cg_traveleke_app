@@ -18,11 +18,9 @@ interface PermanentTransferDialogProps {
 }
 
 const REASON_CODE_OPTIONS = [
-  { value: 'LONG_LEAVE', label: 'Nhân sự nghỉ phép nhiều ngày / Nghỉ ốm' },
-  { value: 'RESIGNED', label: 'Nhân sự nghỉ việc / Chuyển vị trí công tác' },
-  { value: 'SHIFT_HANDOVER', label: 'Bàn giao trách nhiệm ca dài hạn' },
-  { value: 'WORKLOAD_REBALANCE', label: 'Điều phối cân bằng tải công việc' },
-  { value: 'MANAGER_DECISION', label: 'Quyết định điều hành trực tiếp của Quản lý' },
+  { value: 'EMPLOYMENT_ENDED', label: 'Nhân sự nghỉ việc hẳn / Rời biên chế khách sạn' },
+  { value: 'ROLE_CHANGED', label: 'Nhân sự chuyển bộ phận / Không còn giữ vai trò Lễ tân' },
+  { value: 'ADMIN_OVERRIDE', label: 'Điều chuyển đặc biệt bởi Quản trị viên (Admin Override)' },
 ];
 
 export function PermanentTransferDialog({
@@ -35,7 +33,7 @@ export function PermanentTransferDialog({
   onSuccess,
 }: PermanentTransferDialogProps) {
   const [toStaffUserId, setToStaffUserId] = useState('');
-  const [reasonCode, setReasonCode] = useState('LONG_LEAVE');
+  const [reasonCode, setReasonCode] = useState('EMPLOYMENT_ENDED');
   const [reason, setReason] = useState('');
   const [commandId] = useState(() => `trans_${bookingId}_${Date.now()}`);
   const [submitting, setSubmitting] = useState(false);

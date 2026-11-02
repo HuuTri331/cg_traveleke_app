@@ -90,13 +90,16 @@ export default function MyTasksPage() {
     }
   };
 
-  const handleAccept = async (taskId: string) => {
-    setActionLoading(taskId);
+  const handleAccept = async (task: GuestWorkTaskItem) => {
+    setActionLoading(task.id);
     setActionError(null);
     setActionSuccess(null);
     try {
-      await guestWorkApi.acceptTask(taskId);
-      setActionSuccess(`Đã tiếp nhận nhiệm vụ #${taskId}`);
+      await guestWorkApi.acceptTask(task.id, {
+        expectedVersion: task.version,
+        commandId: `accept_${task.id}_v${task.version}`,
+      });
+      setActionSuccess(`Đã tiếp nhận nhiệm vụ #${task.id}`);
       await fetchTasks();
     } catch (err: any) {
       setActionError(err?.response?.data?.message || 'Không thể tiếp nhận nhiệm vụ');
@@ -105,13 +108,16 @@ export default function MyTasksPage() {
     }
   };
 
-  const handleStart = async (taskId: string) => {
-    setActionLoading(taskId);
+  const handleStart = async (task: GuestWorkTaskItem) => {
+    setActionLoading(task.id);
     setActionError(null);
     setActionSuccess(null);
     try {
-      await guestWorkApi.startTask(taskId);
-      setActionSuccess(`Bắt đầu thực hiện nhiệm vụ #${taskId}`);
+      await guestWorkApi.startTask(task.id, {
+        expectedVersion: task.version,
+        commandId: `start_${task.id}_v${task.version}`,
+      });
+      setActionSuccess(`Bắt đầu thực hiện nhiệm vụ #${task.id}`);
       await fetchTasks();
     } catch (err: any) {
       setActionError(err?.response?.data?.message || 'Không thể bắt đầu nhiệm vụ');
@@ -120,18 +126,20 @@ export default function MyTasksPage() {
     }
   };
 
-  const handleComplete = async (taskId: string) => {
+  const handleComplete = async (task: GuestWorkTaskItem) => {
     const note = window.prompt('Nhập minh chứng / ghi chú hoàn tất nhiệm vụ:');
     if (note === null) return;
 
-    setActionLoading(taskId);
+    setActionLoading(task.id);
     setActionError(null);
     setActionSuccess(null);
     try {
-      await guestWorkApi.completeTask(taskId, {
+      await guestWorkApi.completeTask(task.id, {
         evidenceRef: note.trim() || 'Hoàn tất trên Dashboard',
+        expectedVersion: task.version,
+        commandId: `complete_${task.id}_v${task.version}`,
       });
-      setActionSuccess(`Nhiệm vụ #${taskId} đã được đánh dấu hoàn thành`);
+      setActionSuccess(`Nhiệm vụ #${task.id} đã được đánh dấu hoàn thành`);
       await fetchTasks();
     } catch (err: any) {
       setActionError(err?.response?.data?.message || 'Không thể hoàn tất nhiệm vụ');
@@ -285,6 +293,15 @@ export default function MyTasksPage() {
                       <span>Đơn đặt phòng:</span>
                       <span className="font-medium text-gray-900">#{task.bookingId}</span>
                     </div>
+                    <div className="flex justify-between">
+                      <span>Phụ trách chính / Đang làm:</span>
+                      <span className="font-medium text-gray-900">
+                        #{task.assignedStaffId || 'Chưa gán'}
+                        {task.activeExecutorId && task.activeExecutorId !== task.assignedStaffId
+                          ? ` • Hỗ trợ: #${task.activeExecutorId}`
+                          : ''}
+                      </span>
+                    </div>
                     {task.responseSlaDueAt && (
                       <div className="flex justify-between items-center">
                         <span>Hạn phản hồi (SLA):</span>
@@ -303,7 +320,7 @@ export default function MyTasksPage() {
                   {isAssigned && (
                     <Button
                       size="sm"
-                      onClick={() => handleAccept(task.id)}
+                      onClick={() => handleAccept(task)}
                       disabled={actionLoading === task.id}
                     >
                       Nhận việc
@@ -313,7 +330,7 @@ export default function MyTasksPage() {
                   {isAccepted && (
                     <Button
                       size="sm"
-                      onClick={() => handleStart(task.id)}
+                      onClick={() => handleStart(task)}
                       disabled={actionLoading === task.id}
                       className="flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white"
                     >
@@ -325,7 +342,7 @@ export default function MyTasksPage() {
                   {isInProgress && (
                     <Button
                       size="sm"
-                      onClick={() => handleComplete(task.id)}
+                      onClick={() => handleComplete(task)}
                       disabled={actionLoading === task.id}
                       className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
                     >

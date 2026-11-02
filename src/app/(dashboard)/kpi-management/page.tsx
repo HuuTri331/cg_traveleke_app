@@ -78,7 +78,7 @@ export default function KpiManagementPage() {
       } catch {
         // Fallback
       }
-      setHotelId('1');
+      setHotelId('');
     };
     loadManagedHotels();
   }, [user?.id, isAdmin]);

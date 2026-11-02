@@ -27,6 +27,9 @@ export interface GuestWorkTaskItem {
   sourceTable?: string | null;
   sourceId?: string | null;
   assignedStaffId?: string | null;
+  activeExecutorId?: string | null;
+  coverageGrantId?: string | null;
+  executionLeaseUntil?: string | null;
   ownerAtCreate?: string | null;
   status: WorkTaskStatus;
   priority: WorkTaskPriority;
@@ -70,13 +73,18 @@ export interface CreateWorkTaskPayload {
   sourceId?: string;
 }
 
-export interface CompleteTaskPayload {
+export interface ClaimTaskPayload {
+  commandId?: string;
+  expectedVersion?: number;
+}
+
+export interface CompleteTaskPayload extends ClaimTaskPayload {
   evidenceRef?: string;
   evidenceType?: string;
   note?: string;
 }
 
-export interface VerifyTaskPayload {
+export interface VerifyTaskPayload extends ClaimTaskPayload {
   decision: 'VERIFIED' | 'FAILED';
   note?: string;
   evidenceRef?: string;
@@ -122,16 +130,22 @@ export const guestWorkApi = {
   /**
    * Nhận việc (Accept task)
    */
-  acceptTask: async (taskId: string | number): Promise<GuestWorkTaskItem> => {
-    const response = await apiClient.post(`/guest-work/${taskId}/accept`);
+  acceptTask: async (
+    taskId: string | number,
+    payload?: ClaimTaskPayload,
+  ): Promise<GuestWorkTaskItem> => {
+    const response = await apiClient.post(`/guest-work/${taskId}/accept`, payload || {});
     return response.data;
   },
 
   /**
    * Bắt đầu thực hiện (Start task)
    */
-  startTask: async (taskId: string | number): Promise<GuestWorkTaskItem> => {
-    const response = await apiClient.post(`/guest-work/${taskId}/start`);
+  startTask: async (
+    taskId: string | number,
+    payload?: ClaimTaskPayload,
+  ): Promise<GuestWorkTaskItem> => {
+    const response = await apiClient.post(`/guest-work/${taskId}/start`, payload || {});
     return response.data;
   },
 

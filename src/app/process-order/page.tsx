@@ -30,6 +30,7 @@ import FooterCommon from '@/components/common/FooterCommon';
 import { useCustomerAuth } from '@/features/auth/context/CustomerAuthContext';
 import { hotelDetailApi, type HotelDetail } from '@/services/api/hotel-detail.api';
 import { bookingApi, type CreateBookingData } from '@/services/api/booking.api';
+import { promotionsApi } from '@/services/api/promotions.api';
 
 interface PendingBookingData {
   hotelId?: string | number | null;
@@ -210,19 +211,10 @@ function ProcessOrderContent() {
     }
   }, [hotelIdParam, roomIdParam]);
 
-  // Price calculations: parse strictly as clean numbers without arbitrary client fallbacks (Section 07.3)
-  const roomPrice = Math.round(parseFloat(String(bookingData?.roomPrice || '0')) || 0);
-  // Giá phòng đã bao gồm đầy đủ thuế và phí
+  // Price calculations: use server nightly quote when available (INV-P01 / INV-P02 / PR-03)
+  const [serverQuote, setServerQuote] = useState<any | null>(null);
+  const roomPricePerNight = Math.round(parseFloat(String(bookingData?.roomPrice || '0')) || 0);
   const taxesAndFees = 0;
-  const totalPrice = roomPrice;
-
-  const formattedRoomPrice = useMemo(() => {
-    return Number(roomPrice).toLocaleString('vi-VN');
-  }, [roomPrice]);
-
-  const formattedTotal = useMemo(() => {
-    return Number(totalPrice).toLocaleString('vi-VN');
-  }, [totalPrice]);
 
   // Section 02.9 & 07.2: Mặc định nhận phòng HÔM NAY, trả phòng NGÀY MAI
   const checkInDateObj = useMemo(() => {
@@ -241,6 +233,42 @@ function ProcessOrderContent() {
     d.setHours(12, 0, 0, 0);
     return d;
   }, [bookingData?.checkOutAt, checkOutParam, checkInDateObj]);
+
+  useEffect(() => {
+    const rid = bookingData?.roomId || roomIdParam;
+    if (!rid) return;
+    const qty = bookingData?.roomCount || Number(roomCountParam) || 1;
+    const guests = bookingData?.totalGuests || Number(totalGuestsParam) || 2;
+    promotionsApi
+      .calculateQuote({
+        roomId: String(rid),
+        checkInAt: checkInDateObj.toISOString(),
+        checkOutAt: checkOutDateObj.toISOString(),
+        roomCount: qty,
+        totalGuests: guests,
+      })
+      .then((q) => setServerQuote(q))
+      .catch(() => setServerQuote(null));
+  }, [bookingData?.roomId, roomIdParam, checkInDateObj, checkOutDateObj, bookingData?.roomCount, roomCountParam, bookingData?.totalGuests, totalGuestsParam]);
+
+  const fallbackNights = Math.max(
+    1,
+    Math.round((checkOutDateObj.getTime() - checkInDateObj.getTime()) / 86400000),
+  );
+  const effectiveQty = bookingData?.roomCount || Number(roomCountParam) || 1;
+  const roomPrice = serverQuote
+    ? Math.round(Number(serverQuote.baseTotal))
+    : roomPricePerNight * fallbackNights * effectiveQty;
+  const discountTotal = serverQuote ? Math.round(Number(serverQuote.discountTotal || 0)) : 0;
+  const totalPrice = serverQuote ? Math.round(Number(serverQuote.payableTotal)) : roomPrice;
+
+  const formattedRoomPrice = useMemo(() => {
+    return Number(roomPrice).toLocaleString('vi-VN');
+  }, [roomPrice]);
+
+  const formattedTotal = useMemo(() => {
+    return Number(totalPrice).toLocaleString('vi-VN');
+  }, [totalPrice]);
 
   const checkInDateStr = useMemo(() => {
     return checkInDateObj.toLocaleDateString('vi-VN', {

@@ -49,7 +49,7 @@ export default function DashboardPage() {
     totalRooms: number;
   }>({
     roleLabel: 'Nhân sự vận hành',
-    hotelId: '1',
+    hotelId: '',
     hotelName: 'Khách sạn đang phụ trách',
     inHouseRooms: 0,
     noShowCommittedRooms: 0,
@@ -74,7 +74,7 @@ export default function DashboardPage() {
         const hotelList = hotelsRes.data || [];
         setRecentHotels(hotelList);
 
-        let targetHotelId = hotelList[0]?.id ? String(hotelList[0].id) : '1';
+        let targetHotelId = hotelList[0]?.id ? String(hotelList[0].id) : '';
         let targetHotelName = hotelList[0]?.name || 'Khách sạn #1';
         let roleLabel = isAdmin ? 'Quản trị viên hệ thống (ADMIN)' : 'Lễ tân khách sạn (RECEPTIONIST)';
 
@@ -92,9 +92,9 @@ export default function DashboardPage() {
           }
         }
 
-        const presenceSummary = await bookingPresenceApi
+        const presenceSummary = targetHotelId ? await bookingPresenceApi
           .getArrivalsSummary(targetHotelId)
-          .catch(() => null);
+          .catch(() => null) : null;
         const counts: any = presenceSummary?.data?.counts || {};
 
         setStaffRoleInfo({
