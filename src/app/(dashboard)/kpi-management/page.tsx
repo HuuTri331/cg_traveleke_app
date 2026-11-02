@@ -18,28 +18,75 @@ import {
   staffKpiApi,
   StaffKpiPeriodScoreItem,
 } from '@/services/api/staff-kpi.api';
+import { hotelsApi } from '@/services/api/hotels.api';
+import { hotelStaffApi } from '@/services/api/hotel-staff.api';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Textarea } from '@/components/ui/Textarea';
 
 export default function KpiManagementPage() {
-  const [hotelId, setHotelId] = useState<string>('1');
+  const { user, isAdmin } = useAuth();
+  const [hotelId, setHotelId] = useState<string>('');
+  const [hotelOptions, setHotelOptions] = useState<Array<{ id: string; name: string }>>([]);
   const [periodKey, setPeriodKey] = useState<string>(() => new Date().toISOString().slice(0, 7));
   const [scores, setScores] = useState<StaffKpiPeriodScoreItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  // Modal điều chỉnh
+  // Modal điều chỉnh / Rubric 10đ của Quản lý
   const [adjustModalOpen, setAdjustModalOpen] = useState(false);
   const [selectedStaffId, setSelectedStaffId] = useState<string>('');
   const [metricCode, setMetricCode] = useState<string>('MANAGER_EVALUATION');
   const [delta, setDelta] = useState<number>(1);
   const [adjustReason, setAdjustReason] = useState<string>('');
+  const [evidenceRef, setEvidenceRef] = useState<string>('');
   const [adjusting, setAdjusting] = useState(false);
 
   useEffect(() => {
-    fetchScores();
+    const loadManagedHotels = async () => {
+      try {
+        if (isAdmin) {
+          const res = await hotelsApi.getAll({ perPage: 100 });
+          if (res.data && res.data.length > 0) {
+            const list = res.data.map((h: any) => ({ id: String(h.id), name: h.name }));
+            setHotelOptions(list);
+            setHotelId(list[0].id);
+            return;
+          }
+        }
+        const staffRes = await hotelStaffApi.getAll();
+        if (staffRes.data && Array.isArray(staffRes.data)) {
+          const myManaged = staffRes.data.filter(
+            (s: any) =>
+              String(s.staffUserId) === String(user?.id) &&
+              s.status === 'ACTIVE' &&
+              (isAdmin || s.staffRole === 'MANAGER'),
+          );
+          const listSource = myManaged.length > 0 ? myManaged : staffRes.data.filter((s: any) => String(s.staffUserId) === String(user?.id));
+          if (listSource.length > 0) {
+            const list = listSource.map((s: any) => ({
+              id: String(s.hotelId),
+              name: s.hotelName || `Khách sạn #${s.hotelId}`,
+            }));
+            setHotelOptions(list);
+            setHotelId(list[0].id);
+            return;
+          }
+        }
+      } catch {
+        // Fallback
+      }
+      setHotelId('1');
+    };
+    loadManagedHotels();
+  }, [user?.id, isAdmin]);
+
+  useEffect(() => {
+    if (hotelId) {
+      fetchScores();
+    }
   }, [hotelId, periodKey]);
 
   const fetchScores = async () => {
@@ -222,20 +269,32 @@ export default function KpiManagementPage() {
                       </div>
                     </td>
                     <td className="px-3 py-3.5 text-center">
-                      <span className="text-lg font-black text-blue-600">{sc.totalScore}</span>
-                      <span className="text-xs text-gray-400 ml-1">/ 100</span>
+                      {sc.sampleCount === 0 ? (
+                        <span className="px-2 py-1 text-xs font-bold text-gray-500 bg-gray-100 rounded-md">
+                          CHƯA ĐỦ DỮ LIỆU / N/A
+                        </span>
+                      ) : (
+                        <>
+                          <span className="text-lg font-black text-blue-600">{sc.totalScore}</span>
+                          <span className="text-xs text-gray-400 ml-1">/ 100</span>
+                        </>
+                      )}
                     </td>
                     <td className="px-3 py-3.5 text-center text-sm font-semibold text-gray-700">
-                      {sc.coverageRatio}%
+                      {sc.sampleCount === 0 ? 'N/A' : `${sc.coverageRatio}%`}
                     </td>
                     <td className="px-3 py-3.5 text-center">
                       <div className="inline-flex items-center gap-1.5">
                         <span className="font-medium text-gray-900">{sc.sampleCount}</span>
-                        {sc.sampleCount < 3 && (
-                          <span className="px-1.5 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 rounded">
-                            Mẫu nhỏ
+                        {sc.sampleCount === 0 ? (
+                          <span className="px-1.5 py-0.5 text-[10px] font-bold bg-gray-100 text-gray-600 rounded">
+                            Chưa có mẫu
                           </span>
-                        )}
+                        ) : sc.sampleCount < 3 ? (
+                          <span className="px-1.5 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 rounded">
+                            PROVISIONAL (&lt;3)
+                          </span>
+                        ) : null}
                       </div>
                     </td>
                     <td className="px-3 py-3.5 text-center">
@@ -285,21 +344,21 @@ export default function KpiManagementPage() {
       >
         <form onSubmit={handleSubmitAdjustment} className="space-y-4">
           <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-900">
-            Quản lý có quyền cộng hoặc trừ điểm (delta) kèm theo lý do rõ ràng. Hệ thống sẽ tự động cập nhật tổng điểm và lưu vết kiểm toán.
+            <strong>Quy tắc khách quan (Đợt 5):</strong> Quản lý chỉ đánh giá trong phạm vi Rubric 10 điểm hoặc xác minh ngoại lệ có bằng chứng; tuyệt đối không nhập đè trực tiếp 70% điểm hệ thống hoặc 20% điểm đánh giá sao của khách hàng.
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Tiêu chí điều chỉnh
+              Hạng mục xác minh / Rubric Quản lý (10 điểm)
             </label>
             <select
               value={metricCode}
               onChange={(e) => setMetricCode(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
             >
-              <option value="MANAGER_EVALUATION">Đánh giá chung của Quản lý (Manager Eval)</option>
-              <option value="GUEST_RATING">Xem xét lại đánh giá của khách (Guest Rating)</option>
-              <option value="COMPLAINT_RESOLUTION">Xử lý khiếu nại phát sinh ngoài ý muốn</option>
+              <option value="MANAGER_EVALUATION">Rubric đánh giá của Quản lý (Tối đa 10đ)</option>
+              <option value="COMPLIANCE_ACCURACY">Xác minh tuân thủ checklist / quy trình kèm chứng cứ</option>
+              <option value="COMPLAINT_RESOLUTION">Xác minh sự cố khách quan ngoài tầm kiểm soát</option>
             </select>
           </div>
 

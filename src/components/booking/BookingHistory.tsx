@@ -13,6 +13,11 @@ import {
 } from '@/services/api/booking.api';
 import { bookingPresenceApi } from '@/services/api/booking-presence.api';
 import { cancellationApi } from '@/services/api/cancellation.api';
+import {
+  guestConversationsApi,
+  GuestMessageItem,
+} from '@/services/api/guest-conversations.api';
+import { StaffRatingForm } from '@/components/booking/StaffRatingForm';
 import { useCustomerAuth } from '@/features/auth/context/CustomerAuthContext';
 import { getSocket, REALTIME_EVENTS, RealtimeBookingStatusChanged } from '@/lib/socket';
 
@@ -81,6 +86,72 @@ export default function BookingHistory() {
     note: '',
     submitting: false,
   });
+
+  // Đợt 5: Modal đánh giá nhân viên phục vụ theo từng giai đoạn (1-5 sao)
+  const [ratingModalBooking, setRatingModalBooking] = useState<BookingHistoryType | null>(null);
+
+  // Đợt 4: Modal liên hệ khách sạn / gửi yêu cầu hỗ trợ gắn với booking
+  const [supportModal, setSupportModal] = useState<{
+    isOpen: boolean;
+    booking: BookingHistoryType | null;
+    messages: GuestMessageItem[];
+    loading: boolean;
+    body: string;
+    sending: boolean;
+  }>({
+    isOpen: false,
+    booking: null,
+    messages: [],
+    loading: false,
+    body: '',
+    sending: false,
+  });
+
+  const handleOpenSupportModal = async (booking: BookingHistoryType) => {
+    setSupportModal({
+      isOpen: true,
+      booking,
+      messages: [],
+      loading: true,
+      body: '',
+      sending: false,
+    });
+    try {
+      const msgs = await guestConversationsApi.getMessages(booking.id);
+      setSupportModal((prev) => ({
+        ...prev,
+        messages: Array.isArray(msgs) ? msgs : [],
+        loading: false,
+      }));
+    } catch {
+      setSupportModal((prev) => ({
+        ...prev,
+        messages: [],
+        loading: false,
+      }));
+    }
+  };
+
+  const handleSendCustomerMessage = async () => {
+    if (!supportModal.booking || !supportModal.body.trim()) return;
+    try {
+      setSupportModal((prev) => ({ ...prev, sending: true }));
+      await guestConversationsApi.sendMessage(supportModal.booking.id, {
+        body: supportModal.body.trim(),
+        clientMsgId: `cust_msg_${supportModal.booking.id}_${Date.now()}`,
+      });
+      const msgs = await guestConversationsApi.getMessages(supportModal.booking.id);
+      setSupportModal((prev) => ({
+        ...prev,
+        messages: Array.isArray(msgs) ? msgs : [],
+        body: '',
+        sending: false,
+      }));
+    } catch (err: any) {
+      alert(err?.response?.data?.message || 'Không thể gửi tin nhắn hỗ trợ.');
+      setSupportModal((prev) => ({ ...prev, sending: false }));
+    }
+  };
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -506,10 +577,37 @@ export default function BookingHistory() {
                             )}
                           </div>
 
-                          <div className="flex items-center gap-4">
-                            <span className="text-xl font-bold text-red-600">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xl font-bold text-red-600 mr-2">
                               {Number(booking.estimatedTotal).toLocaleString('vi-VN')} ₫
                             </span>
+
+                            {/* Đợt 4: Nút Liên hệ khách sạn / Yêu cầu hỗ trợ */}
+                            {booking.status !== 'CANCELLED' &&
+                              booking.status !== 'REJECTED' &&
+                              booking.status !== 'PAYMENT_EXPIRED' && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenSupportModal(booking)}
+                                  className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-teal-200 bg-teal-50 text-teal-700 hover:bg-teal-100 transition cursor-pointer"
+                                >
+                                  💬 Liên hệ / Hỗ trợ
+                                </button>
+                              )}
+
+                            {/* Đợt 5: Nút Đánh giá 1-5 sao nhân viên thực tế phục vụ */}
+                            {(booking.status === 'CONFIRMED' ||
+                              booking.status === 'CHECKED_IN' ||
+                              booking.status === 'COMPLETED' ||
+                              booking.paymentStatus === 'PAID') && (
+                              <button
+                                type="button"
+                                onClick={() => setRatingModalBooking(booking)}
+                                className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 transition cursor-pointer"
+                              >
+                                ★ Đánh giá nhân viên
+                              </button>
+                            )}
 
                             {booking.paymentStatus === 'PAID' &&
                               (booking.status === 'PENDING' || booking.status === 'CONFIRMED') && (
@@ -669,6 +767,108 @@ export default function BookingHistory() {
                 className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
               >
                 {lateNoticeModal.submitting ? 'Đang gửi...' : 'Gửi Thông Báo'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL ĐÁNH GIÁ NHÂN VIÊN PHỤC VỤ THEO GIAI ĐOẠN (ĐỢT 5) */}
+      {ratingModalBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">
+                  Đánh Giá Nhân Viên Phục Vụ (1–5 Sao)
+                </h3>
+                <p className="text-xs text-gray-500">
+                  Mã đơn: <strong className="font-mono">{ratingModalBooking.bookingCode || ratingModalBooking.id}</strong>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setRatingModalBooking(null)}
+                className="rounded-lg border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                Đóng
+              </button>
+            </div>
+            <StaffRatingForm bookingId={ratingModalBooking.id} />
+          </div>
+        </div>
+      )}
+
+      {/* MODAL LIÊN HỆ KHÁCH SẠN / YÊU CẦU HỖ TRỢ (ĐỢT 4 - KHÔNG DÙNG APP CHAT RIÊNG) */}
+      {supportModal.isOpen && supportModal.booking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+            <div className="flex items-center justify-between border-b pb-3">
+              <div>
+                <h3 className="text-base font-bold text-gray-900">
+                  💬 Liên Hệ Khách Sạn / Yêu Cầu Hỗ Trợ
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Đơn đặt phòng: <strong className="font-mono">{supportModal.booking.bookingCode || supportModal.booking.id}</strong> • {supportModal.booking.hotelName}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSupportModal((prev) => ({ ...prev, isOpen: false }))}
+                className="rounded-lg border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+              >
+                Đóng
+              </button>
+            </div>
+
+            <div className="mt-4 max-h-64 overflow-y-auto space-y-2.5 rounded-xl bg-gray-50 p-3 border border-gray-200">
+              {supportModal.loading ? (
+                <p className="text-xs text-gray-400 text-center py-6">Đang tải lịch sử trao đổi...</p>
+              ) : supportModal.messages.length === 0 ? (
+                <p className="text-xs text-gray-500 text-center py-6">
+                  Chưa có tin nhắn nào. Hãy gửi yêu cầu hỗ trợ hoặc lời nhắn cho quầy lễ tân bên dưới.
+                </p>
+              ) : (
+                supportModal.messages.map((m) => (
+                  <div
+                    key={m.id}
+                    className={`p-3 rounded-xl text-xs ${
+                      m.senderRole === 'CUSTOMER'
+                        ? 'bg-blue-600 text-white ml-8'
+                        : 'bg-white border border-gray-200 text-gray-800 mr-8'
+                    }`}
+                  >
+                    <div
+                      className={`flex items-center justify-between text-[11px] mb-1 ${
+                        m.senderRole === 'CUSTOMER' ? 'text-blue-100' : 'text-gray-500'
+                      }`}
+                    >
+                      <span className="font-semibold">
+                        {m.senderRole === 'CUSTOMER' ? 'Bạn' : 'Lễ tân khách sạn'}
+                      </span>
+                      <span>{formatDate(m.sentAt)}</span>
+                    </div>
+                    <p className="whitespace-pre-wrap">{m.body}</p>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="mt-4 flex items-center gap-2">
+              <input
+                type="text"
+                value={supportModal.body}
+                onChange={(e) => setSupportModal((prev) => ({ ...prev, body: e.target.value }))}
+                placeholder="Nhập yêu cầu hỗ trợ (VD: Cần thêm khăn tắm, hỏi thông tin nhận phòng...)"
+                className="flex-1 rounded-xl border border-gray-300 px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-teal-600"
+              />
+              <button
+                type="button"
+                disabled={supportModal.sending || !supportModal.body.trim()}
+                onClick={handleSendCustomerMessage}
+                className="rounded-xl bg-teal-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-teal-700 disabled:opacity-50"
+              >
+                {supportModal.sending ? 'Đang gửi...' : 'Gửi Yêu Cầu'}
               </button>
             </div>
           </div>

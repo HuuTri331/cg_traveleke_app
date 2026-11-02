@@ -13,6 +13,7 @@ export interface GuestMessageItem {
 export interface SendGuestMessagePayload {
   body: string;
   clientMsgId?: string;
+  taskId?: string;
 }
 
 export const guestConversationsApi = {

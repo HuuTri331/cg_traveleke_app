@@ -46,17 +46,21 @@ export interface CreateTemporaryCoveragePayload {
   endAt: string;
   allowedTaskTypes?: CoverageTaskType[];
   reason?: string;
+  expectedAssignmentVersion?: number;
   commandId?: string;
 }
 
 export interface ExtendCoveragePayload {
   newEndAt: string;
-  reason?: string;
+  reason: string;
+  expectedVersion: number;
 }
 
 export interface PermanentTransferPayload {
   toStaffUserId: string;
+  reasonCode: string;
   reason: string;
+  expectedAssignmentVersion?: number;
   commandId?: string;
 }
 

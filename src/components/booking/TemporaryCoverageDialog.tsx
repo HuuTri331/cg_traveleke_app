@@ -29,8 +29,10 @@ export function TemporaryCoverageDialog({
 }: TemporaryCoverageDialogProps) {
   const [delegateStaffId, setDelegateStaffId] = useState('');
   const [durationMinutes, setDurationMinutes] = useState(120); // Mặc định 2 giờ
-  const [taskType, setTaskType] = useState<CoverageTaskType>('ALL_SERVICE_TASKS');
+  const [taskType, setTaskType] = useState<CoverageTaskType>('CHECK_IN');
+  const [includeServiceTasks, setIncludeServiceTasks] = useState(true);
   const [reason, setReason] = useState('');
+  const [commandId] = useState(() => `cov_${bookingId}_${Date.now()}`);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -46,15 +48,21 @@ export function TemporaryCoverageDialog({
 
     const now = new Date();
     const endAt = new Date(now.getTime() + durationMinutes * 60 * 1000);
+    const allowedTaskTypes: CoverageTaskType[] = Array.from(
+      new Set([
+        taskType,
+        ...(includeServiceTasks ? (['ALL_SERVICE_TASKS', 'CHECK_IN'] as CoverageTaskType[]) : []),
+      ]),
+    );
 
     try {
       await bookingCoverageApi.createTemporary(bookingId, {
         delegateStaffUserId: delegateStaffId,
         startAt: now.toISOString(),
         endAt: endAt.toISOString(),
-        allowedTaskTypes: [taskType],
-        reason: reason.trim() || 'Hỗ trợ nghiệp vụ tạm thời theo ca',
-        commandId: `cov_${bookingId}_${Date.now()}`,
+        allowedTaskTypes,
+        reason: reason.trim() || 'Hỗ trợ nghiệp vụ tạm thời theo khoảng thời gian',
+        commandId,
       });
       onSuccess();
       onClose();

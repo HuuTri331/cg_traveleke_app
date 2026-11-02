@@ -13,6 +13,8 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { staffKpiApi, StaffKpiPeriodScoreItem } from '@/services/api/staff-kpi.api';
+import { hotelStaffApi } from '@/services/api/hotel-staff.api';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 
 const METRIC_NAMES: Record<string, string> = {
@@ -27,14 +29,44 @@ const METRIC_NAMES: Record<string, string> = {
 };
 
 export default function MyKpiPage() {
+  const { user } = useAuth();
   const [periodKey, setPeriodKey] = useState<string>(() => new Date().toISOString().slice(0, 7));
-  const [hotelId, setHotelId] = useState<string>('1'); // Mặc định hotelId 1
+  const [hotelId, setHotelId] = useState<string>('');
+  const [myHotels, setMyHotels] = useState<Array<{ hotelId: string; hotelName: string }>>([]);
   const [kpiData, setKpiData] = useState<StaffKpiPeriodScoreItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchKpi();
+    const loadUserHotels = async () => {
+      try {
+        const res = await hotelStaffApi.getAll();
+        if (res.data && Array.isArray(res.data)) {
+          const matched = res.data.filter(
+            (s: any) => String(s.staffUserId) === String(user?.id) && s.status === 'ACTIVE',
+          );
+          if (matched.length > 0) {
+            const list = matched.map((m: any) => ({
+              hotelId: String(m.hotelId),
+              hotelName: m.hotelName || `Khách sạn #${m.hotelId}`,
+            }));
+            setMyHotels(list);
+            setHotelId(list[0].hotelId);
+            return;
+          }
+        }
+      } catch {
+        // Fallback
+      }
+      setHotelId('1');
+    };
+    loadUserHotels();
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (hotelId) {
+      fetchKpi();
+    }
   }, [periodKey, hotelId]);
 
   const fetchKpi = async () => {
@@ -108,16 +140,42 @@ export default function MyKpiPage() {
         <div className="space-y-6">
           {/* Summary Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className={`p-5 rounded-2xl border shadow-sm flex flex-col justify-between ${getScoreColor(Number(kpiData.totalScore))}`}>
+            <div
+              className={`p-5 rounded-2xl border shadow-sm flex flex-col justify-between ${
+                kpiData.sampleCount === 0
+                  ? 'text-gray-600 bg-gray-50 border-gray-200'
+                  : getScoreColor(Number(kpiData.totalScore))
+              }`}
+            >
               <div className="flex justify-between items-center">
                 <span className="text-xs font-semibold uppercase tracking-wider">Tổng điểm chuẩn hóa</span>
                 <Award className="w-5 h-5" />
               </div>
               <div className="mt-3">
-                <div className="text-3xl font-black">{kpiData.totalScore} <span className="text-sm font-semibold">/ 100</span></div>
-                <div className="text-xs mt-1 font-medium opacity-80">
-                  Trạng thái kỳ: {kpiData.status === 'APPROVED' ? 'Đã duyệt' : 'Dự thảo (Draft)'}
-                </div>
+                {kpiData.sampleCount === 0 ? (
+                  <>
+                    <div className="text-xl font-black text-gray-700">
+                      CHƯA ĐỦ DỮ LIỆU / N/A
+                    </div>
+                    <div className="text-xs mt-1 font-medium text-gray-500">
+                      Chưa phát sinh tác vụ hoặc đánh giá có chứng cứ trong kỳ
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-3xl font-black">
+                      {kpiData.totalScore} <span className="text-sm font-semibold">/ 100</span>
+                    </div>
+                    <div className="text-xs mt-1 font-medium opacity-80">
+                      Trạng thái kỳ:{' '}
+                      {kpiData.status === 'APPROVED'
+                        ? 'Đã duyệt'
+                        : kpiData.sampleCount < 3
+                        ? 'Tạm tính / Mẫu ít (PROVISIONAL)'
+                        : 'Dự thảo (Draft)'}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 

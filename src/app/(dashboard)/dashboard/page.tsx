@@ -8,6 +8,9 @@ import { Badge } from '@/components/ui/Badge';
 import { hotelsApi } from '@/services/api/hotels.api';
 import { roomsApi } from '@/services/api/rooms.api';
 import { bookingApi, DashboardStatistics } from '@/services/api/booking.api';
+import { bookingPresenceApi } from '@/services/api/booking-presence.api';
+import { hotelStaffApi } from '@/services/api/hotel-staff.api';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { Hotel } from '@/types/hotel';
 import { getFullImageUrl, formatCurrency } from '@/lib/utils';
 import {
@@ -31,23 +34,79 @@ import {
 } from 'lucide-react';
 
 export default function DashboardPage() {
+  const { user, isAdmin } = useAuth();
   const [statistics, setStatistics] = useState<DashboardStatistics | null>(null);
   const [recentHotels, setRecentHotels] = useState<Hotel[]>([]);
   const [loading, setLoading] = useState(true);
+  const [staffRoleInfo, setStaffRoleInfo] = useState<{
+    roleLabel: string;
+    hotelId: string;
+    hotelName: string;
+    inHouseRooms: number;
+    noShowCommittedRooms: number;
+    reservedOrCommittedRooms: number;
+    sellableRooms: number;
+    totalRooms: number;
+  }>({
+    roleLabel: 'Nhân sự vận hành',
+    hotelId: '1',
+    hotelName: 'Khách sạn đang phụ trách',
+    inHouseRooms: 0,
+    noShowCommittedRooms: 0,
+    reservedOrCommittedRooms: 0,
+    sellableRooms: 0,
+    totalRooms: 0,
+  });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [statsRes, hotelsRes] = await Promise.all([
+        const [statsRes, hotelsRes, staffRes] = await Promise.all([
           bookingApi.getStatistics().catch(() => ({ data: null })),
           hotelsApi.getAll({ perPage: 5 }).catch(() => ({ data: [], meta: { total: 0 } })),
+          hotelStaffApi.getAll().catch(() => ({ data: [] })),
         ]);
 
         if (statsRes.data) {
           setStatistics(statsRes.data);
         }
-        setRecentHotels(hotelsRes.data || []);
+        const hotelList = hotelsRes.data || [];
+        setRecentHotels(hotelList);
+
+        let targetHotelId = hotelList[0]?.id ? String(hotelList[0].id) : '1';
+        let targetHotelName = hotelList[0]?.name || 'Khách sạn #1';
+        let roleLabel = isAdmin ? 'Quản trị viên hệ thống (ADMIN)' : 'Lễ tân khách sạn (RECEPTIONIST)';
+
+        if (staffRes.data && Array.isArray(staffRes.data) && user?.id) {
+          const myRel = staffRes.data.find(
+            (s: any) => String(s.staffUserId) === String(user.id) && s.status === 'ACTIVE',
+          );
+          if (myRel) {
+            targetHotelId = String(myRel.hotelId);
+            targetHotelName = myRel.hotelName || `Khách sạn #${myRel.hotelId}`;
+            roleLabel =
+              myRel.staffRole === 'MANAGER'
+                ? `Quản lý khách sạn (${targetHotelName})`
+                : `Lễ tân vận hành (${targetHotelName})`;
+          }
+        }
+
+        const presenceSummary = await bookingPresenceApi
+          .getArrivalsSummary(targetHotelId)
+          .catch(() => null);
+        const counts: any = presenceSummary?.data?.counts || {};
+
+        setStaffRoleInfo({
+          roleLabel,
+          hotelId: targetHotelId,
+          hotelName: targetHotelName,
+          inHouseRooms: Number(counts.inHouseRooms ?? counts.inHouseCount ?? statistics?.checkedInBookings ?? 0),
+          noShowCommittedRooms: Number(counts.noShowCommittedRooms ?? counts.activeNoShowsCount ?? 0),
+          reservedOrCommittedRooms: Number(counts.reservedOrCommittedRooms ?? counts.inHouseCount ?? 0),
+          sellableRooms: Number(counts.sellableRooms ?? 0),
+          totalRooms: Number(counts.totalRooms ?? statistics?.totalRooms ?? 0),
+        });
       } catch (err) {
         console.error('Dashboard load error:', err);
       } finally {
@@ -55,7 +114,7 @@ export default function DashboardPage() {
       }
     };
     fetchData();
-  }, []);
+  }, [user?.id, isAdmin]);
 
   const stats = [
     {
@@ -149,6 +208,55 @@ export default function DashboardPage() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* ĐỢT 2 & ĐỢT 6: Bảng Tách Biệt 3 Con Số Tồn Phòng (Physical Occupancy vs Reserved/Committed vs Sellable Inventory) */}
+      <div className="rounded-2xl border border-indigo-200 bg-indigo-50/40 p-5 shadow-xs dark:border-indigo-800/60 dark:bg-indigo-950/20">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+          <div>
+            <h3 className="text-sm font-bold text-indigo-950 dark:text-indigo-200 flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-indigo-600" />
+              Đối Chiếu Tồn Phòng & Hiện Diện Thực Tế ({staffRoleInfo.hotelName}) — Vai trò: {staffRoleInfo.roleLabel}
+            </h3>
+            <p className="text-xs text-indigo-700/80 dark:text-indigo-300/80 mt-0.5">
+              Quy tắc bất biến Đợt 2: Đơn <strong>NO_SHOW đã thanh toán (COMMITTED)</strong> vẫn giữ suất phòng trong kỳ lưu trú, tuyệt đối không tự mở bán lại.
+            </p>
+          </div>
+          <Link href="/bookings">
+            <Button size="sm" variant="outline">
+              Giám Sát Hiện Diện & No-Show
+            </Button>
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="rounded-xl bg-white p-4 border border-indigo-100 dark:bg-gray-900 dark:border-indigo-900/50">
+            <span className="text-xs font-semibold text-gray-500">1. Phòng đang có khách thật (Physical In-house)</span>
+            <div className="mt-1.5 text-2xl font-black text-indigo-600">
+              {staffRoleInfo.inHouseRooms} <span className="text-xs font-medium text-gray-500">phòng đã CHECKED_IN</span>
+            </div>
+            <p className="text-[11px] text-gray-400 mt-1">Đã xác nhận actual_check_in_at tại quầy</p>
+          </div>
+
+          <div className="rounded-xl bg-white p-4 border border-amber-200 dark:bg-gray-900 dark:border-amber-900/50">
+            <span className="text-xs font-semibold text-gray-500">2. Suất phòng đã bán / đang giữ (Reserved / Committed)</span>
+            <div className="mt-1.5 text-2xl font-black text-amber-600">
+              {staffRoleInfo.reservedOrCommittedRooms}{' '}
+              <span className="text-xs font-medium text-amber-700">
+                (Gồm {staffRoleInfo.noShowCommittedRooms} phòng NO_SHOW bảo lưu)
+              </span>
+            </div>
+            <p className="text-[11px] text-gray-400 mt-1">Đơn PAID + COMMITTED không được bán trùng</p>
+          </div>
+
+          <div className="rounded-xl bg-white p-4 border border-emerald-200 dark:bg-gray-900 dark:border-emerald-900/50">
+            <span className="text-xs font-semibold text-gray-500">3. Suất phòng còn được phép bán thêm (Sellable)</span>
+            <div className="mt-1.5 text-2xl font-black text-emerald-600">
+              {staffRoleInfo.sellableRooms} <span className="text-xs font-medium text-gray-500">/ {staffRoleInfo.totalRooms} tổng phòng</span>
+            </div>
+            <p className="text-[11px] text-gray-400 mt-1">Sellable = Tổng phòng − Suất đã COMMITTED/HELD</p>
+          </div>
+        </div>
       </div>
 
       {/* Sales Attribution & Operational Breakdown (Section 18 & 22) */}
@@ -279,15 +387,15 @@ export default function DashboardPage() {
               Traveleke Front Desk
             </div>
             <h4 className="text-base font-bold">
-              Vận Hành & Điều Phối Lễ Tân
+              Vận Hành, Khả Dụng & KPI Lễ Tân (6 Đợt)
             </h4>
             <p className="mt-1 text-xs text-brand-100 leading-relaxed">
-              Quản lý ca trực, bàn giao chênh quỹ, tiếp nhận booking quầy/điện thoại và duyệt hạn mức tài chính.
+              Quản lý đơn xin nghỉ/đi muộn có phê duyệt, phân công công bằng 40/120 phút, nhiệm vụ SLA và bảng điểm KPI minh chứng.
             </p>
             <div className="mt-4 flex gap-2">
-              <Link href="/shifts" className="w-full">
+              <Link href="/my-tasks" className="w-full">
                 <button className="w-full rounded-xl bg-white/20 hover:bg-white/30 py-2 text-xs font-bold text-white transition-colors cursor-pointer">
-                  Vào Ca Trực
+                  Nhiệm Vụ Phục Vụ & SLA
                 </button>
               </Link>
             </div>
@@ -296,14 +404,23 @@ export default function DashboardPage() {
           {/* Quick Links Menu */}
           <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-xs dark:border-gray-800 dark:bg-white/[0.03] space-y-2">
             <h4 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3 px-2">
-              Lối Tắt Vận Hành Lễ Tân
+              Lối Tắt Vận Hành Theo Vai Trò
             </h4>
             <Link
-              href="/shifts"
+              href="/staff-requests"
               className="flex items-center justify-between p-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-medium text-gray-700 dark:text-gray-300 transition-colors"
             >
               <span className="flex items-center gap-2">
-                <Clock3 className="h-4 w-4 text-emerald-500" /> Ca trực & Bàn giao ca
+                <Clock3 className="h-4 w-4 text-emerald-500" /> Đơn xin nghỉ / đi muộn & Khả dụng
+              </span>
+              <span className="text-gray-400">→</span>
+            </Link>
+            <Link
+              href="/my-kpi"
+              className="flex items-center justify-between p-2.5 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 text-xs font-medium text-gray-700 dark:text-gray-300 transition-colors"
+            >
+              <span className="flex items-center gap-2">
+                <Star className="h-4 w-4 text-amber-500" /> Bảng điểm KPI & Minh chứng của tôi
               </span>
               <span className="text-gray-400">→</span>
             </Link>

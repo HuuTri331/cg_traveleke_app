@@ -132,4 +132,61 @@ export const staffAvailabilityApi = {
     );
     return response.data;
   },
+
+  /**
+   * D1-07: Xem danh sách các booking và tác vụ bị ảnh hưởng bởi đơn nghỉ/đi muộn
+   */
+  getRequestImpact: async (
+    requestId: string | number,
+  ): Promise<{ success: boolean; data: { affectedBookings: any[]; affectedTasks: any[] } }> => {
+    const response = await apiClient.get(`/staff-availability/requests/${requestId}/impact`);
+    return response.data;
+  },
+
+  /**
+   * D1-07: Quản lý xác nhận nhân sự vắng mặt khẩn cấp tạm thời (Emergency Unavailable)
+   */
+  createEmergencyUnavailable: async (data: {
+    hotelId: string | number;
+    staffUserId: string | number;
+    startAt?: string;
+    endAt: string;
+    reason: string;
+  }): Promise<{
+    success: boolean;
+    data: { block: any; affectedBookings: any[]; affectedTasks: any[] };
+    message: string;
+  }> => {
+    const response = await apiClient.post('/staff-availability/emergency-unavailable', {
+      hotelId: String(data.hotelId),
+      staffUserId: String(data.staffUserId),
+      startAt: data.startAt,
+      endAt: data.endAt,
+      reason: data.reason,
+    });
+    return response.data;
+  },
+
+  /**
+   * Kết thúc sớm block vắng mặt khi nhân viên đã quay lại quầy
+   */
+  endBlockEarly: async (
+    blockId: string | number,
+    note?: string,
+  ): Promise<{ success: boolean; data: any; message: string }> => {
+    const response = await apiClient.post(`/staff-availability/blocks/${blockId}/end`, {
+      note,
+    });
+    return response.data;
+  },
+
+  /**
+   * Lấy danh sách các block vắng mặt đang hiệu lực tại khách sạn
+   */
+  getActiveBlocksForHotel: async (
+    hotelId: string | number,
+  ): Promise<{ success: boolean; data: any[] }> => {
+    const response = await apiClient.get(`/staff-availability/blocks/hotel/${hotelId}`);
+    return response.data;
+  },
 };

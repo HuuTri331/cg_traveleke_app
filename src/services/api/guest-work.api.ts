@@ -156,5 +156,21 @@ export const guestWorkApi = {
     const response = await apiClient.post(`/guest-work/${taskId}/verify`, payload);
     return response.data;
   },
+
+  /**
+   * Ghi nhận nhật ký công việc ngoài hệ thống (Điện thoại / Quầy) kèm thời điểm khai báo và chứng cứ
+   */
+  createOfflineLog: async (payload: {
+    bookingId: string;
+    type?: WorkTaskType;
+    channel: 'PHONE' | 'FRONT_DESK' | 'OFFLINE_OTHER';
+    claimedOccurredAt: string;
+    summary: string;
+    evidenceRef?: string;
+    taskId?: string;
+  }): Promise<GuestWorkTaskItem> => {
+    const response = await apiClient.post('/guest-work/offline-log', payload);
+    return response.data;
+  },
 };
 

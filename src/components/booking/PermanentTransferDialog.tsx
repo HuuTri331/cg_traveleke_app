@@ -12,20 +12,32 @@ interface PermanentTransferDialogProps {
   onClose: () => void;
   bookingId: string | number;
   currentHandlerId?: string | number | null;
+  expectedAssignmentVersion?: number;
   availableStaffList: Array<{ id: string | number; fullName: string; role?: string }>;
   onSuccess: () => void;
 }
+
+const REASON_CODE_OPTIONS = [
+  { value: 'LONG_LEAVE', label: 'Nhân sự nghỉ phép nhiều ngày / Nghỉ ốm' },
+  { value: 'RESIGNED', label: 'Nhân sự nghỉ việc / Chuyển vị trí công tác' },
+  { value: 'SHIFT_HANDOVER', label: 'Bàn giao trách nhiệm ca dài hạn' },
+  { value: 'WORKLOAD_REBALANCE', label: 'Điều phối cân bằng tải công việc' },
+  { value: 'MANAGER_DECISION', label: 'Quyết định điều hành trực tiếp của Quản lý' },
+];
 
 export function PermanentTransferDialog({
   isOpen,
   onClose,
   bookingId,
   currentHandlerId,
+  expectedAssignmentVersion,
   availableStaffList,
   onSuccess,
 }: PermanentTransferDialogProps) {
   const [toStaffUserId, setToStaffUserId] = useState('');
+  const [reasonCode, setReasonCode] = useState('LONG_LEAVE');
   const [reason, setReason] = useState('');
+  const [commandId] = useState(() => `trans_${bookingId}_${Date.now()}`);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -33,6 +45,10 @@ export function PermanentTransferDialog({
     e.preventDefault();
     if (!toStaffUserId) {
       setErrorMsg('Vui lòng chọn nhân viên tiếp nhận trách nhiệm chính');
+      return;
+    }
+    if (!reasonCode) {
+      setErrorMsg('Vui lòng chọn mã lý do bàn giao');
       return;
     }
     if (!reason.trim()) {
@@ -46,8 +62,10 @@ export function PermanentTransferDialog({
     try {
       await bookingCoverageApi.permanentTransfer(bookingId, {
         toStaffUserId,
+        reasonCode,
         reason: reason.trim(),
-        commandId: `trans_${bookingId}_${Date.now()}`,
+        expectedAssignmentVersion,
+        commandId,
       });
       onSuccess();
       onClose();
@@ -107,7 +125,25 @@ export function PermanentTransferDialog({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Lý do bàn giao <span className="text-red-500">*</span>
+            Phân loại lý do bàn giao <span className="text-red-500">*</span>
+          </label>
+          <select
+            value={reasonCode}
+            onChange={(e) => setReasonCode(e.target.value)}
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+          >
+            {REASON_CODE_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label} ({opt.value})
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Lý do bàn giao chi tiết <span className="text-red-500">*</span>
           </label>
           <Textarea
             value={reason}

@@ -25,6 +25,7 @@ import {
   Sliders,
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { hotelStaffApi } from '@/services/api/hotel-staff.api';
 import { cn } from '@/lib/utils';
 
 export interface SidebarProps {
@@ -35,6 +36,34 @@ export interface SidebarProps {
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const { user, isAdmin } = useAuth();
+  const [isHotelManager, setIsHotelManager] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkManagerRole = async () => {
+      if (isAdmin) {
+        setIsHotelManager(true);
+        return;
+      }
+      if (!user?.id) return;
+      try {
+        const res = await hotelStaffApi.getAll();
+        if (res.data && Array.isArray(res.data)) {
+          const hasManagerRole = res.data.some(
+            (s: any) =>
+              String(s.staffUserId) === String(user.id) &&
+              s.status === 'ACTIVE' &&
+              s.staffRole === 'MANAGER',
+          );
+          setIsHotelManager(hasManagerRole);
+        }
+      } catch {
+        setIsHotelManager(false);
+      }
+    };
+    checkManagerRole();
+  }, [user?.id, isAdmin]);
+
+  const canManageHotel = isAdmin || isHotelManager;
 
   const menuSections = [
     {
@@ -63,36 +92,38 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           icon: <Award className="h-5 w-5" />,
           badge: 'KPI',
         },
-        {
-          label: 'Quản Lý KPI',
-          href: '/kpi-management',
-          icon: <Sliders className="h-5 w-5" />,
-          badge: 'Quản Lý',
-        },
+        ...(canManageHotel
+          ? [
+              {
+                label: 'Quản Lý KPI',
+                href: '/kpi-management',
+                icon: <Sliders className="h-5 w-5" />,
+                badge: 'Quản Lý',
+              },
+            ]
+          : []),
         {
           label: 'Đơn Nghỉ / Đi Muộn',
           href: '/staff-requests',
           icon: <CalendarOff className="h-5 w-5" />,
           badge: 'Khả Dụng',
         },
-        {
-          label: 'Duyệt Đơn & Khả Dụng',
-          href: '/staff-requests/management',
-          icon: <UserCog className="h-5 w-5" />,
-          badge: 'Quản Lý',
-        },
-        {
-          label: 'Ca Trực & Bàn Giao',
-          href: '/shifts',
-          icon: <Clock className="h-5 w-5" />,
-          badge: 'Vận Hành',
-        },
-        {
-          label: 'Xét Duyệt Hạn Mức',
-          href: '/approvals',
-          icon: <CheckSquare className="h-5 w-5" />,
-          badge: 'Tài Chính',
-        },
+        ...(canManageHotel
+          ? [
+              {
+                label: 'Duyệt Đơn & Khả Dụng',
+                href: '/staff-requests/management',
+                icon: <UserCog className="h-5 w-5" />,
+                badge: 'Quản Lý',
+              },
+              {
+                label: 'Xét Duyệt Hạn Mức',
+                href: '/approvals',
+                icon: <CheckSquare className="h-5 w-5" />,
+                badge: 'Tài Chính',
+              },
+            ]
+          : []),
         {
           label: 'Khách Hàng',
           href: '/customers',

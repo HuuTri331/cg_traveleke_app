@@ -44,6 +44,87 @@ export default function StaffRequestsManagementPage() {
   const [reviewNote, setReviewNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // D1-07: Xem Booking / Task bị ảnh hưởng khi nhân sự vắng mặt
+  const [impactModal, setImpactModal] = useState<{
+    isOpen: boolean;
+    staffName: string;
+    loading: boolean;
+    affectedBookings: any[];
+    affectedTasks: any[];
+  }>({
+    isOpen: false,
+    staffName: '',
+    loading: false,
+    affectedBookings: [],
+    affectedTasks: [],
+  });
+
+  // D1-07: Modal Xác nhận vắng mặt khẩn cấp tạm thời (Emergency Unavailable)
+  const [emergencyModalOpen, setEmergencyModalOpen] = useState(false);
+  const [emergencyStaffId, setEmergencyStaffId] = useState('');
+  const [emergencyEndAt, setEmergencyEndAt] = useState('');
+  const [emergencyReason, setEmergencyReason] = useState('');
+  const [submittingEmergency, setSubmittingEmergency] = useState(false);
+
+  const handleOpenImpact = async (item: StaffAbsenceRequestItem) => {
+    setImpactModal({
+      isOpen: true,
+      staffName: item.staffName || `Nhân viên #${item.staffUserId}`,
+      loading: true,
+      affectedBookings: [],
+      affectedTasks: [],
+    });
+    try {
+      const res = await staffAvailabilityApi.getRequestImpact(item.id);
+      if (res.success && res.data) {
+        setImpactModal((prev) => ({
+          ...prev,
+          loading: false,
+          affectedBookings: res.data.affectedBookings || [],
+          affectedTasks: res.data.affectedTasks || [],
+        }));
+      } else {
+        setImpactModal((prev) => ({ ...prev, loading: false }));
+      }
+    } catch {
+      setImpactModal((prev) => ({ ...prev, loading: false }));
+    }
+  };
+
+  const handleConfirmEmergency = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedHotelId || !emergencyStaffId.trim() || !emergencyEndAt || !emergencyReason.trim()) {
+      error('Vui lòng điền đầy đủ mã nhân viên, thời gian kết thúc và lý do khẩn cấp');
+      return;
+    }
+    try {
+      setSubmittingEmergency(true);
+      const res = await staffAvailabilityApi.createEmergencyUnavailable({
+        hotelId: selectedHotelId,
+        staffUserId: emergencyStaffId.trim(),
+        endAt: new Date(emergencyEndAt).toISOString(),
+        reason: emergencyReason.trim(),
+      });
+      success(res.message || 'Đã xác nhận vắng mặt khẩn cấp có thời hạn');
+      setEmergencyModalOpen(false);
+      setEmergencyStaffId('');
+      setEmergencyReason('');
+      if (res.data && (res.data.affectedBookings?.length > 0 || res.data.affectedTasks?.length > 0)) {
+        setImpactModal({
+          isOpen: true,
+          staffName: `Nhân viên #${emergencyStaffId}`,
+          loading: false,
+          affectedBookings: res.data.affectedBookings || [],
+          affectedTasks: res.data.affectedTasks || [],
+        });
+      }
+    } catch (err: any) {
+      error(err.response?.data?.message || 'Không thể tạo xác nhận vắng mặt khẩn cấp');
+    } finally {
+      setSubmittingEmergency(false);
+    }
+  };
+
   // Load danh sách khách sạn
   useEffect(() => {
     const fetchHotels = async () => {
@@ -342,33 +423,44 @@ export default function StaffRequestsManagementPage() {
                       </td>
 
                       <td className="py-4 px-4 text-right">
-                        {isPending ? (
-                          isSelf ? (
-                            <span className="text-xs text-zinc-500 italic">
-                              Không thể tự duyệt
-                            </span>
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleOpenImpact(item)}
+                            className="text-xs px-2.5 py-1"
+                            title="Quét các Booking / Tác vụ của nhân viên này trùng khoảng vắng mặt"
+                          >
+                            Xem tác động
+                          </Button>
+                          {isPending ? (
+                            isSelf ? (
+                              <span className="text-xs text-zinc-500 italic">
+                                Không thể tự duyệt
+                              </span>
+                            ) : (
+                              <>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleOpenDecision(item, 'APPROVE')}
+                                  className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-2.5 py-1"
+                                >
+                                  Duyệt
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleOpenDecision(item, 'REJECT')}
+                                  className="border-rose-500/40 text-rose-400 hover:bg-rose-500/10 text-xs px-2.5 py-1"
+                                >
+                                  Từ chối
+                                </Button>
+                              </>
+                            )
                           ) : (
-                            <div className="flex items-center justify-end gap-2">
-                              <Button
-                                size="sm"
-                                onClick={() => handleOpenDecision(item, 'APPROVE')}
-                                className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-2.5 py-1"
-                              >
-                                Duyệt
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleOpenDecision(item, 'REJECT')}
-                                className="border-rose-500/40 text-rose-400 hover:bg-rose-500/10 text-xs px-2.5 py-1"
-                              >
-                                Từ chối
-                              </Button>
-                            </div>
-                          )
-                        ) : (
-                          <span className="text-xs text-zinc-500">Đã giải quyết</span>
-                        )}
+                            <span className="text-xs text-zinc-500">Đã giải quyết</span>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -450,6 +542,87 @@ export default function StaffRequestsManagementPage() {
                 : 'Xác Nhận Từ Chối'}
             </Button>
           </div>
+        </div>
+      </Modal>
+
+      {/* Modal: Cảnh báo Booking & Tác vụ bị ảnh hưởng khi nhân sự nghỉ (D1-07 / PR-2) */}
+      <Modal
+        isOpen={impactModal.isOpen}
+        onClose={() => setImpactModal((prev) => ({ ...prev, isOpen: false }))}
+        title={`Cảnh Báo Tác Động Khi Vắng Mặt - ${impactModal.staffName}`}
+        subtitle="Danh sách các đơn đặt phòng và nhiệm vụ đang mở của nhân sự này trong khoảng vắng mặt để Quản lý chọn Hỗ trợ tạm thời (A→B) hoặc Chuyển giao hoàn toàn."
+        maxWidth="lg"
+      >
+        <div className="space-y-4 text-xs">
+          {impactModal.loading ? (
+            <p className="text-center py-6 text-zinc-400">Đang quét các booking và tác vụ bị ảnh hưởng...</p>
+          ) : (
+            <>
+              <div>
+                <h4 className="font-bold text-amber-400 mb-2">
+                  1. Đơn đặt phòng trùng khoảng nghỉ ({impactModal.affectedBookings.length})
+                </h4>
+                {impactModal.affectedBookings.length === 0 ? (
+                  <p className="text-zinc-400 italic">Không có booking nào bị ảnh hưởng trong khoảng thời gian này.</p>
+                ) : (
+                  <div className="space-y-2 max-h-44 overflow-y-auto">
+                    {impactModal.affectedBookings.map((b: any) => (
+                      <div
+                        key={b.id}
+                        className="p-2.5 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-between"
+                      >
+                        <div>
+                          <div className="font-bold text-white">
+                            #{b.bookingCode || b.id} - {b.contactName} ({b.status})
+                          </div>
+                          <div className="text-zinc-400 text-[11px]">
+                            Check-in: {new Date(b.checkInAt).toLocaleString('vi-VN')}
+                          </div>
+                        </div>
+                        <a
+                          href="/bookings"
+                          className="px-2.5 py-1 rounded bg-blue-600 text-white font-semibold hover:bg-blue-500"
+                        >
+                          Mở Booking (Ủy quyền B / Bàn giao)
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <h4 className="font-bold text-teal-400 mb-2">
+                  2. Tác vụ phục vụ đang mở ({impactModal.affectedTasks.length})
+                </h4>
+                {impactModal.affectedTasks.length === 0 ? (
+                  <p className="text-zinc-400 italic">Không có tác vụ đang mở nào bị tồn đọng.</p>
+                ) : (
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {impactModal.affectedTasks.map((t: any) => (
+                      <div
+                        key={t.id}
+                        className="p-2.5 rounded-lg bg-zinc-900 border border-zinc-800 flex items-center justify-between"
+                      >
+                        <div>
+                          <div className="font-semibold text-white">
+                            Task #{t.id}: {t.title || t.type} ({t.status})
+                          </div>
+                          <div className="text-zinc-400 text-[11px]">Booking #{t.bookingId}</div>
+                        </div>
+                        <a
+                          href="/bookings"
+                          className="px-2.5 py-1 rounded bg-amber-600 text-white font-semibold hover:bg-amber-500"
+                        >
+                          Xử lý bàn giao
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </Modal>
     </div>

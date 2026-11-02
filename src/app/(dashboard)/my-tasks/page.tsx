@@ -17,8 +17,11 @@ import {
   GuestWorkTaskItem,
   WorkTaskStatus,
   WorkTaskPriority,
+  WorkTaskType,
 } from '@/services/api/guest-work.api';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
+import { Textarea } from '@/components/ui/Textarea';
 
 export default function MyTasksPage() {
   const [tasks, setTasks] = useState<GuestWorkTaskItem[]>([]);
@@ -27,6 +30,48 @@ export default function MyTasksPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+
+  // PR-5 / B5: Modal ghi nhận nhật ký công việc ngoài hệ thống (Điện thoại / Quầy)
+  const [offlineModalOpen, setOfflineModalOpen] = useState(false);
+  const [offlineBookingId, setOfflineBookingId] = useState('');
+  const [offlineType, setOfflineType] = useState<WorkTaskType>('PRE_ARRIVAL_CONTACT');
+  const [offlineChannel, setOfflineChannel] = useState<'PHONE' | 'FRONT_DESK' | 'OFFLINE_OTHER'>('PHONE');
+  const [offlineClaimedAt, setOfflineClaimedAt] = useState('');
+  const [offlineSummary, setOfflineSummary] = useState('');
+  const [offlineEvidence, setOfflineEvidence] = useState('');
+  const [submittingOffline, setSubmittingOffline] = useState(false);
+
+  const handleSubmitOfflineLog = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!offlineBookingId.trim() || !offlineClaimedAt || !offlineSummary.trim()) {
+      setActionError('Vui lòng nhập đầy đủ mã Booking, thời điểm xảy ra và nội dung sự việc.');
+      return;
+    }
+    try {
+      setSubmittingOffline(true);
+      setActionError(null);
+      await guestWorkApi.createOfflineLog({
+        bookingId: offlineBookingId.trim(),
+        type: offlineType,
+        channel: offlineChannel,
+        claimedOccurredAt: new Date(offlineClaimedAt).toISOString(),
+        summary: offlineSummary.trim(),
+        evidenceRef: offlineEvidence.trim() || undefined,
+      });
+      setOfflineModalOpen(false);
+      setOfflineBookingId('');
+      setOfflineSummary('');
+      setOfflineEvidence('');
+      setActionSuccess(
+        'Đã ghi nhận nhật ký công việc ngoài hệ thống (tách biệt rõ thời điểm tự khai và thời điểm server ghi nhận).',
+      );
+      await fetchTasks();
+    } catch (err: any) {
+      setActionError(err?.response?.data?.message || 'Không thể lưu nhật ký công việc ngoài hệ thống.');
+    } finally {
+      setSubmittingOffline(false);
+    }
+  };
 
   useEffect(() => {
     fetchTasks();
@@ -140,10 +185,20 @@ export default function MyTasksPage() {
           </p>
         </div>
 
-        <Button onClick={fetchTasks} variant="outline" className="flex items-center gap-2">
-          <RefreshCw className="w-4 h-4" />
-          Làm mới
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setOfflineModalOpen(true)}
+            variant="primary"
+            className="flex items-center gap-2"
+          >
+            <FileCheck className="w-4 h-4" />
+            Ghi nhận việc ngoài web (Điện thoại / Quầy)
+          </Button>
+          <Button onClick={fetchTasks} variant="outline" className="flex items-center gap-2">
+            <RefreshCw className="w-4 h-4" />
+            Làm mới
+          </Button>
+        </div>
       </div>
 
       {actionSuccess && (
@@ -288,6 +343,117 @@ export default function MyTasksPage() {
           })}
         </div>
       )}
+
+      {/* Modal: Ghi nhận nhật ký công việc ngoài website (Điện thoại / Quầy) */}
+      <Modal
+        isOpen={offlineModalOpen}
+        onClose={() => setOfflineModalOpen(false)}
+        title="Ghi Nhận Nhật Ký Công Việc Ngoài Website (Đợt 4 & 5)"
+      >
+        <form onSubmit={handleSubmitOfflineLog} className="space-y-4 text-xs">
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-900">
+            Hệ thống lưu tách biệt <strong>thời gian sự việc diễn ra (tự khai)</strong> và{' '}
+            <strong>thời gian máy chủ ghi nhận (recordedAt)</strong>. Các bản ghi chưa có xác minh của Quản lý sẽ mang trạng thái{' '}
+            <code>SELF_REPORTED / PENDING_VERIFICATION</code>, không tự động mạo nhận là timestamp máy chủ.
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">
+                ID Đơn đặt phòng (Booking ID) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={offlineBookingId}
+                onChange={(e) => setOfflineBookingId(e.target.value)}
+                placeholder="VD: 1024"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">
+                Kênh tiếp nhận <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={offlineChannel}
+                onChange={(e) => setOfflineChannel(e.target.value as any)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              >
+                <option value="PHONE">Cuộc gọi điện thoại (PHONE)</option>
+                <option value="FRONT_DESK">Trực tiếp tại quầy lễ tân (FRONT_DESK)</option>
+                <option value="OFFLINE_OTHER">Kênh ngoại tuyến khác</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">
+                Loại nghiệp vụ
+              </label>
+              <select
+                value={offlineType}
+                onChange={(e) => setOfflineType(e.target.value as WorkTaskType)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              >
+                <option value="PRE_ARRIVAL_CONTACT">Tư vấn / Chuẩn bị trước nhận phòng</option>
+                <option value="SERVICE_REQUEST">Hỗ trợ dịch vụ trong lưu trú</option>
+                <option value="COMPLAINT_HANDLE">Xử lý phản ánh / Sự cố trực tiếp</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">
+                Thời điểm diễn ra (Khai báo) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="datetime-local"
+                required
+                value={offlineClaimedAt}
+                onChange={(e) => setOfflineClaimedAt(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block font-semibold text-gray-700 mb-1">
+              Nội dung công việc đã thực hiện <span className="text-red-500">*</span>
+            </label>
+            <Textarea
+              required
+              rows={3}
+              value={offlineSummary}
+              onChange={(e) => setOfflineSummary(e.target.value)}
+              placeholder="Mô tả rõ sự việc: Khách gọi lúc mấy giờ, yêu cầu gì, nhân sự đã xử lý ra sao..."
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold text-gray-700 mb-1">
+              Mã tham chiếu chứng cứ (Mã cuộc gọi tổng đài / Phiếu xác nhận quầy)
+            </label>
+            <input
+              type="text"
+              value={offlineEvidence}
+              onChange={(e) => setOfflineEvidence(e.target.value)}
+              placeholder="VD: CALL-LOG-8821 hoặc Phiếu ký nhận phòng 302..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
+            <Button type="button" variant="outline" onClick={() => setOfflineModalOpen(false)}>
+              Hủy
+            </Button>
+            <Button type="submit" disabled={submittingOffline}>
+              {submittingOffline ? 'Đang lưu...' : 'Lưu Nhật Ký'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

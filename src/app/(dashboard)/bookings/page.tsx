@@ -18,6 +18,13 @@ import {
 } from '@/services/api/booking-assignment.api';
 import { PresenceTimeline } from '@/components/booking/PresenceTimeline';
 import { LateCheckInDialog } from '@/components/booking/LateCheckInDialog';
+import { TemporaryCoverageDialog } from '@/components/booking/TemporaryCoverageDialog';
+import { PermanentTransferDialog } from '@/components/booking/PermanentTransferDialog';
+import { bookingPresenceApi } from '@/services/api/booking-presence.api';
+import {
+  guestConversationsApi,
+  GuestMessageItem,
+} from '@/services/api/guest-conversations.api';
 import {
   cancellationApi,
   CancellationRequestItem,
@@ -286,6 +293,87 @@ export default function BookingsPage() {
     });
   };
 
+  // Đợt 3: Modal Hỗ trợ tạm thời (Temporary Coverage) & Chuyển giao hoàn toàn (Permanent Transfer)
+  const [coverageModal, setCoverageModal] = useState<{
+    isOpen: boolean;
+    mode: 'TEMPORARY' | 'PERMANENT';
+    booking: AdminBookingItem | AdminBookingDetail | null;
+    staffList: Array<{ id: string | number; fullName: string; role?: string }>;
+  }>({
+    isOpen: false,
+    mode: 'TEMPORARY',
+    booking: null,
+    staffList: [],
+  });
+
+  const handleOpenCoverageModal = async (
+    booking: AdminBookingItem | AdminBookingDetail,
+    mode: 'TEMPORARY' | 'PERMANENT',
+  ) => {
+    setCoverageModal({
+      isOpen: true,
+      mode,
+      booking,
+      staffList: [],
+    });
+    try {
+      const data = await bookingApi.getAvailableStaff(booking.id);
+      const list = (data.staff || []).map((st: any) => ({
+        id: st.staffUserId || st.id,
+        fullName: st.fullName || st.staffName || `Nhân viên #${st.staffUserId || st.id}`,
+        role: st.staffRole || st.role || 'EMPLOYEE',
+      }));
+      setCoverageModal((prev) => ({
+        ...prev,
+        staffList: list,
+      }));
+    } catch {
+      // Fallback empty
+    }
+  };
+
+  // Đợt 4: Hộp trao đổi tin nhắn với khách hàng ngay trong chi tiết booking
+  const [guestMessages, setGuestMessages] = useState<GuestMessageItem[]>([]);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [replyBody, setReplyBody] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
+
+  const fetchBookingMessages = async (bookingId: string) => {
+    try {
+      setLoadingMessages(true);
+      const msgs = await guestConversationsApi.getMessages(bookingId);
+      setGuestMessages(Array.isArray(msgs) ? msgs : []);
+    } catch {
+      setGuestMessages([]);
+    } finally {
+      setLoadingMessages(false);
+    }
+  };
+
+  const handleSendStaffReply = async (bookingId: string) => {
+    if (!replyBody.trim()) return;
+    try {
+      setSendingReply(true);
+      await guestConversationsApi.sendMessage(bookingId, {
+        body: replyBody.trim(),
+        clientMsgId: `staff_msg_${bookingId}_${Date.now()}`,
+      });
+      setReplyBody('');
+      await fetchBookingMessages(bookingId);
+      setActionNotice({
+        type: 'success',
+        message: 'Đã gửi phản hồi cho khách hàng và ghi nhận mốc SLA!',
+      });
+    } catch (err: any) {
+      setActionNotice({
+        type: 'error',
+        message: err?.response?.data?.message || 'Không thể gửi tin nhắn phản hồi.',
+      });
+    } finally {
+      setSendingReply(false);
+    }
+  };
+
   // Modal: Lễ tân tạo đơn trực tiếp tại quầy / điện thoại (Walk-in / Phone)
   // (Section 02.14, 16.1, 17.2, 17.3, 30.3)
   const [frontDeskModal, setFrontDeskModal] = useState({
@@ -366,16 +454,16 @@ export default function BookingsPage() {
   };
 
   const openReassignModal = async (booking: AdminBookingItem) => {
-    // Ràng buộc nghiệp vụ nghiêm ngặt: Nếu khách đã nhận phòng thì chặn ngay
+    // D1-09 / D3-01: Cho phép chuyển giao cả khi khách đang lưu trú (CHECKED_IN) hoặc NO_SHOW; chỉ chặn khi đơn đã kết thúc
     if (
-      booking.status === 'CHECKED_IN' ||
       booking.status === 'COMPLETED' ||
       booking.status === 'CANCELLED' ||
-      booking.status === 'REJECTED'
+      booking.status === 'REJECTED' ||
+      booking.status === 'CLOSED_NO_SHOW'
     ) {
       setActionNotice({
         type: 'error',
-        message: 'Khách hàng đã nhận phòng hoặc đơn đặt phòng đã hoàn tất/hủy - Không thể phân công lại người phụ trách!',
+        message: 'Đơn đặt phòng đã hoàn tất hoặc đã hủy - Không thể phân công lại người phụ trách!',
       });
       return;
     }
@@ -645,6 +733,7 @@ export default function BookingsPage() {
       setIsDetailModalOpen(true);
       const res = await bookingApi.getOne(bookingId);
       setSelectedBookingDetail(res.data);
+      fetchBookingMessages(bookingId);
     } catch (err: any) {
       console.error('Lỗi tải chi tiết booking:', err);
       setActionNotice({
@@ -657,7 +746,7 @@ export default function BookingsPage() {
   };
 
   // ==========================================
-  // ĐỔI TRẠNG THÁI BOOKING
+  // ĐỔI TRẠNG THÁI BOOKING (D2-06: Nút nhận/trả phòng đi qua BookingPresenceService)
   // ==========================================
   const openStatusChangeDialog = (booking: AdminBookingItem, nextStatus: string, label: string) => {
     setStatusActionModal({
@@ -674,10 +763,20 @@ export default function BookingsPage() {
     if (!statusActionModal.booking) return;
     try {
       setStatusActionModal((prev) => ({ ...prev, submitting: true }));
-      await bookingApi.updateStatus(statusActionModal.booking.id, {
-        status: statusActionModal.nextStatus,
-        note: statusActionModal.note.trim() || undefined,
-      });
+      if (statusActionModal.nextStatus === 'CHECKED_IN') {
+        await bookingPresenceApi.confirmArrival(statusActionModal.booking.id, {
+          note: statusActionModal.note.trim() || undefined,
+        });
+      } else if (statusActionModal.nextStatus === 'COMPLETED') {
+        await bookingPresenceApi.confirmDeparture(statusActionModal.booking.id, {
+          note: statusActionModal.note.trim() || undefined,
+        });
+      } else {
+        await bookingApi.updateStatus(statusActionModal.booking.id, {
+          status: statusActionModal.nextStatus,
+          note: statusActionModal.note.trim() || undefined,
+        });
+      }
 
       setActionNotice({
         type: 'success',
@@ -1098,27 +1197,28 @@ export default function BookingsPage() {
                                 <span>Chi tiết</span>
                               </button>
 
-                              {/* Đổi nhân sự phụ trách */}
+                              {/* Đổi nhân sự phụ trách (Đợt 3: Cho phép cả khi đang lưu trú CHECKED_IN hoặc NO_SHOW) */}
                               <button
                                 onClick={() => openReassignModal(b)}
                                 disabled={
-                                  b.status === 'CHECKED_IN' ||
                                   b.status === 'COMPLETED' ||
                                   b.status === 'CANCELLED' ||
-                                  b.status === 'REJECTED'
+                                  b.status === 'REJECTED' ||
+                                  b.status === 'CLOSED_NO_SHOW'
                                 }
                                 title={
-                                  b.status === 'CHECKED_IN'
-                                    ? 'Khách đã nhận phòng - Không thể đổi người phụ trách'
-                                    : b.status === 'COMPLETED' || b.status === 'CANCELLED' || b.status === 'REJECTED'
-                                    ? 'Đơn đặt phòng đã kết thúc - Không thể đổi người phụ trách'
-                                    : 'Phân công lại nhân viên phụ trách đơn'
-                                }
-                                className={`flex h-8 items-center gap-1 rounded-lg border px-2.5 text-xs-plus font-semibold transition-all cursor-pointer ${
-                                  b.status === 'CHECKED_IN' ||
                                   b.status === 'COMPLETED' ||
                                   b.status === 'CANCELLED' ||
-                                  b.status === 'REJECTED'
+                                  b.status === 'REJECTED' ||
+                                  b.status === 'CLOSED_NO_SHOW'
+                                    ? 'Đơn đặt phòng đã kết thúc - Không thể đổi người phụ trách'
+                                    : 'Phân công lại hoặc chuyển giao nhân viên phụ trách đơn'
+                                }
+                                className={`flex h-8 items-center gap-1 rounded-lg border px-2.5 text-xs-plus font-semibold transition-all cursor-pointer ${
+                                  b.status === 'COMPLETED' ||
+                                  b.status === 'CANCELLED' ||
+                                  b.status === 'REJECTED' ||
+                                  b.status === 'CLOSED_NO_SHOW'
                                     ? 'opacity-40 cursor-not-allowed border-gray-200 text-gray-400 dark:border-gray-800'
                                     : 'border-purple-200 bg-purple-50/60 text-purple-700 hover:bg-purple-100 dark:border-purple-800 dark:bg-purple-900/20 dark:text-purple-300 dark:hover:bg-purple-900/40'
                                 }`}
@@ -1713,7 +1813,7 @@ export default function BookingsPage() {
                   )}
                 </div>
 
-                <div className="shrink-0 flex items-center gap-2">
+                <div className="shrink-0 flex flex-wrap items-center gap-2">
                   <Button
                     size="sm"
                     variant="outline"
@@ -1726,25 +1826,108 @@ export default function BookingsPage() {
                     size="sm"
                     variant="outline"
                     disabled={
-                      selectedBookingDetail.status === 'CHECKED_IN' ||
                       selectedBookingDetail.status === 'COMPLETED' ||
                       selectedBookingDetail.status === 'CANCELLED' ||
-                      selectedBookingDetail.status === 'REJECTED'
+                      selectedBookingDetail.status === 'REJECTED' ||
+                      selectedBookingDetail.status === 'CLOSED_NO_SHOW'
                     }
-                    onClick={() => openReassignModal(selectedBookingDetail)}
+                    onClick={() => handleOpenCoverageModal(selectedBookingDetail, 'TEMPORARY')}
                   >
-                    <UserCheck className="h-3.5 w-3.5 mr-1" />
-                    Phân Công Lại
+                    <Clock className="h-3.5 w-3.5 mr-1 text-blue-600" />
+                    Hỗ Trợ Tạm Thời (A→B)
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={
+                      selectedBookingDetail.status === 'COMPLETED' ||
+                      selectedBookingDetail.status === 'CANCELLED' ||
+                      selectedBookingDetail.status === 'REJECTED' ||
+                      selectedBookingDetail.status === 'CLOSED_NO_SHOW'
+                    }
+                    onClick={() => handleOpenCoverageModal(selectedBookingDetail, 'PERMANENT')}
+                  >
+                    <UserCheck className="h-3.5 w-3.5 mr-1 text-amber-600" />
+                    Chuyển Giao Hoàn Toàn
                   </Button>
                 </div>
               </div>
 
               {selectedBookingDetail.status === 'CHECKED_IN' && (
-                <p className="text-xs-plus text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1.5">
-                  <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                  <span>Khách hàng đã nhận phòng (CHECKED_IN) - Theo quy định vận hành, không thể thay đổi nhân viên phụ trách.</span>
+                <p className="text-xs-plus text-emerald-700 dark:text-emerald-400 font-medium flex items-center gap-1.5">
+                  <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
+                  <span>
+                    Khách đang lưu trú (CHECKED_IN): Có thể cấp <strong>Hỗ trợ tạm thời (A→B)</strong> hoặc{' '}
+                    <strong>Chuyển giao hoàn toàn</strong> mà vẫn bảo toàn KPI các thao tác trước đó của người cũ.
+                  </span>
                 </p>
               )}
+            </div>
+
+            {/* ĐỢT 4: Hộp Trao Đổi & Hỗ Trợ Khách Hàng (Ticket-first Messaging) */}
+            <div className="rounded-xl border border-teal-200 p-4 dark:border-teal-800 bg-teal-50/40 dark:bg-teal-900/10 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5 text-xs uppercase tracking-wider text-teal-700 dark:text-teal-300">
+                  <Mail className="h-4 w-4" />
+                  Hộp Trao Đổi & Hỗ Trợ Khách Hàng (Đợt 4 - Chứng cứ SLA)
+                </h4>
+                <button
+                  type="button"
+                  onClick={() => fetchBookingMessages(selectedBookingDetail.id)}
+                  className="text-2xs font-semibold text-teal-700 hover:underline cursor-pointer"
+                >
+                  Làm mới tin nhắn
+                </button>
+              </div>
+
+              <div className="max-h-44 overflow-y-auto space-y-2 rounded-lg bg-white/90 dark:bg-gray-900/80 p-3 border border-teal-100 dark:border-teal-900/50">
+                {loadingMessages ? (
+                  <p className="text-2xs text-gray-400 text-center py-3">Đang tải hội thoại...</p>
+                ) : guestMessages.length === 0 ? (
+                  <p className="text-2xs text-gray-500 text-center py-3">
+                    Chưa có tin nhắn trao đổi nào từ khách hàng trên đơn đặt phòng này.
+                  </p>
+                ) : (
+                  guestMessages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={`p-2.5 rounded-lg text-xs ${
+                        msg.senderRole === 'EMPLOYEE'
+                          ? 'bg-teal-50 border border-teal-200 ml-6 dark:bg-teal-950/50 dark:border-teal-800'
+                          : 'bg-gray-100 border border-gray-200 mr-6 dark:bg-gray-800 dark:border-gray-700'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between text-2xs text-gray-500 mb-1">
+                        <span className="font-bold text-gray-800 dark:text-gray-200">
+                          {msg.senderRole === 'EMPLOYEE'
+                            ? `Lễ tân / Khách sạn (#${msg.senderUserId})`
+                            : 'Khách hàng'}
+                        </span>
+                        <span>{new Date(msg.sentAt).toLocaleString('vi-VN')}</span>
+                      </div>
+                      <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap">{msg.body}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={replyBody}
+                  onChange={(e) => setReplyBody(e.target.value)}
+                  placeholder="Nhập phản hồi hỗ trợ cho khách hàng (Tự động ghi nhận First Response SLA)..."
+                  className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs text-gray-800 focus:border-teal-600 focus:outline-none dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                />
+                <Button
+                  size="sm"
+                  variant="primary"
+                  disabled={sendingReply || !replyBody.trim()}
+                  onClick={() => handleSendStaffReply(selectedBookingDetail.id)}
+                >
+                  {sendingReply ? 'Đang gửi...' : 'Gửi Phản Hồi'}
+                </Button>
+              </div>
             </div>
 
             {/* ĐỢT 2: Thông tin hiện diện & Check-in / No-show thực tế */}
@@ -1954,8 +2137,7 @@ export default function BookingsPage() {
                     size="sm"
                     variant="primary"
                     onClick={() => {
-                      setIsDetailModalOpen(false);
-                      openStatusChangeDialog(selectedBookingDetail, 'CHECKED_IN', 'Nhận Phòng');
+                      handleOpenLateCheckIn(selectedBookingDetail);
                     }}
                   >
                     Khách Làm Thủ Tục Nhận Phòng (Check-in)
@@ -2786,6 +2968,48 @@ export default function BookingsPage() {
           });
         }}
       />
+
+      {/* Modal: Ủy quyền hỗ trợ tạm thời (Phương án I - Đợt 3) */}
+      {coverageModal.booking && coverageModal.mode === 'TEMPORARY' && (
+        <TemporaryCoverageDialog
+          isOpen={coverageModal.isOpen}
+          onClose={() => setCoverageModal((prev) => ({ ...prev, isOpen: false }))}
+          bookingId={coverageModal.booking.id}
+          hotelId={(coverageModal.booking as any).hotelId || 1}
+          availableStaffList={coverageModal.staffList}
+          onSuccess={() => {
+            fetchBookings();
+            if (selectedBookingDetail && selectedBookingDetail.id === coverageModal.booking?.id) {
+              handleOpenDetail(selectedBookingDetail.id);
+            }
+            setActionNotice({
+              type: 'success',
+              message: `Đã thiết lập ủy quyền hỗ trợ tạm thời cho đơn #${coverageModal.booking?.bookingCode}!`,
+            });
+          }}
+        />
+      )}
+
+      {/* Modal: Bàn giao trách nhiệm chính hoàn toàn (Phương án II - Đợt 3) */}
+      {coverageModal.booking && coverageModal.mode === 'PERMANENT' && (
+        <PermanentTransferDialog
+          isOpen={coverageModal.isOpen}
+          onClose={() => setCoverageModal((prev) => ({ ...prev, isOpen: false }))}
+          bookingId={coverageModal.booking.id}
+          currentHandlerId={coverageModal.booking.handledBy}
+          availableStaffList={coverageModal.staffList}
+          onSuccess={() => {
+            fetchBookings();
+            if (selectedBookingDetail && selectedBookingDetail.id === coverageModal.booking?.id) {
+              handleOpenDetail(selectedBookingDetail.id);
+            }
+            setActionNotice({
+              type: 'success',
+              message: `Đã chuyển giao trách nhiệm chính và bàn giao các tác vụ mở cho đơn #${coverageModal.booking?.bookingCode}!`,
+            });
+          }}
+        />
+      )}
 
       {/* Modal: Dòng Thời Gian Hiện Diện (Presence Timeline) (Đợt 2) */}
       <Modal
