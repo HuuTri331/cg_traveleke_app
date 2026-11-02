@@ -246,21 +246,24 @@ export default function HotelDealsSection() {
                       {minPrice ? (
                         <div>
                           <span className="block text-2xs uppercase tracking-wider text-[#1E4752]/60 font-semibold">
-                            Từ
+                            Giá tham khảo từ
                           </span>
                           <span className="text-sm font-black text-[#1E4752]">
                             {formatVND(minPrice)}
                           </span>
                           <span className="text-2xs text-[#1E4752]/60"> / đêm</span>
+                          <span className="block text-[10px] text-emerald-700 font-medium mt-0.5">
+                            Giá & ưu đãi thực tế tính theo ngày lưu trú
+                          </span>
                         </div>
                       ) : (
                         <span className="text-xs font-semibold text-[#1E4752]/60">
-                          Giá linh hoạt
+                          Giá linh hoạt theo ngày lưu trú
                         </span>
                       )}
 
                       <span className="inline-flex items-center gap-1 text-xs font-extrabold text-[#E8A700] group-hover:translate-x-0.5 transition-transform">
-                        <span>Xem phòng</span>
+                        <span>Xem báo giá</span>
                         <ArrowRight className="w-3.5 h-3.5 text-[#E8A700]" />
                       </span>
                     </div>

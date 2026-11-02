@@ -33,14 +33,29 @@ export default function PromotionsManagementPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
-  const [stayStartDate, setStayStartDate] = useState('2026-11-05');
-  const [stayEndDate, setStayEndDate] = useState('2026-11-07');
-  const [discountType, setDiscountType] = useState<'FIXED_AMOUNT' | 'PERCENT'>('FIXED_AMOUNT');
+  const [chargeComponentType, setChargeComponentType] = useState<'ROOM_NIGHT' | 'SERVICE_ITEM' | 'PACKAGE_COMPONENT'>('ROOM_NIGHT');
+  const [targetScope, setTargetScope] = useState<'ALL_ROOMS' | 'ROOM_IDS' | 'ALL_SERVICES' | 'SERVICE_IDS'>('ALL_ROOMS');
+  const [targetIdsText, setTargetIdsText] = useState('');
+  const [stayStartDate, setStayStartDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [stayEndDate, setStayEndDate] = useState(() => new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10));
+  const [serviceStartHour, setServiceStartHour] = useState<number>(14);
+  const [serviceEndHour, setServiceEndHour] = useState<number>(17);
+  const [discountType, setDiscountType] = useState<'FIXED_AMOUNT' | 'PERCENT' | 'SERVICE_CREDIT' | 'PACKAGE_FIXED'>('FIXED_AMOUNT');
   const [discountValue, setDiscountValue] = useState<number>(120000);
-  const [benefitKind, setBenefitKind] = useState<'ROOM_PRICE_ADJUSTMENT' | 'SERVICE_BENEFIT_CREDIT'>('ROOM_PRICE_ADJUSTMENT');
+  const [floorPrice, setFloorPrice] = useState<number>(0);
+  const [minNights, setMinNights] = useState<number>(1);
+  const [minRooms, setMinRooms] = useState<number>(1);
+  const [minGuests, setMinGuests] = useState<number>(1);
+  const [budgetTotal, setBudgetTotal] = useState<string>('');
+  const [maxDiscountPerBooking, setMaxDiscountPerBooking] = useState<string>('');
+  const [quotaServiceCode, setQuotaServiceCode] = useState('');
+  const [quotaServiceName, setQuotaServiceName] = useState('');
+  const [quotaQuantity, setQuotaQuantity] = useState<number>(0);
+  const [benefitKind, setBenefitKind] = useState<'ROOM_PRICE_ADJUSTMENT' | 'SERVICE_BENEFIT_CREDIT' | 'INCLUDED_QUOTA'>('ROOM_PRICE_ADJUSTMENT');
   const [existingBookingsEligible, setExistingBookingsEligible] = useState(true);
   const [retroactiveMode, setRetroactiveMode] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [reconciliation, setReconciliation] = useState<any | null>(null);
 
   // Sổ đối chiếu quyền lợi & cấn trừ theo Booking ID
   const [inspectBookingId, setInspectBookingId] = useState('');
@@ -90,8 +105,12 @@ export default function PromotionsManagementPage() {
   const fetchCampaigns = async () => {
     try {
       setLoading(true);
-      const list = await promotionsApi.getHotelCampaigns(hotelId);
+      const [list, recon] = await Promise.all([
+        promotionsApi.getHotelCampaigns(hotelId),
+        promotionsApi.getReconciliation(hotelId).catch(() => null),
+      ]);
       setCampaigns(Array.isArray(list) ? list : []);
+      setReconciliation(recon);
     } catch (err: any) {
       setNotice({ type: 'error', text: err?.response?.data?.message || 'Không thể tải danh sách chiến dịch' });
     } finally {
@@ -102,24 +121,52 @@ export default function PromotionsManagementPage() {
   const handleCreateCampaign = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!hotelId || !code.trim() || !name.trim()) return;
+    const parsedTargetIds = targetIdsText
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
     try {
       setSubmitting(true);
       const res = await promotionsApi.createCampaign({
         hotelId,
         code: code.trim(),
         name: name.trim(),
-        targetScope: 'ALL_ROOMS',
+        chargeComponentType,
+        targetScope,
+        targetRoomIds: targetScope === 'ROOM_IDS' ? parsedTargetIds : undefined,
+        targetServiceIds: targetScope === 'SERVICE_IDS' ? parsedTargetIds : undefined,
         stayStartDate,
         stayEndDate,
+        serviceStartHour: chargeComponentType === 'SERVICE_ITEM' ? Number(serviceStartHour) : undefined,
+        serviceEndHour: chargeComponentType === 'SERVICE_ITEM' ? Number(serviceEndHour) : undefined,
         discountType,
         discountValue: Number(discountValue),
+        floorPrice: Number(floorPrice || 0),
+        minNights: Number(minNights || 1),
+        minRooms: Number(minRooms || 1),
+        minGuests: Number(minGuests || 1),
+        maxDiscountPerBooking: maxDiscountPerBooking ? Number(maxDiscountPerBooking) : undefined,
+        budgetTotal: budgetTotal ? Number(budgetTotal) : undefined,
         benefitKind,
         existingBookingsEligible,
         retroactiveMode,
+        packageConfig:
+          quotaQuantity > 0 && quotaServiceCode.trim()
+            ? {
+                includedQuotas: [
+                  {
+                    serviceCode: quotaServiceCode.trim().toUpperCase(),
+                    serviceName: quotaServiceName.trim() || quotaServiceCode.trim(),
+                    quantity: Number(quotaQuantity),
+                  },
+                ],
+              }
+            : undefined,
       });
       setCreateOpen(false);
       setCode('');
       setName('');
+      setTargetIdsText('');
       const warnCount = res.conflictWarnings?.length || 0;
       setNotice({
         type: 'success',
@@ -133,6 +180,22 @@ export default function PromotionsManagementPage() {
       setNotice({ type: 'error', text: err?.response?.data?.message || 'Không thể tạo chương trình' });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handlePreview = async (id: string) => {
+    try {
+      const res = await promotionsApi.previewCampaign(id);
+      if (res.canPublish) {
+        setNotice({ type: 'success', text: `Chiến dịch #${id} hợp lệ, không có xung đột giảm chồng và sẵn sàng kích hoạt!` });
+      } else {
+        setNotice({
+          type: 'error',
+          text: `Phát hiện xung đột giảm chồng: ${res.conflicts.map((c) => c.reason).join('; ')}`,
+        });
+      }
+    } catch (err: any) {
+      setNotice({ type: 'error', text: err?.response?.data?.message || 'Không thể kiểm tra chiến dịch' });
     }
   };
 
@@ -218,6 +281,37 @@ export default function PromotionsManagementPage() {
         </div>
       )}
 
+      {reconciliation && (
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <div className="bg-white border border-gray-200 rounded-xl p-3.5 text-xs">
+            <span className="text-gray-500 block">Tổng quyền lợi đã cấp (Granted):</span>
+            <span className="text-base font-extrabold text-indigo-700">
+              {Number(reconciliation.financialSummary?.totalGranted || 0).toLocaleString('vi-VN')} ₫
+            </span>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-xl p-3.5 text-xs">
+            <span className="text-gray-500 block">Đã cấn trừ Dịch Vụ (Redeemed):</span>
+            <span className="text-base font-extrabold text-emerald-700">
+              {Number(reconciliation.financialSummary?.totalRedeemed || 0).toLocaleString('vi-VN')} ₫
+            </span>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-xl p-3.5 text-xs">
+            <span className="text-gray-500 block">Đã hoàn trả thực tế (Refunded):</span>
+            <span className="text-base font-extrabold text-amber-700">
+              {Number(reconciliation.financialSummary?.totalRefunded || 0).toLocaleString('vi-VN')} ₫
+            </span>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-xl p-3.5 text-xs">
+            <span className="text-gray-500 block">Đối soát Sổ cái ↔ Tài khoản:</span>
+            <span className={`text-base font-extrabold ${reconciliation.discrepanciesCount > 0 ? 'text-red-600' : 'text-emerald-700'}`}>
+              {reconciliation.discrepanciesCount === 0
+                ? 'Khớp 100% (0 lệch)'
+                : `Phát hiện ${reconciliation.discrepanciesCount} lệch`}
+            </span>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
         <div className="px-5 py-3.5 bg-gray-50 border-b border-gray-200 flex justify-between items-center">
           <h2 className="text-sm font-bold text-gray-900">Danh Sách Chương Trình Khuyến Mãi</h2>
@@ -276,9 +370,14 @@ export default function PromotionsManagementPage() {
                     </td>
                     <td className="px-4 py-3 text-right space-x-2">
                       {c.status === 'DRAFT' && (
-                        <Button size="sm" onClick={() => handleActivate(c.id)}>
-                          Duyệt & Kích Hoạt
-                        </Button>
+                        <>
+                          <Button size="sm" variant="outline" onClick={() => handlePreview(c.id)}>
+                            Kiểm Tra Xung Đột
+                          </Button>
+                          <Button size="sm" onClick={() => handleActivate(c.id)}>
+                            Duyệt & Kích Hoạt
+                          </Button>
+                        </>
                       )}
                       {c.status === 'ACTIVE' && (
                         <Button size="sm" variant="outline" onClick={() => handlePause(c.id)}>
@@ -394,14 +493,92 @@ export default function PromotionsManagementPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
+              <label className="block font-semibold text-gray-700 mb-1">Dòng chi phí áp dụng</label>
+              <select
+                value={chargeComponentType}
+                onChange={(e) => {
+                  const val = e.target.value as any;
+                  setChargeComponentType(val);
+                  if (val === 'SERVICE_ITEM') setTargetScope('SERVICE_IDS');
+                  else setTargetScope('ALL_ROOMS');
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              >
+                <option value="ROOM_NIGHT">Tiền phòng theo đêm (ROOM_NIGHT)</option>
+                <option value="SERVICE_ITEM">Dịch vụ theo khung giờ (SERVICE_ITEM)</option>
+                <option value="PACKAGE_COMPONENT">Gói gia đình / Nhóm (PACKAGE_COMPONENT)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">Phạm vi áp dụng (Target Scope)</label>
+              <select
+                value={targetScope}
+                onChange={(e) => setTargetScope(e.target.value as any)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              >
+                <option value="ALL_ROOMS">Tất cả hạng phòng (ALL_ROOMS)</option>
+                <option value="ROOM_IDS">Chọn hạng phòng cụ thể (ROOM_IDS)</option>
+                <option value="ALL_SERVICES">Tất cả dịch vụ (ALL_SERVICES)</option>
+                <option value="SERVICE_IDS">Chọn dịch vụ cụ thể (SERVICE_IDS)</option>
+              </select>
+            </div>
+          </div>
+
+          {(targetScope === 'ROOM_IDS' || targetScope === 'SERVICE_IDS') && (
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">
+                Danh sách ID {targetScope === 'ROOM_IDS' ? 'Hạng phòng (VD: 1, 2)' : 'Dịch vụ (VD: 10, 12)'} *
+              </label>
+              <input
+                type="text"
+                required
+                value={targetIdsText}
+                onChange={(e) => setTargetIdsText(e.target.value)}
+                placeholder={targetScope === 'ROOM_IDS' ? 'VD: 1, 2 (Deluxe, Standard)' : 'VD: 5 (Spa)'}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+          )}
+
+          {chargeComponentType === 'SERVICE_ITEM' && (
+            <div className="grid grid-cols-2 gap-3 bg-indigo-50/60 p-2.5 rounded-lg border border-indigo-100">
+              <div>
+                <label className="block font-semibold text-gray-700 mb-1">Từ giờ [startHour)</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={23}
+                  value={serviceStartHour}
+                  onChange={(e) => setServiceStartHour(Number(e.target.value))}
+                  className="w-full px-3 py-1.5 border border-gray-300 rounded-lg bg-white"
+                />
+              </div>
+              <div>
+                <label className="block font-semibold text-gray-700 mb-1">Đến giờ (endHour Exclusive)</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={24}
+                  value={serviceEndHour}
+                  onChange={(e) => setServiceEndHour(Number(e.target.value))}
+                  className="w-full px-3 py-1.5 border border-gray-300 rounded-lg bg-white"
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-3 gap-2">
+            <div>
               <label className="block font-semibold text-gray-700 mb-1">Hình thức giảm</label>
               <select
                 value={discountType}
                 onChange={(e) => setDiscountType(e.target.value as any)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                className="w-full px-2.5 py-2 border border-gray-300 rounded-lg"
               >
-                <option value="FIXED_AMOUNT">Số tiền cố định / đêm (VND)</option>
+                <option value="FIXED_AMOUNT">Số tiền cố định (VND)</option>
                 <option value="PERCENT">Theo phần trăm (%)</option>
+                <option value="SERVICE_CREDIT">Tín dụng dịch vụ</option>
+                <option value="PACKAGE_FIXED">Gói combo</option>
               </select>
             </div>
             <div>
@@ -409,10 +586,99 @@ export default function PromotionsManagementPage() {
               <input
                 type="number"
                 required
-                min={1}
+                min={0}
+                max={discountType === 'PERCENT' ? 100 : undefined}
                 value={discountValue}
                 onChange={(e) => setDiscountValue(Number(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                className="w-full px-2.5 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">Giá sàn tối thiểu</label>
+              <input
+                type="number"
+                min={0}
+                value={floorPrice}
+                onChange={(e) => setFloorPrice(Number(e.target.value))}
+                className="w-full px-2.5 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-4 gap-2">
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">Số đêm tối thiểu</label>
+              <input
+                type="number"
+                min={1}
+                value={minNights}
+                onChange={(e) => setMinNights(Number(e.target.value))}
+                className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">Số phòng tối thiểu</label>
+              <input
+                type="number"
+                min={1}
+                value={minRooms}
+                onChange={(e) => setMinRooms(Number(e.target.value))}
+                className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">Trần giảm/booking</label>
+              <input
+                type="number"
+                min={0}
+                value={maxDiscountPerBooking}
+                onChange={(e) => setMaxDiscountPerBooking(e.target.value)}
+                placeholder="Không giới hạn"
+                className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">Tổng ngân sách</label>
+              <input
+                type="number"
+                min={0}
+                value={budgetTotal}
+                onChange={(e) => setBudgetTotal(e.target.value)}
+                placeholder="Không giới hạn"
+                className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 bg-amber-50/50 p-2.5 rounded-lg border border-amber-100">
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">Mã suất DV gói</label>
+              <input
+                type="text"
+                value={quotaServiceCode}
+                onChange={(e) => setQuotaServiceCode(e.target.value)}
+                placeholder="VD: BREAKFAST"
+                className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg bg-white"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">Tên suất DV</label>
+              <input
+                type="text"
+                value={quotaServiceName}
+                onChange={(e) => setQuotaServiceName(e.target.value)}
+                placeholder="VD: Buffet Sáng"
+                className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg bg-white"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-gray-700 mb-1">Số suất tặng</label>
+              <input
+                type="number"
+                min={0}
+                value={quotaQuantity}
+                onChange={(e) => setQuotaQuantity(Number(e.target.value))}
+                className="w-full px-2.5 py-1.5 border border-gray-300 rounded-lg bg-white"
               />
             </div>
           </div>
@@ -426,6 +692,7 @@ export default function PromotionsManagementPage() {
             >
               <option value="ROOM_PRICE_ADJUSTMENT">Giảm giá phòng thật (Hoàn tiền hoặc cấn trừ khi khách đồng ý)</option>
               <option value="SERVICE_BENEFIT_CREDIT">Tặng tín dụng dịch vụ (Voucher chi tiêu dịch vụ nội bộ)</option>
+              <option value="INCLUDED_QUOTA">Tặng suất dịch vụ theo gói (INCLUDED_QUOTA)</option>
             </select>
           </div>
 

@@ -582,15 +582,18 @@ export default function ShiftsPage() {
 
           <div>
             <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-              Công Việc Tồn Đọng Cần Ca Sau Xử Lý
+              Công Việc & Quyền Lợi Khuyến Mãi Tồn Đọng Cần Ca Sau Xử Lý
             </label>
             <textarea
               rows={2}
               value={handoverForm.pendingItems}
               onChange={(e) => setHandoverForm((prev) => ({ ...prev, pendingItems: e.target.value }))}
-              placeholder="VD: Phòng 204 yêu cầu dọn bù, khách phòng 301 xin check-out muộn..."
+              placeholder="VD: Phòng 204 yêu cầu dọn bù, đơn BK-102 còn số dư 160.000đ giảm giá phòng chờ đối soát/cấn trừ..."
               className="w-full rounded-xl border border-gray-300 bg-white p-2.5 text-xs text-gray-800 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-850 dark:text-white"
             />
+            <p className="text-[11px] text-amber-700 mt-1">
+              Hệ thống sẽ tự động đính kèm snapshot sổ quyền lợi khuyến mãi đang mở (chờ cấn trừ dịch vụ / chờ hoàn tiền) của khách sạn vào biên bản bàn giao ca mà không thay đổi chủ sở hữu booking gốc.
+            </p>
           </div>
 
           <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100 dark:border-gray-800">

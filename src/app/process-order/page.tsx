@@ -211,8 +211,10 @@ function ProcessOrderContent() {
     }
   }, [hotelIdParam, roomIdParam]);
 
-  // Price calculations: use server nightly quote when available (INV-P01 / INV-P02 / PR-03)
+  // Price calculations: use server nightly quote as single source of truth (INV-P01 / INV-P02 / PP-P1-17)
   const [serverQuote, setServerQuote] = useState<any | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
   const roomPricePerNight = Math.round(parseFloat(String(bookingData?.roomPrice || '0')) || 0);
   const taxesAndFees = 0;
 
@@ -237,8 +239,11 @@ function ProcessOrderContent() {
   useEffect(() => {
     const rid = bookingData?.roomId || roomIdParam;
     if (!rid) return;
+    let isCancelled = false;
     const qty = bookingData?.roomCount || Number(roomCountParam) || 1;
     const guests = bookingData?.totalGuests || Number(totalGuestsParam) || 2;
+    setQuoteLoading(true);
+    setQuoteError(null);
     promotionsApi
       .calculateQuote({
         roomId: String(rid),
@@ -247,8 +252,24 @@ function ProcessOrderContent() {
         roomCount: qty,
         totalGuests: guests,
       })
-      .then((q) => setServerQuote(q))
-      .catch(() => setServerQuote(null));
+      .then((q) => {
+        if (!isCancelled) {
+          setServerQuote(q);
+          setQuoteError(null);
+        }
+      })
+      .catch((err: any) => {
+        if (!isCancelled) {
+          setServerQuote(null);
+          setQuoteError(err?.response?.data?.message || 'Không thể lấy báo giá từ máy chủ');
+        }
+      })
+      .finally(() => {
+        if (!isCancelled) setQuoteLoading(false);
+      });
+    return () => {
+      isCancelled = true;
+    };
   }, [bookingData?.roomId, roomIdParam, checkInDateObj, checkOutDateObj, bookingData?.roomCount, roomCountParam, bookingData?.totalGuests, totalGuestsParam]);
 
   const fallbackNights = Math.max(
@@ -256,10 +277,19 @@ function ProcessOrderContent() {
     Math.round((checkOutDateObj.getTime() - checkInDateObj.getTime()) / 86400000),
   );
   const effectiveQty = bookingData?.roomCount || Number(roomCountParam) || 1;
+  const effectiveNights = serverQuote
+    ? Math.max(1, Number(serverQuote.nightsCount || fallbackNights))
+    : fallbackNights;
   const roomPrice = serverQuote
     ? Math.round(Number(serverQuote.baseTotal))
-    : roomPricePerNight * fallbackNights * effectiveQty;
+    : roomPricePerNight * effectiveNights * effectiveQty;
   const discountTotal = serverQuote ? Math.round(Number(serverQuote.discountTotal || 0)) : 0;
+  const monetaryDiscountTotal = serverQuote
+    ? Math.round(Number(serverQuote.monetaryDiscountTotal ?? Math.max(0, Number(serverQuote.baseTotal) - Number(serverQuote.payableTotal))))
+    : 0;
+  const noncashBenefitValue = serverQuote
+    ? Math.round(Number(serverQuote.noncashBenefitValue ?? Math.max(0, discountTotal - monetaryDiscountTotal)))
+    : 0;
   const totalPrice = serverQuote ? Math.round(Number(serverQuote.payableTotal)) : roomPrice;
 
   const formattedRoomPrice = useMemo(() => {
@@ -291,8 +321,16 @@ function ProcessOrderContent() {
     e.preventDefault();
     const newErrors: { [key: string]: string } = {};
 
-    if (roomPrice <= 0) {
-      alert('Không thể xác nhận thông tin giá phòng từ máy chủ. Vui lòng quay lại chọn phòng.');
+    if (quoteLoading) {
+      alert('Hệ thống đang tải báo giá từng đêm từ máy chủ, vui lòng đợi trong giây lát.');
+      return;
+    }
+
+    if (quoteError || !serverQuote || roomPrice <= 0) {
+      alert(
+        quoteError ||
+          'Chưa thể xác nhận báo giá từ máy chủ (Server Quote). Vui lòng tải lại báo giá trước khi thanh toán.',
+      );
       return;
     }
 
@@ -335,7 +373,8 @@ function ProcessOrderContent() {
       .join(', ');
 
     const effectiveRoomId = String(bookingData?.roomId || roomIdParam || '1');
-    const idempotencyContext = `${effectiveRoomId}_${effectiveCheckIn}_${effectiveCheckOut}_${effectiveRoomCount}`;
+    const quoteHashPart = serverQuote?.priceHash || 'noquote';
+    const idempotencyContext = `${effectiveRoomId}_${effectiveCheckIn}_${effectiveCheckOut}_${effectiveRoomCount}_${quoteHashPart}`;
     let stableIdempotencyKey = '';
     if (typeof window !== 'undefined') {
       try {
@@ -370,6 +409,9 @@ function ProcessOrderContent() {
       contactPhone: `${countryCode}${mobileNumber.trim()}`,
       specialRequest: specialReqs || undefined,
       idempotencyKey: stableIdempotencyKey,
+      quoteId: serverQuote?.id ? String(serverQuote.id) : serverQuote?.quoteCode ? String(serverQuote.quoteCode) : undefined,
+      quoteVersion: serverQuote?.version ? Number(serverQuote.version) : undefined,
+      priceHash: serverQuote?.priceHash ? String(serverQuote.priceHash) : undefined,
     };
 
     bookingApi
@@ -397,7 +439,37 @@ function ProcessOrderContent() {
       .catch((err: any) => {
         setIsSubmitting(false);
         const status = err.response?.status;
-        const msg = err.response?.data?.message || err.message;
+        const msg = String(err.response?.data?.message || err.message || '');
+
+        // PP-P1-18: Distinguish quote/promotion 409 conflicts from inventory exhaustion
+        const isQuoteOrPriceConflict =
+          msg.includes('PRICE_QUOTE_EXPIRED') ||
+          msg.includes('PRICE_CHANGED') ||
+          msg.includes('PROMO_BUDGET_EXHAUSTED') ||
+          msg.includes('PRICE_QUOTE_PARAMETER_MISMATCH') ||
+          msg.includes('QUOTE_OWNER_MISMATCH');
+
+        if (status === 409 && isQuoteOrPriceConflict) {
+          if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('traveleke_checkout_idempotency_key');
+            sessionStorage.removeItem('traveleke_checkout_idempotency_context');
+          }
+          promotionsApi
+            .calculateQuote({
+              roomId: effectiveRoomId,
+              checkInAt: checkInDateObj.toISOString(),
+              checkOutAt: checkOutDateObj.toISOString(),
+              roomCount: effectiveRoomCount,
+              totalGuests: effectiveGuests,
+            })
+            .then((freshQuote) => setServerQuote(freshQuote))
+            .catch(() => {});
+          alert(
+            msg ||
+              'Báo giá hoặc chương trình khuyến mãi vừa thay đổi. Hệ thống đã cập nhật lại báo giá mới nhất, vui lòng kiểm tra và bấm xác nhận lại.',
+          );
+          return;
+        }
 
         if (status === 409) {
           alert(
@@ -726,7 +798,7 @@ function ProcessOrderContent() {
 
               {/* Room Title */}
               <h3 className="text-base sm:text-lg font-bold text-gray-900 leading-snug">
-                (1x) {bookingData?.roomName || 'Phòng nghỉ cao cấp'}
+                ({effectiveQty}x) {bookingData?.roomName || 'Phòng nghỉ cao cấp'}
               </h3>
               <p className="text-xs font-bold text-rose-500 mt-1 mb-4">
                 Chỉ còn {bookingData?.availableRooms || 1} phòng trống với mức giá này!
@@ -745,7 +817,7 @@ function ProcessOrderContent() {
                 </div>
 
                 <div className="flex flex-col items-center px-2">
-                  <span className="text-xs text-gray-500 font-semibold mb-0.5">1 đêm</span>
+                  <span className="text-xs text-gray-500 font-semibold mb-0.5">{effectiveNights} đêm</span>
                   <ArrowRight className="h-4 w-4 text-gray-400" />
                 </div>
 
@@ -859,15 +931,64 @@ function ProcessOrderContent() {
                 <div className="mt-4 space-y-3 pt-2">
                   <div className="flex items-start justify-between text-xs">
                     <div>
-                      <span className="font-semibold text-gray-700 block">Tiền phòng</span>
+                      <span className="font-semibold text-gray-700 block">Tiền phòng gốc</span>
                       <span className="text-xs-plus text-gray-400 mt-0.5 block">
-                        (1x) {bookingData?.roomName || 'Phòng nghỉ cao cấp'} (1 Đêm)
+                        ({effectiveQty}x) {bookingData?.roomName || 'Phòng nghỉ cao cấp'} ({effectiveNights} Đêm)
                       </span>
                     </div>
                     <span className="font-semibold text-gray-800 shrink-0">
                       {formattedRoomPrice} VND
                     </span>
                   </div>
+
+                  {monetaryDiscountTotal > 0 && (
+                    <div className="flex items-start justify-between text-xs text-emerald-700 bg-emerald-50/70 p-2 rounded-lg border border-emerald-100">
+                      <div>
+                        <span className="font-bold block">Ưu đãi giảm giá phòng theo đêm</span>
+                        <span className="text-[11px] text-emerald-600 block">
+                          {serverQuote?.nightlyLines
+                            ?.filter((l: any) => Number(l.discountAmount) > 0)
+                            .map((l: any) => `${l.nightDate} (-${Number(l.discountAmount).toLocaleString('vi-VN')}đ)`)
+                            .join(', ')}
+                        </span>
+                      </div>
+                      <span className="font-bold shrink-0">
+                        -{monetaryDiscountTotal.toLocaleString('vi-VN')} VND
+                      </span>
+                    </div>
+                  )}
+
+                  {noncashBenefitValue > 0 && (
+                    <div className="flex items-center justify-between text-xs text-indigo-700 bg-indigo-50/70 p-2 rounded-lg border border-indigo-100">
+                      <span className="font-semibold">Tặng tín dụng dịch vụ nội bộ (Cấp sau thanh toán)</span>
+                      <span className="font-bold">+{noncashBenefitValue.toLocaleString('vi-VN')} VND</span>
+                    </div>
+                  )}
+
+                  {Array.isArray(serverQuote?.nightlyLines) && serverQuote.nightlyLines.length > 1 && (
+                    <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100 space-y-1 max-h-36 overflow-y-auto text-[11px]">
+                      <div className="font-semibold text-gray-600 mb-1">Phân rã giá từng đêm [checkIn, checkOut):</div>
+                      {serverQuote.nightlyLines.map((line: any) => (
+                        <div key={line.nightDate} className="flex items-center justify-between text-gray-600">
+                          <span className="font-mono">{line.nightDate}</span>
+                          <span>
+                            {Number(line.discountAmount) > 0 ? (
+                              <>
+                                <span className="line-through text-gray-400 mr-1.5">
+                                  {Number(line.baseSubtotal).toLocaleString('vi-VN')}đ
+                                </span>
+                                <strong className="text-emerald-700">
+                                  {Number(line.payableSubtotal).toLocaleString('vi-VN')}đ
+                                </strong>
+                              </>
+                            ) : (
+                              <span>{Number(line.payableSubtotal).toLocaleString('vi-VN')}đ</span>
+                            )}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-semibold text-gray-700">Thuế và phí dịch vụ</span>
@@ -877,7 +998,9 @@ function ProcessOrderContent() {
                   <div className="border-t border-gray-200 pt-3 flex items-center justify-between">
                     <div>
                       <span className="text-sm font-bold text-gray-900 block">Tổng thanh toán</span>
-                      <span className="text-xs-plus text-gray-400 block mt-0.5">1 phòng, 1 đêm</span>
+                      <span className="text-xs-plus text-gray-400 block mt-0.5">
+                        {effectiveQty} phòng, {effectiveNights} đêm
+                      </span>
                     </div>
                     <span className="text-xl font-extrabold text-traveloka-orange">
                       {formattedTotal} VND

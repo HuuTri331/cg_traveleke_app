@@ -2,6 +2,7 @@ import { apiClient } from './client';
 
 export interface CreateBookingData {
   roomId: string;
+  hotelId?: string;
   userId?: string;
   checkInAt: string;
   checkOutAt: string;
@@ -12,6 +13,9 @@ export interface CreateBookingData {
   contactPhone: string;
   specialRequest?: string;
   idempotencyKey?: string;
+  quoteId?: string;
+  quoteVersion?: number;
+  priceHash?: string;
 }
 
 export interface BookingHistory {
