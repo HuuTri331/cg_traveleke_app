@@ -118,6 +118,28 @@ export function BookingBenefitPanel({ bookingId, mode }: BookingBenefitPanelProp
     }
   };
 
+  const getRefundIntentStatusLabel = (status?: string) => {
+    switch (status) {
+      case 'REQUESTED':
+        return 'Đã gửi yêu cầu';
+      case 'PROCESSING':
+        return 'Đang xử lý';
+      case 'UNKNOWN_RECONCILE':
+        return 'Không rõ kết quả (Chờ đối soát)';
+      case 'SIMULATED_SUCCEEDED':
+        return 'Đã mô phỏng hoàn (Chưa thực chi)';
+      case 'MANUAL_TEST_VERIFIED':
+        return 'Đã xác nhận phiếu chi test';
+      case 'SANDBOX_ACCEPTED':
+      case 'SANDBOX_SETTLED':
+        return 'Đã xác nhận hoàn test (Sandbox)';
+      case 'FAILED':
+        return 'Thất bại';
+      default:
+        return status || 'Đang xử lý';
+    }
+  };
+
   const handleSettleRefund = async (accountId: string) => {
     if (refundChannel !== 'VNPAY_PROVIDER' && !payoutReceiptRef.trim()) {
       setNotice({ type: 'error', text: 'Vui lòng nhập mã chứng từ chi / biên lai hoàn tiền trước khi tất toán.' });
@@ -131,12 +153,20 @@ export function BookingBenefitPanel({ bookingId, mode }: BookingBenefitPanelProp
         payoutReceiptRef: payoutReceiptRef.trim() || undefined,
         reason: 'Tất toán hoàn tiền chênh lệch giảm giá phòng',
       });
+      const amtText = Number(
+        res.simulatedRefundAmount || res.settledRefundAmount || res.reservedRefundAmount || 0,
+      ).toLocaleString('vi-VN');
+      let msg = `Đã gửi yêu cầu hoàn ${amtText}đ (${getRefundIntentStatusLabel(res.status)}) — Môi trường demo, chưa thực chi.`;
+      if (res.status === 'SIMULATED_SUCCEEDED' || res.status === 'MANUAL_TEST_VERIFIED') {
+        msg = `Đã mô phỏng hoàn ${amtText}đ — chưa thực chi (${getRefundIntentStatusLabel(res.status)}).`;
+      } else if (res.status === 'SANDBOX_SETTLED' || res.status === 'SANDBOX_ACCEPTED') {
+        msg = `Đã xác nhận hoàn thử nghiệm Sandbox ${amtText}đ (${getRefundIntentStatusLabel(res.status)} — tiền test).`;
+      } else if (res.status === 'UNKNOWN_RECONCILE') {
+        msg = `Lệnh hoàn ${amtText}đ đang ở trạng thái Không rõ kết quả — chờ đối soát, tuyệt đối không gửi lại thủ công.`;
+      }
       setNotice({
         type: 'success',
-        text:
-          res.status === 'SUCCEEDED'
-            ? `Đã hoàn trả thành công ${Number(res.settledRefundAmount || 0).toLocaleString('vi-VN')}đ!`
-            : `Đã tạo lệnh hoàn tiền (${res.status}) số tiền ${Number(res.reservedRefundAmount || 0).toLocaleString('vi-VN')}đ, đang chờ cổng thanh toán đối soát.`,
+        text: msg,
       });
       setPayoutReceiptRef('');
       await loadFolio();
@@ -190,6 +220,17 @@ export function BookingBenefitPanel({ bookingId, mode }: BookingBenefitPanelProp
 
       {folio && (
         <>
+          {folio.isDemoMode !== false && (
+            <div className="p-2 rounded-lg bg-amber-100/90 border border-amber-300 text-amber-900 font-semibold flex items-center justify-between gap-2">
+              <span>Môi trường demo — không có chuyển tiền thật (Chế độ: {folio.refundProviderMode || 'MOCK'})</span>
+              {Number(folio.simulatedRefundedAmount || 0) > 0 && (
+                <span>
+                  Đã mô phỏng hoàn: {Number(folio.simulatedRefundedAmount).toLocaleString('vi-VN')} ₫ (chưa thực chi)
+                </span>
+              )}
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
             <div className="p-2.5 rounded-lg bg-white border border-amber-100 dark:bg-gray-900 dark:border-gray-800">
               <span className="text-2xs text-gray-500 block">Tổng đơn ghi nhận trên VNPay:</span>
@@ -304,18 +345,35 @@ export function BookingBenefitPanel({ bookingId, mode }: BookingBenefitPanelProp
                   const val = e.target.value;
                   setServiceReqId(val);
                   const found = serviceRequests.find((r) => String(r.id) === val);
-                  if (found) setRedeemAmount(String(Math.round(Number(found.totalPrice || 0))));
+                  if (found) {
+                    const due =
+                      found.remainingPayable !== undefined
+                        ? Number(found.remainingPayable)
+                        : Number(found.totalPrice || 0);
+                    setRedeemAmount(String(Math.max(0, Math.round(due))));
+                  }
                 }}
                 className="px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white text-xs min-w-[230px]"
               >
                 <option value="">-- Chọn phiếu dịch vụ của booking * --</option>
                 {serviceRequests
-                  .filter((r) => r.status !== 'CANCELLED' && r.status !== 'FAILED')
-                  .map((r) => (
-                    <option key={r.id} value={String(r.id)}>
-                      #{r.id} - {r.serviceName} ({Number(r.totalPrice).toLocaleString('vi-VN')}đ - {r.status})
-                    </option>
-                  ))}
+                  .filter(
+                    (r) =>
+                      r.status !== 'CANCELLED' &&
+                      r.status !== 'FAILED' &&
+                      (r.remainingPayable === undefined || Number(r.remainingPayable) > 0),
+                  )
+                  .map((r) => {
+                    const due =
+                      r.remainingPayable !== undefined
+                        ? Number(r.remainingPayable)
+                        : Number(r.totalPrice || 0);
+                    return (
+                      <option key={r.id} value={String(r.id)}>
+                        #{r.id} - {r.serviceName} (Còn phải thu: {due.toLocaleString('vi-VN')}đ - {r.status})
+                      </option>
+                    );
+                  })}
               </select>
               <input
                 type="number"

@@ -42,3 +42,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .commandcode
+
+# Danh sách các file test / kiểm tra luồng chạy (không push lên GitHub tránh nặng source)
+**/*.spec.ts
+**/*.spec.tsx
+**/*.test.ts
+**/*.test.tsx
+**/*.e2e-spec.ts
+

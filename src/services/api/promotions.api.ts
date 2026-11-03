@@ -39,6 +39,8 @@ export interface BookingBenefitFolioResponse {
   bookingId: string;
   bookingCode: string;
   hotelId: string;
+  refundProviderMode?: 'MOCK' | 'VNPAY_SANDBOX' | 'MANUAL_TEST' | string;
+  isDemoMode?: boolean;
   originalEstimatedTotal: number;
   refundReceivableAmount: number;
   availableServiceCredit: number;
@@ -47,7 +49,26 @@ export interface BookingBenefitFolioResponse {
   refundableButOffsetPermitted?: number;
   pureServiceVoucher?: number;
   pendingRefundSettlementAmount?: number;
+  simulatedRefundedAmount?: number;
+  settledRefundedAmount?: number;
   totalOutstandingLiability?: number;
+  totalServiceAmountDue?: number;
+  serviceReceivables?: Array<{
+    serviceRequestId: string;
+    serviceId: string;
+    serviceName: string;
+    status: string;
+    grossTotal: number;
+    directDiscountAmount: number;
+    netTotal: number;
+    creditsApplied: number;
+    redeemedAmount: number;
+    redeemedQuota: number;
+    cashPaid: number;
+    amountDue: number;
+    remainingPayable: number;
+    settlementStatus: string;
+  }>;
   refundIntents?: Array<{
     id: string;
     amount: number;
@@ -175,7 +196,7 @@ export const promotionsApi = {
       allocatedRoomIds?: string[];
     };
   }): Promise<{ campaign: PromotionCampaignItem; conflictWarnings: any[] }> => {
-    const res = await apiClient.post('/promotions/campaigns', payload);
+    const res = await apiClient.post(`/promotions/hotels/${payload.hotelId}/campaigns`, payload);
     return res.data;
   },
 
@@ -215,9 +236,7 @@ export const promotionsApi = {
   },
 
   quoteServiceItem: async (payload: {
-    hotelId: string;
     serviceId: string;
-    baseUnitPrice: number;
     quantity?: number;
     usageAt?: string;
   }) => {

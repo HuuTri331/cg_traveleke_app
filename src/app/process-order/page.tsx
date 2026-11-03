@@ -947,8 +947,11 @@ function ProcessOrderContent() {
                         <span className="font-bold block">Ưu đãi giảm giá phòng theo đêm</span>
                         <span className="text-[11px] text-emerald-600 block">
                           {serverQuote?.nightlyLines
-                            ?.filter((l: any) => Number(l.discountAmount) > 0)
-                            .map((l: any) => `${l.nightDate} (-${Number(l.discountAmount).toLocaleString('vi-VN')}đ)`)
+                            ?.filter((l: any) => Number(l.payableSubtotal) < Number(l.baseSubtotal))
+                            .map(
+                              (l: any) =>
+                                `${l.nightDate} (-${Math.max(0, Number(l.baseSubtotal) - Number(l.payableSubtotal)).toLocaleString('vi-VN')}đ)`,
+                            )
                             .join(', ')}
                         </span>
                       </div>
@@ -968,25 +971,36 @@ function ProcessOrderContent() {
                   {Array.isArray(serverQuote?.nightlyLines) && serverQuote.nightlyLines.length > 1 && (
                     <div className="bg-gray-50 rounded-lg p-2.5 border border-gray-100 space-y-1 max-h-36 overflow-y-auto text-[11px]">
                       <div className="font-semibold text-gray-600 mb-1">Phân rã giá từng đêm [checkIn, checkOut):</div>
-                      {serverQuote.nightlyLines.map((line: any) => (
-                        <div key={line.nightDate} className="flex items-center justify-between text-gray-600">
-                          <span className="font-mono">{line.nightDate}</span>
-                          <span>
-                            {Number(line.discountAmount) > 0 ? (
-                              <>
-                                <span className="line-through text-gray-400 mr-1.5">
-                                  {Number(line.baseSubtotal).toLocaleString('vi-VN')}đ
-                                </span>
-                                <strong className="text-emerald-700">
-                                  {Number(line.payableSubtotal).toLocaleString('vi-VN')}đ
-                                </strong>
-                              </>
-                            ) : (
-                              <span>{Number(line.payableSubtotal).toLocaleString('vi-VN')}đ</span>
-                            )}
-                          </span>
-                        </div>
-                      ))}
+                      {serverQuote.nightlyLines.map((line: any) => {
+                        const isMonetaryReduced = Number(line.payableSubtotal) < Number(line.baseSubtotal);
+                        const isNoncashCreditNight = !isMonetaryReduced && Number(line.discountAmount) > 0;
+                        return (
+                          <div key={line.nightDate} className="flex items-center justify-between text-gray-600">
+                            <span className="font-mono">{line.nightDate}</span>
+                            <span>
+                              {isMonetaryReduced ? (
+                                <>
+                                  <span className="line-through text-gray-400 mr-1.5">
+                                    {Number(line.baseSubtotal).toLocaleString('vi-VN')}đ
+                                  </span>
+                                  <strong className="text-emerald-700">
+                                    {Number(line.payableSubtotal).toLocaleString('vi-VN')}đ
+                                  </strong>
+                                </>
+                              ) : (
+                                <>
+                                  <span>{Number(line.payableSubtotal).toLocaleString('vi-VN')}đ</span>
+                                  {isNoncashCreditNight && (
+                                    <span className="ml-1.5 text-indigo-600 font-semibold">
+                                      (+Voucher DV {Number(line.discountAmount).toLocaleString('vi-VN')}đ)
+                                    </span>
+                                  )}
+                                </>
+                              )}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
 

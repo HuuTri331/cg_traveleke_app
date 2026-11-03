@@ -282,32 +282,50 @@ export default function PromotionsManagementPage() {
       )}
 
       {reconciliation && (
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-          <div className="bg-white border border-gray-200 rounded-xl p-3.5 text-xs">
-            <span className="text-gray-500 block">Tổng quyền lợi đã cấp (Granted):</span>
-            <span className="text-base font-extrabold text-indigo-700">
-              {Number(reconciliation.financialSummary?.totalGranted || 0).toLocaleString('vi-VN')} ₫
-            </span>
-          </div>
-          <div className="bg-white border border-gray-200 rounded-xl p-3.5 text-xs">
-            <span className="text-gray-500 block">Đã cấn trừ Dịch Vụ (Redeemed):</span>
-            <span className="text-base font-extrabold text-emerald-700">
-              {Number(reconciliation.financialSummary?.totalRedeemed || 0).toLocaleString('vi-VN')} ₫
-            </span>
-          </div>
-          <div className="bg-white border border-gray-200 rounded-xl p-3.5 text-xs">
-            <span className="text-gray-500 block">Đã hoàn trả thực tế (Refunded):</span>
-            <span className="text-base font-extrabold text-amber-700">
-              {Number(reconciliation.financialSummary?.totalRefunded || 0).toLocaleString('vi-VN')} ₫
-            </span>
-          </div>
-          <div className="bg-white border border-gray-200 rounded-xl p-3.5 text-xs">
-            <span className="text-gray-500 block">Đối soát Sổ cái ↔ Tài khoản:</span>
-            <span className={`text-base font-extrabold ${reconciliation.discrepanciesCount > 0 ? 'text-red-600' : 'text-emerald-700'}`}>
-              {reconciliation.discrepanciesCount === 0
-                ? 'Khớp 100% (0 lệch)'
-                : `Phát hiện ${reconciliation.discrepanciesCount} lệch`}
-            </span>
+        <div className="space-y-2.5">
+          {reconciliation.isDemoMode !== false && (
+            <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 font-semibold flex items-center justify-between">
+              <span>
+                Môi trường demo — không có chuyển tiền thật (Chế độ hoàn tiền: {reconciliation.refundProviderMode || 'MOCK'})
+              </span>
+              <span>
+                Đang chờ xử lý/đối soát: {Number(reconciliation.financialSummary?.pendingRefundIntentsCount || 0)} lệnh
+              </span>
+            </div>
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+            <div className="bg-white border border-gray-200 rounded-xl p-3.5 text-xs">
+              <span className="text-gray-500 block">Tổng quyền lợi đã cấp (Granted):</span>
+              <span className="text-base font-extrabold text-indigo-700">
+                {Number(reconciliation.financialSummary?.totalGranted || 0).toLocaleString('vi-VN')} ₫
+              </span>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-3.5 text-xs">
+              <span className="text-gray-500 block">Đã cấn trừ Dịch Vụ (Redeemed):</span>
+              <span className="text-base font-extrabold text-emerald-700">
+                {Number(reconciliation.financialSummary?.totalRedeemed || 0).toLocaleString('vi-VN')} ₫
+              </span>
+            </div>
+            <div className="bg-white border border-amber-200 rounded-xl p-3.5 text-xs">
+              <span className="text-gray-500 block">Đã mô phỏng hoàn (Chưa thực chi):</span>
+              <span className="text-base font-extrabold text-amber-700">
+                {Number(reconciliation.financialSummary?.totalSimulatedRefunded || 0).toLocaleString('vi-VN')} ₫
+              </span>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-3.5 text-xs">
+              <span className="text-gray-500 block">Đã xác nhận hoàn (Sandbox/Settled):</span>
+              <span className="text-base font-extrabold text-blue-700">
+                {Number(reconciliation.financialSummary?.totalRefunded || 0).toLocaleString('vi-VN')} ₫
+              </span>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-3.5 text-xs">
+              <span className="text-gray-500 block">Đối soát Sổ cái ↔ Tài khoản:</span>
+              <span className={`text-base font-extrabold ${reconciliation.discrepanciesCount > 0 ? 'text-red-600' : 'text-emerald-700'}`}>
+                {reconciliation.discrepanciesCount === 0
+                  ? 'Khớp 100% (0 lệch)'
+                  : `Phát hiện ${reconciliation.discrepanciesCount} lệch`}
+              </span>
+            </div>
           </div>
         </div>
       )}

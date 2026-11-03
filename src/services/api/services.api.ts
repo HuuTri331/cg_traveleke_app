@@ -71,6 +71,12 @@ export interface ServiceRequest {
   status: ServiceRequestStatus;
   createdAt: string;
   service?: RoomService;
+  grossTotal?: number;
+  netTotal?: number;
+  redeemedAmount?: number;
+  redeemedQuota?: number;
+  remainingPayable?: number;
+  settlementStatus?: 'UNPAID' | 'PARTIALLY_OFFSET' | 'SETTLED_BY_BENEFIT' | 'CANCELLED';
 }
 
 export interface BookingServiceSnapshot {
