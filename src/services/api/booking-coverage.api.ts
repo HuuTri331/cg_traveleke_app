@@ -1,6 +1,13 @@
 import { apiClient } from './client';
 
-export type CoverageGrantStatus = 'ACTIVE' | 'EXPIRED' | 'REVOKED';
+export type CoverageGrantStatus =
+  | 'REQUESTED'
+  | 'APPROVED_PENDING_ACCEPTANCE'
+  | 'SCHEDULED'
+  | 'ACTIVE'
+  | 'DECLINED'
+  | 'EXPIRED'
+  | 'REVOKED';
 
 export type CoverageTaskType =
   | 'CHECK_IN'
@@ -52,6 +59,7 @@ export interface CreateTemporaryCoveragePayload {
   reason?: string;
   expectedAssignmentVersion?: number;
   commandId?: string;
+  requireDelegateAcceptance?: boolean;
 }
 
 export interface ExtendCoveragePayload {
@@ -85,6 +93,62 @@ export const bookingCoverageApi = {
     payload: CreateTemporaryCoveragePayload,
   ): Promise<BookingCoverageGrantItem> => {
     const response = await apiClient.post(`/booking-coverage/${bookingId}/temporary`, payload);
+    return response.data;
+  },
+
+  requestCoverage: async (
+    bookingId: string | number,
+    payload: CreateTemporaryCoveragePayload,
+  ): Promise<BookingCoverageGrantItem> => {
+    const response = await apiClient.post(`/booking-coverage/${bookingId}/requests`, payload);
+    return response.data;
+  },
+
+  approveCoverage: async (
+    bookingId: string | number,
+    grantId: string | number,
+    note?: string,
+  ): Promise<BookingCoverageGrantItem> => {
+    const response = await apiClient.post(
+      `/booking-coverage/${bookingId}/requests/${grantId}/approve`,
+      { note },
+    );
+    return response.data;
+  },
+
+  acceptCoverage: async (
+    bookingId: string | number,
+    grantId: string | number,
+    note?: string,
+  ): Promise<BookingCoverageGrantItem> => {
+    const response = await apiClient.post(
+      `/booking-coverage/${bookingId}/requests/${grantId}/accept`,
+      { note },
+    );
+    return response.data;
+  },
+
+  declineCoverage: async (
+    bookingId: string | number,
+    grantId: string | number,
+    reason?: string,
+  ): Promise<BookingCoverageGrantItem> => {
+    const response = await apiClient.post(
+      `/booking-coverage/${bookingId}/requests/${grantId}/decline`,
+      { reason },
+    );
+    return response.data;
+  },
+
+  handbackCoverage: async (
+    bookingId: string | number,
+    grantId: string | number,
+    reason?: string,
+  ): Promise<BookingCoverageGrantItem> => {
+    const response = await apiClient.post(
+      `/booking-coverage/${bookingId}/requests/${grantId}/handback`,
+      { reason },
+    );
     return response.data;
   },
 

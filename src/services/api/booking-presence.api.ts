@@ -33,6 +33,8 @@ export interface ConfirmArrivalPayload {
 export interface ConfirmDeparturePayload {
   note?: string;
   commandId?: string;
+  servicePaymentReceiptRef?: string;
+  acknowledgeServiceReceivables?: boolean;
 }
 
 export interface LateArrivalNoticePayload {

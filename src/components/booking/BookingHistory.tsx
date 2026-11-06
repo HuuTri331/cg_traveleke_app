@@ -413,6 +413,28 @@ export default function BookingHistory() {
                         </p>
                       </div>
 
+                      {/* P2-02: Hiển thị lễ tân / bộ phận hiện hành đang chịu trách nhiệm hỗ trợ đơn đặt phòng */}
+                      {booking.responsibleContact && (
+                        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-emerald-50/70 px-3.5 py-2.5 text-xs text-emerald-900">
+                          <div>
+                            <span className="font-semibold">
+                              Đầu mối phụ trách hiện tại:{' '}
+                            </span>
+                            <span className="font-bold">
+                              {booking.responsibleContact.publicName}
+                            </span>{' '}
+                            <span className="text-emerald-700">
+                              ({booking.responsibleContact.roleLabel} • {booking.responsibleContact.supportGroup})
+                            </span>
+                          </div>
+                          <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800">
+                            {booking.responsibleContact.status === 'AVAILABLE'
+                              ? 'Đang trực hỗ trợ'
+                              : 'Tổng đài điều phối 24/7'}
+                          </span>
+                        </div>
+                      )}
+
                       <div className="mt-5 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
                         <div>
                           <p className="text-gray-500">

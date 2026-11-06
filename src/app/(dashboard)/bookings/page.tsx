@@ -160,6 +160,8 @@ export default function BookingsPage() {
     nextStatus: string;
     statusLabel: string;
     note: string;
+    servicePaymentReceiptRef?: string;
+    acknowledgeServiceReceivables?: boolean;
     submitting: boolean;
   }>({
     isOpen: false,
@@ -167,6 +169,8 @@ export default function BookingsPage() {
     nextStatus: '',
     statusLabel: '',
     note: '',
+    servicePaymentReceiptRef: '',
+    acknowledgeServiceReceivables: false,
     submitting: false,
   });
 
@@ -769,6 +773,8 @@ export default function BookingsPage() {
       nextStatus,
       statusLabel: label,
       note: '',
+      servicePaymentReceiptRef: '',
+      acknowledgeServiceReceivables: false,
       submitting: false,
     });
   };
@@ -784,6 +790,8 @@ export default function BookingsPage() {
       } else if (statusActionModal.nextStatus === 'COMPLETED') {
         await bookingPresenceApi.confirmDeparture(statusActionModal.booking.id, {
           note: statusActionModal.note.trim() || undefined,
+          servicePaymentReceiptRef: statusActionModal.servicePaymentReceiptRef?.trim() || undefined,
+          acknowledgeServiceReceivables: statusActionModal.acknowledgeServiceReceivables || undefined,
         });
       } else {
         await bookingApi.updateStatus(statusActionModal.booking.id, {
@@ -1241,7 +1249,7 @@ export default function BookingsPage() {
                                 <span>Đổi Phụ Trách</span>
                               </button>
 
-                              {/* PENDING: Xác nhận hoặc Yêu cầu hủy/hoàn */}
+                              {/* PENDING: Xác nhận, Nhận phòng (nếu đã PAID) hoặc Yêu cầu hủy/hoàn */}
                               {b.status === 'PENDING' && (
                                 <>
                                   <button
@@ -1252,6 +1260,16 @@ export default function BookingsPage() {
                                     <CheckCircle2 className="h-3.5 w-3.5" />
                                     <span>Xác nhận</span>
                                   </button>
+                                  {b.paymentStatus === 'PAID' && (
+                                    <button
+                                      onClick={() => handleOpenLateCheckIn(b)}
+                                      title="Khách nhận phòng trực tiếp cho đơn online đã PAID"
+                                      className="flex h-8 items-center gap-1 rounded-lg bg-indigo-600 px-2.5 text-xs-plus font-bold text-white hover:bg-indigo-700 shadow-xs cursor-pointer"
+                                    >
+                                      <LogIn className="h-3.5 w-3.5" />
+                                      <span>Nhận phòng</span>
+                                    </button>
+                                  )}
                                   <button
                                     onClick={() => handleOpenCancellationModal(b)}
                                     disabled={new Date() >= new Date(b.checkInAt)}
@@ -2246,6 +2264,44 @@ export default function BookingsPage() {
             .
           </p>
 
+          {statusActionModal.nextStatus === 'COMPLETED' && (
+            <div className="space-y-3 rounded-xl border border-indigo-200 bg-indigo-50/40 p-3 dark:border-indigo-800 dark:bg-indigo-950/20">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Mã biên lai thu tiền dịch vụ phát sinh tại quầy (servicePaymentReceiptRef):
+                </label>
+                <input
+                  type="text"
+                  value={statusActionModal.servicePaymentReceiptRef || ''}
+                  onChange={(e) =>
+                    setStatusActionModal((prev) => ({
+                      ...prev,
+                      servicePaymentReceiptRef: e.target.value,
+                    }))
+                  }
+                  placeholder="Nhập mã phiếu thu/biên lai nếu khách có thanh toán dịch vụ tại quầy..."
+                  className="w-full rounded-xl border border-gray-300 bg-white p-2 text-xs text-gray-800 focus:border-brand-500 focus:outline-none dark:border-gray-700 dark:bg-gray-850 dark:text-white"
+                />
+              </div>
+              <label className="flex items-start gap-2 text-xs text-gray-600 dark:text-gray-300 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={Boolean(statusActionModal.acknowledgeServiceReceivables)}
+                  onChange={(e) =>
+                    setStatusActionModal((prev) => ({
+                      ...prev,
+                      acknowledgeServiceReceivables: e.target.checked,
+                    }))
+                  }
+                  className="mt-0.5 rounded border-gray-300"
+                />
+                <span>
+                  [Chỉ dành cho Quản lý] Phê duyệt ghi nhận công nợ dịch vụ mở (OPEN_RECEIVABLE) để theo dõi thu sau nếu khách chưa thanh toán hết tại quầy.
+                </span>
+              </label>
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
               Ghi chú / Lý do vận hành (Lưu vào nhật ký Audit Trail):
@@ -2420,24 +2476,56 @@ export default function BookingsPage() {
             />
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={reassignModal.submitting}
-              onClick={() => setReassignModal((prev) => ({ ...prev, isOpen: false }))}
-            >
-              Đóng
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              disabled={!reassignModal.canReassign || !reassignModal.selectedStaffId || reassignModal.loading}
-              isLoading={reassignModal.submitting}
-              onClick={handleConfirmReassign}
-            >
-              Xác Nhận Phân Công Lại
-            </Button>
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+            <div className="flex items-center gap-2">
+              {reassignModal.booking && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const targetBooking = reassignModal.booking!;
+                      setReassignModal((prev) => ({ ...prev, isOpen: false }));
+                      handleOpenCoverageModal(targetBooking, 'TEMPORARY');
+                    }}
+                  >
+                    <Clock className="h-3.5 w-3.5 mr-1 text-blue-600" />
+                    Ủy Quyền Tạm Thời (A Nghỉ Phép/Đổi Ca)
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const targetBooking = reassignModal.booking!;
+                      setReassignModal((prev) => ({ ...prev, isOpen: false }));
+                      handleOpenCoverageModal(targetBooking, 'PERMANENT');
+                    }}
+                  >
+                    <ArrowRight className="h-3.5 w-3.5 mr-1 text-indigo-600" />
+                    Chuyển Chủ Vĩnh Viễn
+                  </Button>
+                </>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={reassignModal.submitting}
+                onClick={() => setReassignModal((prev) => ({ ...prev, isOpen: false }))}
+              >
+                Đóng
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                disabled={!reassignModal.canReassign || !reassignModal.selectedStaffId || reassignModal.loading}
+                isLoading={reassignModal.submitting}
+                onClick={handleConfirmReassign}
+              >
+                Xác Nhận Phân Công Lại
+              </Button>
+            </div>
           </div>
         </div>
       </Modal>

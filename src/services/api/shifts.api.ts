@@ -6,31 +6,51 @@ export interface StaffShiftItem {
   hotelName?: string;
   staffUserId: string;
   staffName?: string;
-  shiftType: 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'CUSTOM';
-  status: 'SCHEDULED' | 'OPEN' | 'HANDOVER_PENDING' | 'CLOSED';
-  plannedStartTime: string;
-  plannedEndTime: string;
+  staffEmail?: string;
+  staffRole?: string;
+  shiftName?: string;
+  shiftDate?: string;
+  shiftType?: 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'CUSTOM';
+  status: 'SCHEDULED' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED' | 'OPEN' | 'HANDOVER_PENDING' | 'CLOSED';
+  plannedStartAt?: string | null;
+  plannedEndAt?: string | null;
+  hotelTimezone?: string;
+  plannedStartTime?: string;
+  plannedEndTime?: string;
+  startTime?: string | null;
+  endTime?: string | null;
+  actualClockInAt?: string | null;
+  actualClockOutAt?: string | null;
   actualStartTime?: string | null;
   actualEndTime?: string | null;
   openingCashFloat: string;
+  closingCashCounted?: string | null;
   closingCashExpected?: string | null;
   closingCashActual?: string | null;
   cashVariance?: string | null;
+  handoverNote?: string | null;
   notes?: string | null;
-  createdAt: string;
+  createdAt?: string;
 }
 
 export interface ShiftHandoverItem {
   id: string;
   shiftId: string;
-  giverStaffId: string;
+  hotelId?: string;
+  fromStaffId?: string;
+  toStaffId?: string;
+  giverStaffId?: string;
   giverName?: string;
-  receiverStaffId: string;
+  receiverStaffId?: string;
   receiverName?: string;
   status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
-  handoverNotes: string;
+  pendingTasks?: string | null;
+  cashAmount?: string;
+  specialNotes?: string | null;
+  handoverNotes?: string;
   pendingItems?: any;
-  givenAt: string;
+  givenAt?: string;
+  createdAt?: string;
   acceptedAt?: string | null;
   receiverNotes?: string | null;
 }
@@ -46,38 +66,101 @@ export const shiftsApi = {
     return response.data;
   },
 
-  startShift: async (data: {
+  createShift: async (data: {
     hotelId: string | number;
-    shiftType: 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'CUSTOM';
-    plannedStartTime: string;
-    plannedEndTime: string;
+    staffUserId: string | number;
+    shiftName: string;
+    shiftDate: string;
+    plannedStartAt?: string;
+    plannedEndAt?: string;
+    hotelTimezone?: string;
     openingCashFloat?: number;
-    notes?: string;
   }): Promise<{ message: string; data: StaffShiftItem }> => {
-    const response = await apiClient.post('/shifts/start', data);
+    const response = await apiClient.post('/shifts', {
+      ...data,
+      hotelId: String(data.hotelId),
+      staffUserId: String(data.staffUserId),
+    });
     return response.data;
+  },
+
+  startShift: async (
+    shiftIdOrData:
+      | string
+      | number
+      | {
+          shiftId?: string | number;
+          hotelId?: string | number;
+          shiftType?: 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'CUSTOM';
+          plannedStartTime?: string;
+          plannedEndTime?: string;
+          openingCashFloat?: number;
+          notes?: string;
+          commandId?: string;
+        },
+    payload?: {
+      openingCashFloat?: number;
+      commandId?: string;
+    },
+  ): Promise<{ message: string; data: StaffShiftItem }> => {
+    if (typeof shiftIdOrData === 'string' || typeof shiftIdOrData === 'number') {
+      const response = await apiClient.post(`/shifts/${shiftIdOrData}/start`, payload || {});
+      return response.data;
+    }
+    if (shiftIdOrData.shiftId) {
+      const response = await apiClient.post(`/shifts/${shiftIdOrData.shiftId}/start`, {
+        openingCashFloat: shiftIdOrData.openingCashFloat,
+        commandId: shiftIdOrData.commandId,
+      });
+      return response.data;
+    }
+    throw new Error('Vui lòng chọn ca đã xếp lịch (shiftId) để bắt đầu ca trực.');
   },
 
   endShift: async (
     shiftId: string | number,
     data: {
+      closingCashCounted?: number;
       closingCashActual?: number;
+      handoverNote?: string;
       notes?: string;
+      commandId?: string;
     }
   ): Promise<{ message: string; data: StaffShiftItem }> => {
-    const response = await apiClient.post(`/shifts/${shiftId}/end`, data);
+    const response = await apiClient.post(`/shifts/${shiftId}/end`, {
+      closingCashCounted: data.closingCashCounted ?? data.closingCashActual,
+      closingCashActual: data.closingCashActual ?? data.closingCashCounted,
+      handoverNote: data.handoverNote ?? data.notes,
+      notes: data.notes,
+      commandId: data.commandId,
+    });
     return response.data;
   },
 
   handoverShift: async (
     shiftId: string | number,
     data: {
-      receiverStaffId: string | number;
-      handoverNotes: string;
+      toStaffId?: string | number;
+      receiverStaffId?: string | number;
+      specialNotes?: string;
+      handoverNotes?: string;
+      pendingTasks?: any;
       pendingItems?: any;
+      cashAmount?: number;
+      acknowledgedFinancialAccountIds?: string[];
     }
   ): Promise<{ message: string; data: ShiftHandoverItem }> => {
-    const response = await apiClient.post(`/shifts/${shiftId}/handover`, data);
+    const targetToStaffId = String(data.toStaffId ?? data.receiverStaffId ?? '').trim();
+    const response = await apiClient.post(`/shifts/${shiftId}/handover`, {
+      toStaffId: targetToStaffId,
+      receiverStaffId: targetToStaffId,
+      specialNotes: data.specialNotes ?? data.handoverNotes,
+      handoverNotes: data.handoverNotes ?? data.specialNotes,
+      pendingTasks: data.pendingTasks ?? data.pendingItems,
+      pendingItems: data.pendingItems,
+      cashAmount: data.cashAmount,
+      acknowledgedFinancialAccountIds: data.acknowledgedFinancialAccountIds,
+    });
     return response.data;
   },
 
@@ -99,3 +182,4 @@ export const shiftsApi = {
     return response.data;
   },
 };
+

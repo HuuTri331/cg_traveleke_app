@@ -54,6 +54,14 @@ export interface BookingHistory {
   noShowClosedAt?: string | null;
   lateArrivalExpectedAt?: string | null;
   lateArrivalNote?: string | null;
+  responsibleContact?: {
+    publicName: string;
+    roleLabel: string;
+    supportGroup: string;
+    contactChannel: string;
+    status: 'AVAILABLE' | 'CONTACT_PENDING' | 'ESCALATED' | string;
+    isDelegatedCoverage?: boolean;
+  } | null;
 }
 
 export interface AdminBookingItem {
@@ -317,6 +325,20 @@ export const bookingApi = {
   // ===============================
   getAvailableStaff: async (bookingId: string): Promise<any> => {
     const response = await apiClient.get(`/bookings/${bookingId}/available-staff`);
+    return response.data;
+  },
+
+  getAllowedActions: async (bookingId: string): Promise<{
+    bookingId: string;
+    now: string;
+    dutyStatus: string;
+    coverageRequestStatus: string;
+    effectiveExecutorId: string | null;
+    coverageGrantId: string | null;
+    allowedActions: string[];
+    blockedReasons: string[];
+  }> => {
+    const response = await apiClient.get(`/bookings/${bookingId}/allowed-actions`);
     return response.data;
   },
 

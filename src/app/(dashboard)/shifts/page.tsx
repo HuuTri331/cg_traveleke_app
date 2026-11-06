@@ -39,6 +39,9 @@ const SHIFT_STATUS_MAP: Record<
   { label: string; variant: 'brand' | 'success' | 'warning' | 'danger' | 'info' | 'neutral' }
 > = {
   SCHEDULED: { label: 'Đã Lên Lịch', variant: 'info' },
+  ACTIVE: { label: 'Đang Trực Ca', variant: 'brand' },
+  COMPLETED: { label: 'Đã Hoàn Thành Ca', variant: 'success' },
+  CANCELLED: { label: 'Đã Hủy Ca', variant: 'danger' },
   OPEN: { label: 'Đang Trực Ca', variant: 'brand' },
   HANDOVER_PENDING: { label: 'Chờ Tiếp Nhận Giao Ca', variant: 'warning' },
   CLOSED: { label: 'Đã Đóng Ca', variant: 'success' },
@@ -49,6 +52,7 @@ export default function ShiftsPage() {
 
   const [activeShift, setActiveShift] = useState<StaffShiftItem | null>(null);
   const [myShifts, setMyShifts] = useState<StaffShiftItem[]>([]);
+  const [handovers, setHandovers] = useState<ShiftHandoverItem[]>([]);
   const [hotels, setHotels] = useState<any[]>([]);
   const [staffUsers, setStaffUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,7 +62,9 @@ export default function ShiftsPage() {
   const [isStartModalOpen, setIsStartModalOpen] = useState(false);
   const [startForm, setStartForm] = useState({
     hotelId: '',
+    staffUserId: '',
     shiftType: 'MORNING' as 'MORNING' | 'AFTERNOON' | 'NIGHT' | 'CUSTOM',
+    shiftDate: new Date().toISOString().split('T')[0],
     plannedStartTime: '06:00',
     plannedEndTime: '14:00',
     openingCashFloat: 1000000,
@@ -96,7 +102,17 @@ export default function ShiftsPage() {
       setStaffUsers(usersRes || []);
 
       if (hotelsRes.data?.length > 0 && !startForm.hotelId) {
-        setStartForm((prev) => ({ ...prev, hotelId: String(hotelsRes.data[0].id) }));
+        const defaultHotelId = String(hotelsRes.data[0].id);
+        setStartForm((prev) => ({ ...prev, hotelId: defaultHotelId }));
+        shiftsApi
+          .getHotelHandovers(defaultHotelId)
+          .then((res) => setHandovers(res.data || []))
+          .catch(() => setHandovers([]));
+      } else if (startForm.hotelId) {
+        shiftsApi
+          .getHotelHandovers(startForm.hotelId)
+          .then((res) => setHandovers(res.data || []))
+          .catch(() => setHandovers([]));
       }
     } catch (err: any) {
       console.error('Lỗi tải dữ liệu ca trực:', err);
@@ -109,29 +125,79 @@ export default function ShiftsPage() {
     fetchData();
   }, [fetchData]);
 
-  // Bắt đầu ca
+  // Xếp ca mới (POST /shifts) hoặc mở ca SCHEDULED đã có (POST /shifts/:id/start)
   const handleStartShift = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setSubmitting(true);
-      const today = new Date().toISOString().split('T')[0];
-      const startIso = `${today}T${startForm.plannedStartTime}:00`;
-      const endIso = `${today}T${startForm.plannedEndTime}:00`;
+      const shiftDate = startForm.shiftDate || new Date().toISOString().split('T')[0];
+      const startDateObj = new Date(`${shiftDate}T${startForm.plannedStartTime}:00`);
+      let endDateObj = new Date(`${shiftDate}T${startForm.plannedEndTime}:00`);
+      if (endDateObj <= startDateObj) {
+        // Ca qua nửa đêm (22:00 -> 06:00 hôm sau)
+        endDateObj = new Date(endDateObj.getTime() + 24 * 3600 * 1000);
+      }
 
-      await shiftsApi.startShift({
-        hotelId: startForm.hotelId,
-        shiftType: startForm.shiftType,
-        plannedStartTime: startIso,
-        plannedEndTime: endIso,
-        openingCashFloat: Number(startForm.openingCashFloat),
-        notes: startForm.notes || undefined,
-      });
-
-      setNotice({ type: 'success', message: 'Bắt đầu ca trực thành công!' });
+      const scheduledCandidate = myShifts.find((s) => s.status === 'SCHEDULED');
+      if (scheduledCandidate && !startForm.staffUserId) {
+        await shiftsApi.startShift(scheduledCandidate.id, {
+          openingCashFloat: Number(startForm.openingCashFloat),
+        });
+        setNotice({ type: 'success', message: 'Điểm danh mở ca trực đã xếp thành công!' });
+      } else {
+        const created = await shiftsApi.createShift({
+          hotelId: startForm.hotelId,
+          staffUserId: startForm.staffUserId || String(user?.id || ''),
+          shiftName: SHIFT_TYPE_MAP[startForm.shiftType] || startForm.shiftType,
+          shiftDate,
+          plannedStartAt: startDateObj.toISOString(),
+          plannedEndAt: endDateObj.toISOString(),
+          openingCashFloat: Number(startForm.openingCashFloat),
+        });
+        if (!startForm.staffUserId || String(startForm.staffUserId) === String(user?.id)) {
+          await shiftsApi.startShift(created.data.id, {
+            openingCashFloat: Number(startForm.openingCashFloat),
+          });
+          setNotice({ type: 'success', message: 'Đã tạo lịch ca và bắt đầu ca trực thành công!' });
+        } else {
+          setNotice({ type: 'success', message: 'Đã xếp ca làm việc mới cho nhân sự thành công!' });
+        }
+      }
       setIsStartModalOpen(false);
       fetchData();
     } catch (err: any) {
-      setNotice({ type: 'error', message: err.message || 'Không thể bắt đầu ca trực.' });
+      setNotice({ type: 'error', message: err?.response?.data?.message || err.message || 'Không thể xử lý ca trực.' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleOpenScheduledShift = async (shift: StaffShiftItem) => {
+    try {
+      setSubmitting(true);
+      await shiftsApi.startShift(shift.id, {
+        openingCashFloat: Number(shift.openingCashFloat || 0),
+      });
+      setNotice({ type: 'success', message: `Đã mở ca trực #${shift.id} thành công!` });
+      fetchData();
+    } catch (err: any) {
+      setNotice({ type: 'error', message: err?.response?.data?.message || err.message || 'Không thể mở ca trực.' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleAcceptHandover = async (handoverId: string) => {
+    try {
+      setSubmitting(true);
+      await shiftsApi.acceptHandover(handoverId);
+      setNotice({
+        type: 'success',
+        message: 'Đã ký xác nhận biên bản bàn giao ca! Lưu ý: Các đơn đặt phòng ủy quyền cần ký nhận riêng tại màn hình Booking.',
+      });
+      fetchData();
+    } catch (err: any) {
+      setNotice({ type: 'error', message: err?.response?.data?.message || err.message || 'Không thể nhận bàn giao ca.' });
     } finally {
       setSubmitting(false);
     }
@@ -144,7 +210,9 @@ export default function ShiftsPage() {
     try {
       setSubmitting(true);
       await shiftsApi.endShift(activeShift.id, {
+        closingCashCounted: Number(endForm.closingCashActual),
         closingCashActual: Number(endForm.closingCashActual),
+        handoverNote: endForm.notes || undefined,
         notes: endForm.notes || undefined,
       });
 
@@ -152,7 +220,7 @@ export default function ShiftsPage() {
       setIsEndModalOpen(false);
       fetchData();
     } catch (err: any) {
-      setNotice({ type: 'error', message: err.message || 'Không thể đóng ca trực.' });
+      setNotice({ type: 'error', message: err?.response?.data?.message || err.message || 'Không thể đóng ca trực.' });
     } finally {
       setSubmitting(false);
     }
@@ -165,9 +233,11 @@ export default function ShiftsPage() {
     try {
       setSubmitting(true);
       await shiftsApi.handoverShift(activeShift.id, {
+        toStaffId: handoverForm.receiverStaffId,
         receiverStaffId: handoverForm.receiverStaffId,
+        specialNotes: handoverForm.handoverNotes,
         handoverNotes: handoverForm.handoverNotes,
-        pendingItems: handoverForm.pendingItems ? { summary: handoverForm.pendingItems } : undefined,
+        pendingTasks: handoverForm.pendingItems || undefined,
       });
 
       setNotice({ type: 'success', message: 'Đã gửi biên bản bàn giao ca cho nhân viên tiếp nhận!' });
@@ -231,7 +301,7 @@ export default function ShiftsPage() {
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 {activeShift
-                  ? `Khách sạn: ${activeShift.hotelName || `#${activeShift.hotelId}`} | ${SHIFT_TYPE_MAP[activeShift.shiftType] || activeShift.shiftType}`
+                  ? `Khách sạn: ${activeShift.hotelName || `#${activeShift.hotelId}`} | ${activeShift.shiftName || SHIFT_TYPE_MAP[activeShift.shiftType || ''] || activeShift.shiftType || 'Ca Trực'}`
                   : 'Bắt đầu ca trực để ghi nhận điểm danh, mở quỹ tiền mặt và phục vụ khách hàng.'}
               </p>
             </div>
@@ -264,7 +334,7 @@ export default function ShiftsPage() {
                 leftIcon={<Play className="h-4 w-4" />}
                 onClick={() => setIsStartModalOpen(true)}
               >
-                Bắt Đầu Ca Trực
+                Xếp Ca / Mở Ca Trực
               </Button>
             )}
           </div>
@@ -275,7 +345,9 @@ export default function ShiftsPage() {
             <div className="rounded-xl bg-gray-50 p-3 dark:bg-gray-850">
               <span className="text-2xs text-gray-400">Thời gian bắt đầu thực tế:</span>
               <p className="text-xs font-bold text-gray-900 dark:text-white mt-0.5">
-                {activeShift.actualStartTime ? new Date(activeShift.actualStartTime).toLocaleTimeString() : 'N/A'}
+                {activeShift.actualClockInAt || activeShift.startTime || activeShift.actualStartTime
+                  ? new Date((activeShift.actualClockInAt || activeShift.startTime || activeShift.actualStartTime) as string).toLocaleTimeString()
+                  : 'N/A'}
               </p>
             </div>
 
@@ -289,19 +361,72 @@ export default function ShiftsPage() {
             <div className="rounded-xl bg-gray-50 p-3 dark:bg-gray-850">
               <span className="text-2xs text-gray-400">Kế hoạch ca kết thúc:</span>
               <p className="text-xs font-bold text-gray-900 dark:text-white mt-0.5">
-                {activeShift.plannedEndTime ? new Date(activeShift.plannedEndTime).toLocaleTimeString() : 'N/A'}
+                {activeShift.plannedEndAt || activeShift.plannedEndTime
+                  ? new Date((activeShift.plannedEndAt || activeShift.plannedEndTime) as string).toLocaleTimeString()
+                  : 'N/A'}
               </p>
             </div>
 
             <div className="rounded-xl bg-gray-50 p-3 dark:bg-gray-850">
               <span className="text-2xs text-gray-400">Ghi chú ca:</span>
               <p className="text-xs font-medium text-gray-600 dark:text-gray-300 mt-0.5 truncate">
-                {activeShift.notes || 'Không có ghi chú'}
+                {activeShift.handoverNote || activeShift.notes || 'Không có ghi chú'}
               </p>
             </div>
           </div>
         )}
       </div>
+
+      {/* Pending Handovers List (P1-05) */}
+      {handovers.length > 0 && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50/40 p-4 dark:border-amber-800/60 dark:bg-amber-950/20 space-y-3">
+          <div className="flex items-center justify-between">
+            <h4 className="text-sm font-bold text-amber-900 dark:text-amber-200 flex items-center gap-2">
+              <FileText className="h-4 w-4 text-amber-600" />
+              Biên Bản Bàn Giao Ca Tại Khách Sạn ({handovers.length})
+            </h4>
+            <span className="text-2xs text-amber-700 dark:text-amber-300">
+              Ký nhận biên bản ca không tự cấp quyền đơn đặt phòng; từng đơn cần nhận ủy quyền riêng.
+            </span>
+          </div>
+          <div className="space-y-2">
+            {handovers.slice(0, 5).map((ho) => {
+              const targetTo = ho.toStaffId || ho.receiverStaffId;
+              const canAccept = ho.status === 'PENDING' && String(targetTo) === String(user?.id);
+              return (
+                <div
+                  key={ho.id}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200/80 bg-white p-3 text-xs dark:border-gray-800 dark:bg-gray-900"
+                >
+                  <div>
+                    <div className="font-semibold text-gray-900 dark:text-white">
+                      Biên bản #{ho.id} (Ca #{ho.shiftId}): Giao từ #{ho.fromStaffId || ho.giverStaffId} → Nhận #{targetTo}
+                    </div>
+                    <div className="text-gray-500 mt-0.5">
+                      {ho.specialNotes || ho.handoverNotes || 'Không có ghi chú đặc biệt'}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={ho.status === 'ACCEPTED' ? 'success' : ho.status === 'PENDING' ? 'warning' : 'danger'}>
+                      {ho.status === 'ACCEPTED' ? 'Đã Ký Nhận' : ho.status === 'PENDING' ? 'Chờ Ký Nhận' : ho.status}
+                    </Badge>
+                    {canAccept && (
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onClick={() => handleAcceptHandover(String(ho.id))}
+                        isLoading={submitting}
+                      >
+                        Ký Nhận Biên Bản Ca
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* My Shifts History Table */}
       <div className="rounded-2xl border border-gray-200 bg-white shadow-xs dark:border-gray-800 dark:bg-white/[0.03] overflow-hidden">
@@ -346,21 +471,45 @@ export default function ShiftsPage() {
                     <td className="py-3 px-4 font-semibold text-gray-900 dark:text-white">
                       {s.hotelName || `#${s.hotelId}`}
                     </td>
-                    <td className="py-3 px-4">{SHIFT_TYPE_MAP[s.shiftType] || s.shiftType}</td>
                     <td className="py-3 px-4">
-                      <Badge variant={SHIFT_STATUS_MAP[s.status]?.variant || 'neutral'}>
-                        {SHIFT_STATUS_MAP[s.status]?.label || s.status}
-                      </Badge>
+                      {s.shiftName || SHIFT_TYPE_MAP[s.shiftType || ''] || s.shiftType || 'Ca Trực'}
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        <Badge variant={SHIFT_STATUS_MAP[s.status]?.variant || 'neutral'}>
+                          {SHIFT_STATUS_MAP[s.status]?.label || s.status}
+                        </Badge>
+                        {s.status === 'SCHEDULED' && (
+                          <Button
+                            size="sm"
+                            variant="primary"
+                            onClick={() => handleOpenScheduledShift(s)}
+                            isLoading={submitting}
+                          >
+                            Mở Ca
+                          </Button>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3 px-4 text-gray-500">
-                      {s.actualStartTime ? new Date(s.actualStartTime).toLocaleString() : '-'}
+                      {s.actualClockInAt || s.startTime || s.actualStartTime
+                        ? new Date((s.actualClockInAt || s.startTime || s.actualStartTime) as string).toLocaleString()
+                        : s.plannedStartAt
+                          ? `Dự kiến: ${new Date(s.plannedStartAt).toLocaleString()}`
+                          : '-'}
                     </td>
                     <td className="py-3 px-4 text-gray-500">
-                      {s.actualEndTime ? new Date(s.actualEndTime).toLocaleString() : '-'}
+                      {s.actualClockOutAt || s.endTime || s.actualEndTime
+                        ? new Date((s.actualClockOutAt || s.endTime || s.actualEndTime) as string).toLocaleString()
+                        : s.plannedEndAt
+                          ? `Dự kiến: ${new Date(s.plannedEndAt).toLocaleString()}`
+                          : '-'}
                     </td>
                     <td className="py-3 px-4 font-mono">{formatCurrency(Number(s.openingCashFloat || 0))}</td>
                     <td className="py-3 px-4 font-mono">
-                      {s.closingCashActual ? formatCurrency(Number(s.closingCashActual)) : '-'}
+                      {s.closingCashCounted || s.closingCashActual
+                        ? formatCurrency(Number(s.closingCashCounted || s.closingCashActual))
+                        : '-'}
                     </td>
                     <td className="py-3 px-4 font-mono font-bold">
                       {s.cashVariance ? (

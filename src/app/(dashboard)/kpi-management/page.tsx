@@ -139,6 +139,7 @@ export default function KpiManagementPage() {
     setSelectedStaffId(staffId);
     setDelta(1);
     setAdjustReason('');
+    setEvidenceRef('');
     setAdjustModalOpen(true);
   };
 
@@ -148,17 +149,27 @@ export default function KpiManagementPage() {
       alert('Vui lòng nhập lý do điều chỉnh điểm');
       return;
     }
+    if (!evidenceRef.trim()) {
+      alert('Bắt buộc đính kèm mã tham chiếu / liên kết bằng chứng xác minh (evidenceRef)');
+      return;
+    }
 
     try {
       setAdjusting(true);
-      await staffKpiApi.requestAdjustment(hotelId, {
+      const res = await staffKpiApi.requestAdjustment(hotelId, {
         staffUserId: selectedStaffId,
         periodKey,
         metricCode,
         delta: Number(delta),
         reason: adjustReason.trim(),
+        evidenceRef: evidenceRef.trim(),
       });
-      setActionSuccess(`Đã điều chỉnh ${delta > 0 ? '+' : ''}${delta} điểm cho nhân sự #${selectedStaffId}`);
+      const isPending4Eyes = res?.status === 'REQUESTED' || metricCode !== 'MANAGER_EVALUATION';
+      setActionSuccess(
+        isPending4Eyes
+          ? `Đã gửi đề xuất điều chỉnh (${delta > 0 ? '+' : ''}${delta}đ) cho nhân sự #${selectedStaffId} — Trạng thái: REQUESTED (chờ Quản lý thứ hai duyệt 4-Eyes).`
+          : `Đã ghi nhận điểm Rubric Quản lý (${delta}đ) cho nhân sự #${selectedStaffId}.`,
+      );
       setAdjustModalOpen(false);
       await fetchScores();
     } catch (err: any) {
@@ -384,6 +395,20 @@ export default function KpiManagementPage() {
                 </button>
               ))}
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Mã tham chiếu / Liên kết bằng chứng xác minh (evidenceRef) <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={evidenceRef}
+              onChange={(e) => setEvidenceRef(e.target.value)}
+              required
+              placeholder="Ví dụ: DOC-2026-11-089 hoặc https://cdn.traveleke.com/evidence/..."
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+            />
           </div>
 
           <div>
