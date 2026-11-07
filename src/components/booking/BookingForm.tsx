@@ -170,15 +170,18 @@ export default function BookingForm({
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 py-10">
+    <main className="luxury-site min-h-screen bg-white text-[#1E4752] py-10">
       <div className="mx-auto max-w-3xl px-4">
-        <div className="rounded-2xl bg-white p-6 shadow-sm">
-          <h1 className="text-2xl font-bold">
-            Đặt phòng
+        <div className="lux-fade-up rounded-3xl border border-[#1E4752]/15 bg-white p-7 sm:p-9 shadow-[0_18px_45px_rgba(30,71,82,0.08)]">
+          <span className="inline-block rounded-full bg-[#E8A700]/15 px-3 py-0.5 text-[11px] font-extrabold uppercase tracking-wider text-[#1E4752] mb-2">
+            Đặt phòng trực tuyến
+          </span>
+          <h1 className="font-display text-3xl font-bold text-[#1E4752]">
+            Đặt phòng nghỉ
           </h1>
 
-          <p className="mt-2 text-sm text-gray-500">
-            Room ID: {roomId}
+          <p className="mt-1.5 text-xs font-bold uppercase tracking-wider text-[#1E4752]/65">
+            Mã hạng phòng: <span className="tabular-nums text-[#1E4752]">#{roomId}</span>
           </p>
 
           <form
@@ -321,14 +324,14 @@ export default function BookingForm({
                 className={inputClass}
               />
 
-              <p className="mt-1 text-right text-xs text-gray-400">
+              <p className="mt-1 text-right text-xs font-medium text-[#1E4752]/55 tabular-nums">
                 {form.specialRequest.length}/500
               </p>
             </FormField>
 
             {/* Error */}
             {error && (
-              <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+              <div className="rounded-xl border border-[#1E4752]/20 bg-[#E8A700]/15 px-4 py-3 text-sm font-semibold text-[#1E4752]">
                 {error}
               </div>
             )}
@@ -336,7 +339,7 @@ export default function BookingForm({
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+              className="lux-press w-full rounded-xl bg-[#E8A700] px-4 py-3.5 text-sm font-extrabold text-[#1E4752] transition hover:bg-[#E8A700]/90 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer shadow-xs"
             >
               {loading
                 ? 'Đang đặt phòng...'
@@ -346,8 +349,8 @@ export default function BookingForm({
         </div>
       </div>
 
-      <div className="mt-16 bg-white shadow-md">
-              <Footer/>
+      <div className="mt-16 bg-white border-t border-[#1E4752]/10">
+        <Footer />
       </div>
     </main>
   );
@@ -366,7 +369,7 @@ function FormField({
 }) {
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium">
+      <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#1E4752]/80">
         {label}
       </label>
 
@@ -376,4 +379,4 @@ function FormField({
 }
 
 const inputClass =
-  'w-full rounded-lg border px-4 py-3 outline-none transition focus:border-blue-500';
+  'w-full rounded-xl border border-[#1E4752]/20 bg-white px-4 py-3 text-sm font-medium text-[#1E4752] outline-none transition focus:border-[#E8A700] focus:ring-2 focus:ring-[#E8A700]/20';

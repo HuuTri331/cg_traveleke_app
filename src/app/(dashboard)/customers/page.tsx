@@ -605,29 +605,31 @@ export default function CustomersManagementPage() {
                 Đóng
               </button>
 
-              <button
-                type="button"
-                onClick={() => handleToggleStatus(selectedCustomer)}
-                disabled={statusUpdatingId === selectedCustomer.id}
-                className={cn(
-                  'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-xs transition',
-                  selectedCustomer.status === 'ACTIVE'
-                    ? 'bg-red-600 hover:bg-red-700'
-                    : 'bg-emerald-600 hover:bg-emerald-700'
-                )}
-              >
-                {selectedCustomer.status === 'ACTIVE' ? (
-                  <>
-                    <Lock className="h-4 w-4" />
-                    Khóa tài khoản
-                  </>
-                ) : (
-                  <>
-                    <Unlock className="h-4 w-4" />
-                    Mở khóa tài khoản
-                  </>
-                )}
-              </button>
+              {currentUser?.role === 'ADMIN' && (
+                <button
+                  type="button"
+                  onClick={() => handleToggleStatus(selectedCustomer)}
+                  disabled={statusUpdatingId === selectedCustomer.id}
+                  className={cn(
+                    'inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-white shadow-xs transition',
+                    selectedCustomer.status === 'ACTIVE'
+                      ? 'bg-red-600 hover:bg-red-700'
+                      : 'bg-emerald-600 hover:bg-emerald-700'
+                  )}
+                >
+                  {selectedCustomer.status === 'ACTIVE' ? (
+                    <>
+                      <Lock className="h-4 w-4" />
+                      Khóa tài khoản
+                    </>
+                  ) : (
+                    <>
+                      <Unlock className="h-4 w-4" />
+                      Mở khóa tài khoản
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -22,6 +22,19 @@ const REFRESH_TOKEN_KEY = 'traveleke_customer_refresh_token';
 const USER_KEY = 'traveleke_customer_user';
 
 
+export function safeInternalRedirect(input?: string | null): string {
+  if (!input || !input.startsWith('/') || input.startsWith('//')) return '/home';
+  if (input.includes('\\') || /[\u0000-\u001f\u007f]/.test(input)) return '/home';
+  try {
+    const decoded = decodeURIComponent(input);
+    if (!decoded.startsWith('/') || decoded.startsWith('//') || decoded.includes('\\')) return '/home';
+    if (decoded.startsWith('/dashboard') || decoded.startsWith('/login')) return '/home';
+  } catch {
+    return '/home';
+  }
+  return input;
+}
+
 async function fetchCustomerProfile(token: string): Promise<UserProfile> {
   const res = await apiClient.get<{ data: UserProfile }>('/auth/me', {
     headers: { Authorization: `Bearer ${token}` },
@@ -94,13 +107,11 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
         }
 
         localStorage.setItem(TOKEN_KEY, access_token);
-        if (refresh_token) {
-          localStorage.setItem(REFRESH_TOKEN_KEY, refresh_token);
-        }
+        localStorage.removeItem(REFRESH_TOKEN_KEY);
         localStorage.setItem(USER_KEY, JSON.stringify(user));
         setCustomerToken(access_token);
         setCustomer(user);
-        router.push(redirectPath || '/home');
+        router.push(safeInternalRedirect(redirectPath));
       } finally {
         setIsCustomerLoading(false);
       }

@@ -102,7 +102,7 @@ function VerifyEmailContent() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50/40 to-white px-4 py-12">
+    <div className="luxury-site min-h-screen flex flex-col items-center justify-center bg-white px-4 py-12">
       {/* Header Logo */}
       <div className="mb-8 text-center">
         <Link href="/home" className="inline-block transition-transform hover:scale-105">
@@ -111,15 +111,15 @@ function VerifyEmailContent() {
       </div>
 
       {/* Main Card */}
-      <div className="w-full max-w-lg rounded-3xl border border-gray-100 bg-white p-8 sm:p-10 shadow-xl shadow-blue-500/5 transition-all">
+      <div className="lux-fade-up w-full max-w-lg rounded-3xl border border-[#1E4752]/15 bg-white p-8 sm:p-10 shadow-[0_24px_56px_-16px_rgba(30,71,82,0.14)] transition-all">
         {/* TRẠNG THÁI: ĐANG XÁC THỰC (Khi click từ link email) */}
         {status === 'VERIFYING' && (
           <div className="text-center py-6">
-            <div className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-blue-50">
-              <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+            <div className="relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[#1E4752]/5">
+              <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#1E4752]/20 border-t-[#E8A700]" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Đang xác thực tài khoản</h2>
-            <p className="text-sm text-gray-500">
+            <h2 className="font-display text-2xl font-bold text-[#1E4752] mb-2">Đang xác thực tài khoản</h2>
+            <p className="text-sm text-[#1E4752]/70">
               Hệ thống đang kiểm tra mã xác thực của bạn, vui lòng đợi trong giây lát...
             </p>
           </div>
@@ -128,26 +128,26 @@ function VerifyEmailContent() {
         {/* TRẠNG THÁI: XÁC THỰC THÀNH CÔNG */}
         {status === 'SUCCESS' && (
           <div className="text-center py-4">
-            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-50 text-green-500 ring-8 ring-green-50/50">
-              <svg className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[#E8A700]/15 text-[#1E4752] ring-8 ring-[#E8A700]/10">
+              <svg className="h-10 w-10 text-[#E8A700]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h2 className="text-2xl font-extrabold text-gray-900 mb-2">Xác Thực Thành Công!</h2>
-            <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+            <h2 className="font-display text-2xl font-bold text-[#1E4752] mb-2">Xác Thực Thành Công!</h2>
+            <p className="text-sm text-[#1E4752]/75 mb-6 leading-relaxed">
               {message || 'Tài khoản của bạn đã được kích hoạt thành công. Giờ đây bạn đã có thể đăng nhập và trải nghiệm dịch vụ của Traveleke.'}
             </p>
 
             <div className="space-y-3">
               <Link
                 href="/customer-login?verified=true"
-                className="w-full inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="lux-press w-full inline-flex items-center justify-center rounded-xl bg-[#1E4752] hover:bg-[#E8A700] hover:text-[#1E4752] px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_24px_-8px_rgba(30,71,82,0.4)] transition"
               >
                 Đăng Nhập Ngay
               </Link>
               <Link
                 href="/home"
-                className="w-full inline-flex items-center justify-center rounded-xl border border-gray-200 px-6 py-3 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+                className="w-full inline-flex items-center justify-center rounded-xl border border-[#1E4752]/20 px-6 py-3 text-sm font-semibold text-[#1E4752] transition hover:bg-[#1E4752]/5"
               >
                 Về Trang Chủ
               </Link>
@@ -159,11 +159,11 @@ function VerifyEmailContent() {
         {(status === 'IDLE' || status === 'ERROR') && (
           <div>
             <div className="text-center mb-6">
-              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-blue-50 text-blue-600 ring-8 ring-blue-50/60">
-                <Mail className="h-10 w-10 text-blue-600" />
+              <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[#1E4752] text-[#E8A700] ring-8 ring-[#E8A700]/15">
+                <Mail className="h-10 w-10 text-[#E8A700]" />
               </div>
-              <h2 className="text-2xl font-extrabold text-gray-900 mb-2">Xác Thực Tài Khoản Email</h2>
-              <p className="text-sm text-gray-500 leading-relaxed">
+              <h2 className="font-display text-2xl font-bold text-[#1E4752] mb-2">Xác Thực Tài Khoản Email</h2>
+              <p className="text-sm text-[#1E4752]/70 leading-relaxed">
                 Chúng tôi đã gửi một liên kết kích hoạt tài khoản tới địa chỉ Gmail của bạn.
               </p>
             </div>
@@ -178,31 +178,31 @@ function VerifyEmailContent() {
 
             {/* Thông báo gửi lại thành công */}
             {resendSuccessMsg && (
-              <div className="mb-5 rounded-2xl border border-green-200 bg-green-50/90 p-4 text-sm text-green-700 flex items-start gap-3 animate-fade-in">
-                <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
+              <div className="mb-5 rounded-2xl border border-[#E8A700]/40 bg-[#E8A700]/12 p-4 text-sm text-[#1E4752] flex items-start gap-3">
+                <CheckCircle2 className="h-5 w-5 text-[#E8A700] shrink-0 mt-0.5" />
                 <span>{resendSuccessMsg}</span>
               </div>
             )}
 
             {/* Thông tin Email người nhận */}
-            <div className="mb-6 rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
-              <div className="text-xs font-semibold text-blue-600 uppercase tracking-wider mb-1">
+            <div className="mb-6 rounded-2xl border border-[#1E4752]/15 bg-[#1E4752]/4 p-4">
+              <div className="text-xs font-semibold text-[#1E4752]/70 uppercase tracking-wider mb-1">
                 Địa chỉ nhận email
               </div>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-bold text-gray-900 truncate">
+                <span className="text-sm font-bold text-[#1E4752] truncate">
                   {inputEmail || emailParam || 'Chưa cung cấp email'}
                 </span>
-                <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-amber-100 text-amber-800">
+                <span className="text-xs px-2.5 py-1 rounded-full font-semibold bg-[#E8A700]/20 text-[#1E4752] border border-[#E8A700]/40">
                   Chưa kích hoạt
                 </span>
               </div>
             </div>
 
             {/* Hướng dẫn người dùng */}
-            <div className="mb-6 text-xs text-gray-500 space-y-2 bg-gray-50 rounded-xl p-4 border border-gray-100">
-              <p className="font-semibold text-gray-700 flex items-center gap-1.5">
-                <Info className="h-4 w-4 text-blue-600 shrink-0" />
+            <div className="mb-6 text-xs text-[#1E4752]/75 space-y-2 bg-[#1E4752]/3 rounded-xl p-4 border border-[#1E4752]/15">
+              <p className="font-semibold text-[#1E4752] flex items-center gap-1.5">
+                <Info className="h-4 w-4 text-[#E8A700] shrink-0" />
                 <span>Hướng dẫn kích hoạt:</span>
               </p>
               <ol className="list-decimal list-inside space-y-1 pl-1">
@@ -218,10 +218,10 @@ function VerifyEmailContent() {
                 type="button"
                 onClick={() => handleResend()}
                 disabled={isResending || countdown > 0}
-                className={`w-full inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-semibold transition ${
+                className={`lux-press w-full inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-sm font-bold transition ${
                   countdown > 0
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
-                    : 'bg-blue-600 text-white shadow-lg shadow-blue-500/25 hover:bg-blue-700 active:scale-[0.99]'
+                    ? 'bg-[#1E4752]/8 text-[#1E4752]/45 cursor-not-allowed border border-[#1E4752]/15'
+                    : 'bg-[#1E4752] text-white shadow-[0_10px_24px_-8px_rgba(30,71,82,0.4)] hover:bg-[#E8A700] hover:text-[#1E4752]'
                 }`}
               >
                 {isResending ? (
@@ -242,16 +242,16 @@ function VerifyEmailContent() {
                 )}
               </button>
 
-              <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
+              <div className="flex items-center justify-between text-xs text-[#1E4752]/70 pt-3 border-t border-[#1E4752]/15">
                 <Link
                   href="/customer-login"
-                  className="font-medium text-blue-600 hover:text-blue-700 hover:underline"
+                  className="font-semibold text-[#1E4752] hover:text-[#E8A700] transition-colors"
                 >
                   ← Đã có tài khoản? Đăng nhập
                 </Link>
                 <Link
                   href="/register"
-                  className="font-medium text-gray-600 hover:text-gray-900 hover:underline"
+                  className="font-semibold text-[#1E4752]/70 hover:text-[#1E4752] transition-colors"
                 >
                   Đổi tài khoản khác
                 </Link>
@@ -262,9 +262,9 @@ function VerifyEmailContent() {
       </div>
 
       {/* Footer Support */}
-      <div className="mt-8 text-center text-xs text-gray-400">
+      <div className="mt-8 text-center text-xs text-[#1E4752]/65">
         Bạn gặp sự cố khi nhận thư? Liên hệ hỗ trợ:{' '}
-        <a href="mailto:dangquangminhdn76@gmail.com" className="text-blue-500 hover:underline">
+        <a href="mailto:dangquangminhdn76@gmail.com" className="text-[#1E4752] font-semibold hover:text-[#E8A700]">
           dangquangminhdn76@gmail.com
         </a>
       </div>
@@ -276,8 +276,8 @@ export default function VerifyEmailPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+        <div className="luxury-site min-h-screen flex items-center justify-center bg-white">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#1E4752]/20 border-t-[#E8A700]" />
         </div>
       }
     >

@@ -163,9 +163,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         localStorage.setItem('traveleke_token', data.access_token);
-        if (data.refresh_token) {
-          localStorage.setItem('traveleke_refresh_token', data.refresh_token);
-        }
+        localStorage.removeItem('traveleke_refresh_token');
         localStorage.setItem('traveleke_user', JSON.stringify(data.user));
         setToken(data.access_token);
         setUser(data.user);

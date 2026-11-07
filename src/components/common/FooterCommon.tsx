@@ -27,7 +27,7 @@ export default function FooterCommon() {
 
   return (
     <footer className="w-full bg-[#1E4752] text-white pt-16 pb-12 border-t border-[#1E4752]/40">
-      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1620px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16">
         {/* Top Assurance Bar */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pb-12 mb-12 border-b border-white/10">
           <div className="flex items-center gap-3.5">

@@ -10,6 +10,7 @@ export interface RoomUnitDto {
   bedConfig: string | null;
   isAccessible: boolean;
   isSmoking: boolean;
+  verificationStatus?: 'UNVERIFIED' | 'VERIFIED' | string;
   operationalStatus: 'ACTIVE' | 'OUT_OF_ORDER' | 'OUT_OF_SERVICE' | 'INACTIVE';
   housekeepingState: 'READY' | 'CLEAN' | 'DIRTY' | 'INSPECTION_PENDING' | 'DO_NOT_DISTURB';
   version: number;
@@ -73,6 +74,16 @@ export const roomUnitsApi = {
     },
   ): Promise<RoomUnitDto> {
     const res = await apiClient.post(`/hotels/${hotelId}/room-units`, payload);
+    return res.data;
+  },
+
+  async verifyRoomUnit(
+    unitId: string | number,
+    note?: string,
+  ): Promise<RoomUnitDto> {
+    const res = await apiClient.post(`/room-units/${unitId}/verify`, {
+      note: note || 'Quản lý khách sạn xác minh phòng vật lý',
+    });
     return res.data;
   },
 

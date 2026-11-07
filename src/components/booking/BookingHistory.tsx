@@ -308,7 +308,7 @@ export default function BookingHistory() {
 
   if (loading) {
     return (
-      <div className="py-20 text-center">
+      <div className="luxury-site py-20 text-center font-semibold text-[#1E4752]">
         Đang tải lịch sử đặt phòng...
       </div>
     );
@@ -316,31 +316,34 @@ export default function BookingHistory() {
 
   if (error) {
     return (
-      <div className="py-20 text-center text-red-500">
+      <div className="luxury-site py-20 text-center font-semibold text-[#1E4752]">
         {error}
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 py-10">
-      <div className="sticky top-0 z-50 w-full bg-white shadow-md">
-              <Header />
-       </div>
-      <section className="mx-auto max-w-6xl px-4">
+    <main className="luxury-site min-h-screen bg-white text-[#1E4752]">
+      <div className="sticky top-0 z-50 w-full bg-white border-b border-[#1E4752]/10">
+        <Header />
+      </div>
+      <section className="mx-auto max-w-6xl px-4 py-10 lux-fade-up">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">
+          <span className="inline-block rounded-full bg-[#E8A700]/20 px-3.5 py-1 text-xs font-extrabold uppercase tracking-wider text-[#1E4752] mb-2">
+            Hành trình của bạn
+          </span>
+          <h1 className="font-display text-3xl font-bold text-[#1E4752]">
             Lịch sử đặt phòng
           </h1>
 
-          <p className="mt-2 text-gray-500">
+          <p className="mt-2 text-sm text-[#1E4752]/75">
             Xem lại những phòng bạn
-            đã đặt.
+            đã đặt và quản lý kỳ lưu trú.
           </p>
         </div>
 
         {bookings.length === 0 ? (
-          <div className="rounded-2xl bg-white p-10 text-center shadow-sm">
+          <div className="rounded-3xl border border-[#1E4752]/15 bg-white p-10 text-center text-[#1E4752]/75 shadow-xs">
             Bạn chưa có lịch sử đặt
             phòng.
           </div>
@@ -350,7 +353,7 @@ export default function BookingHistory() {
               (booking) => (
                 <div
                   key={booking.id}
-                  className="overflow-hidden rounded-2xl bg-white shadow-sm"
+                  className="lux-card-hover overflow-hidden rounded-3xl border border-[#1E4752]/15 bg-white shadow-xs"
                 >
                   <div className="grid md:grid-cols-[280px_1fr]">
                     {/* ẢNH PHÒNG */}
@@ -373,11 +376,11 @@ export default function BookingHistory() {
                     <div className="p-6">
                       <div className="flex flex-wrap items-start justify-between gap-4">
                         <div>
-                          <p className="text-sm text-gray-500">
+                          <p className="text-xs font-bold uppercase tracking-wider text-[#1E4752]/65">
                             Mã đặt phòng
                           </p>
 
-                          <h2 className="text-xl font-bold">
+                          <h2 className="mt-0.5 text-xl font-black text-[#1E4752] font-mono tabular-nums">
                             {
                               booking.bookingCode
                             }
@@ -392,13 +395,13 @@ export default function BookingHistory() {
                       </div>
 
                       <div className="mt-5">
-                        <h3 className="text-lg font-semibold">
+                        <h3 className="font-display text-lg font-bold text-[#1E4752]">
                           {booking.hotelName ??
                             'Khách sạn'}
                         </h3>
 
                         {booking.hotelAddress && (
-                          <p className="text-sm text-gray-500">
+                          <p className="text-sm text-[#1E4752]/70">
                             {
                               booking.hotelAddress
                             }
@@ -407,7 +410,7 @@ export default function BookingHistory() {
                       </div>
 
                       <div className="mt-4">
-                        <p className="font-semibold">
+                        <p className="font-bold text-[#1E4752]">
                           {booking.roomName ??
                             `Room ${booking.roomId}`}
                         </p>
@@ -415,7 +418,7 @@ export default function BookingHistory() {
 
                       {/* P2-02: Hiển thị lễ tân / bộ phận hiện hành đang chịu trách nhiệm hỗ trợ đơn đặt phòng */}
                       {booking.responsibleContact && (
-                        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-emerald-50/70 px-3.5 py-2.5 text-xs text-emerald-900">
+                        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[#1E4752]/20 bg-[#1E4752]/4 px-3.5 py-2.5 text-xs text-[#1E4752]">
                           <div>
                             <span className="font-semibold">
                               Đầu mối phụ trách hiện tại:{' '}
@@ -423,11 +426,11 @@ export default function BookingHistory() {
                             <span className="font-bold">
                               {booking.responsibleContact.publicName}
                             </span>{' '}
-                            <span className="text-emerald-700">
+                            <span className="text-[#1E4752]/75">
                               ({booking.responsibleContact.roleLabel} • {booking.responsibleContact.supportGroup})
                             </span>
                           </div>
-                          <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800">
+                          <span className="inline-flex items-center rounded-full bg-[#E8A700]/25 px-2.5 py-0.5 text-[11px] font-bold text-[#1E4752]">
                             {booking.responsibleContact.status === 'AVAILABLE'
                               ? 'Đang trực hỗ trợ'
                               : 'Tổng đài điều phối 24/7'}
@@ -437,11 +440,11 @@ export default function BookingHistory() {
 
                       <div className="mt-5 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
                         <div>
-                          <p className="text-gray-500">
+                          <p className="text-xs font-bold uppercase tracking-wider text-[#1E4752]/65">
                             Nhận phòng
                           </p>
 
-                          <p className="font-medium">
+                          <p className="mt-0.5 font-semibold text-[#1E4752] tabular-nums">
                             {formatDate(
                               booking.checkInAt,
                             )}
@@ -449,11 +452,11 @@ export default function BookingHistory() {
                         </div>
 
                         <div>
-                          <p className="text-gray-500">
+                          <p className="text-xs font-bold uppercase tracking-wider text-[#1E4752]/65">
                             Trả phòng
                           </p>
 
-                          <p className="font-medium">
+                          <p className="mt-0.5 font-semibold text-[#1E4752] tabular-nums">
                             {formatDate(
                               booking.checkOutAt,
                             )}
@@ -461,11 +464,11 @@ export default function BookingHistory() {
                         </div>
 
                         <div>
-                          <p className="text-gray-500">
+                          <p className="text-xs font-bold uppercase tracking-wider text-[#1E4752]/65">
                             Số khách
                           </p>
 
-                          <p className="font-medium">
+                          <p className="mt-0.5 font-semibold text-[#1E4752] tabular-nums">
                             {
                               booking.totalGuests
                             }{' '}
@@ -474,11 +477,11 @@ export default function BookingHistory() {
                         </div>
 
                         <div>
-                          <p className="text-gray-500">
+                          <p className="text-xs font-bold uppercase tracking-wider text-[#1E4752]/65">
                             Số phòng
                           </p>
 
-                          <p className="font-medium">
+                          <p className="mt-0.5 font-semibold text-[#1E4752] tabular-nums">
                             {
                               booking.requestedRoomCount
                             }{' '}
@@ -492,18 +495,18 @@ export default function BookingHistory() {
                         booking.paymentStatus === 'PAID' &&
                         !booking.actualCheckInAt &&
                         new Date() < new Date(booking.checkOutAt) && (
-                          <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50/70 p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="mt-4 rounded-xl border border-[#1E4752]/20 bg-[#1E4752]/4 p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div className="space-y-1">
-                              <h4 className="font-semibold text-blue-900 text-xs flex items-center gap-1.5">
+                              <h4 className="font-bold text-[#1E4752] text-xs flex items-center gap-1.5">
                                 <span>⏰</span> Kế hoạch nhận phòng
                               </h4>
                               {booking.lateArrivalExpectedAt ? (
-                                <p className="text-xs text-blue-800">
+                                <p className="text-xs text-[#1E4752]/80">
                                   Bạn đã báo dự kiến đến lúc: <strong>{formatDate(booking.lateArrivalExpectedAt)}</strong>
                                   {booking.lateArrivalNote ? ` ("${booking.lateArrivalNote}")` : ''}.
                                 </p>
                               ) : (
-                                <p className="text-xs text-blue-800">
+                                <p className="text-xs text-[#1E4752]/80">
                                   Nếu bạn dự kiến đến muộn sau giờ nhận phòng tiêu chuẩn, hãy gửi thông báo để khách sạn chuẩn bị chu đáo nhất.
                                 </p>
                               )}
@@ -518,7 +521,7 @@ export default function BookingHistory() {
                                   submitting: false,
                                 });
                               }}
-                              className="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition"
+                              className="lux-press shrink-0 px-3.5 py-2 text-xs font-extrabold rounded-xl bg-[#1E4752] hover:bg-[#1E4752]/90 text-white shadow-xs transition cursor-pointer"
                             >
                               {booking.lateArrivalExpectedAt ? 'Cập nhật giờ đến' : 'Báo dự kiến đến muộn'}
                             </button>
@@ -526,17 +529,17 @@ export default function BookingHistory() {
                         )}
 
                       {booking.status === 'NO_SHOW' && (
-                        <div className="mt-4 rounded-xl border border-amber-300 bg-amber-50 p-4">
+                        <div className="mt-4 rounded-xl border border-[#E8A700]/45 bg-[#E8A700]/12 p-4">
                           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                             <div className="space-y-1">
-                              <h4 className="font-semibold text-amber-900 text-sm flex items-center gap-1.5">
+                              <h4 className="font-bold text-[#1E4752] text-sm flex items-center gap-1.5">
                                 <span>🏨</span> Khách sạn đang tiếp tục giữ phòng cho bạn
                               </h4>
-                              <p className="text-xs text-amber-800 leading-relaxed">
+                              <p className="text-xs text-[#1E4752]/80 leading-relaxed">
                                 Đơn đặt phòng của bạn đã thanh toán và được bảo đảm suất phòng cho đến hạn trả phòng (<strong>{formatDate(booking.checkOutAt)}</strong>). Khi đến khách sạn, bạn chỉ cần xuất trình mã <strong>{booking.bookingCode}</strong> tại quầy lễ tân để làm thủ tục nhận phòng.
                               </p>
                               {booking.lateArrivalExpectedAt && (
-                                <p className="mt-2 text-xs text-amber-950 bg-amber-100/80 rounded-md p-2 border border-amber-200">
+                                <p className="mt-2 text-xs text-[#1E4752] bg-white/80 rounded-md p-2 border border-[#E8A700]/40">
                                   ⏰ Bạn đã thông báo dự kiến đến lúc: <strong>{formatDate(booking.lateArrivalExpectedAt)}</strong>
                                   {booking.lateArrivalNote ? ` ("${booking.lateArrivalNote}")` : ''}
                                 </p>
@@ -553,7 +556,7 @@ export default function BookingHistory() {
                                     submitting: false,
                                   });
                                 }}
-                                className="shrink-0 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-600 hover:bg-amber-700 text-white shadow-xs transition"
+                                className="lux-press shrink-0 px-3.5 py-2 text-xs font-extrabold rounded-xl bg-[#E8A700] hover:bg-[#E8A700]/90 text-[#1E4752] shadow-xs transition cursor-pointer"
                               >
                                 {booking.lateArrivalExpectedAt ? 'Cập nhật giờ đến' : 'Báo dự kiến đến muộn'}
                               </button>
@@ -563,49 +566,49 @@ export default function BookingHistory() {
                       )}
 
                       {booking.status === 'CLOSED_NO_SHOW' && (
-                        <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-3 text-xs text-gray-600">
+                        <div className="mt-4 rounded-xl border border-[#1E4752]/15 bg-[#1E4752]/4 p-3 text-xs text-[#1E4752]/75">
                           Đơn đặt phòng này đã kết thúc kỳ lưu trú mà không có lượt nhận phòng tại quầy lễ tân.
                         </div>
                       )}
 
                       {booking.status === 'CHECKED_IN' && booking.actualCheckInAt && (
-                        <div className="mt-4 rounded-xl border border-indigo-200 bg-indigo-50/70 p-3 text-xs text-indigo-800 flex items-center gap-2">
-                          <span>✓</span>
+                        <div className="mt-4 rounded-xl border border-[#1E4752]/20 bg-[#1E4752]/6 p-3 text-xs text-[#1E4752] flex items-center gap-2">
+                          <span className="text-[#E8A700] font-bold">✓</span>
                           <span>Đã nhận phòng thực tế lúc: <strong>{formatDate(booking.actualCheckInAt)}</strong></span>
                         </div>
                       )}
 
-                      <div className="mt-6 border-t pt-5 space-y-4">
+                      <div className="mt-6 border-t border-[#1E4752]/10 pt-5 space-y-4">
                         {booking.paymentStatus === 'PAID' && (
                           <BookingBenefitPanel bookingId={booking.id} mode="CUSTOMER" />
                         )}
                         <div className="flex flex-wrap items-center justify-between gap-4">
                           <div className="flex items-center gap-2">
-                            <span className="text-gray-600 text-sm font-medium">Thanh toán:</span>
+                            <span className="text-[#1E4752]/75 text-sm font-semibold">Thanh toán:</span>
                             {booking.paymentStatus === 'PAID' ? (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-                                ✓ Đã thanh toán {booking.vnpTransactionNo ? `(#${booking.vnpTransactionNo})` : ''}
+                              <span className="inline-flex items-center gap-1 rounded-full bg-[#1E4752] px-3 py-1 text-xs font-extrabold text-white">
+                                <span className="text-[#E8A700]">✓</span> Đã thanh toán {booking.vnpTransactionNo ? `(#${booking.vnpTransactionNo})` : ''}
                               </span>
                             ) : booking.status === 'PAYMENT_PENDING' || booking.paymentStatus === 'PENDING' ? (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
+                              <span className="inline-flex items-center gap-1 rounded-full bg-[#E8A700]/20 px-3 py-1 text-xs font-extrabold text-[#1E4752]">
                                 ⏳ Chờ thanh toán (15 phút)
                               </span>
                             ) : booking.status === 'PAYMENT_EXPIRED' || booking.paymentStatus === 'EXPIRED' ? (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700">
+                              <span className="inline-flex items-center gap-1 rounded-full bg-[#1E4752]/12 px-3 py-1 text-xs font-bold text-[#1E4752]">
                                 ✕ Hết hạn thanh toán
                               </span>
                             ) : booking.status === 'PAYMENT_REVIEW' ? (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2.5 py-0.5 text-xs font-semibold text-purple-700">
+                              <span className="inline-flex items-center gap-1 rounded-full bg-[#E8A700]/25 px-3 py-1 text-xs font-extrabold text-[#1E4752]">
                                 ⚠ Cần đối soát / Hoàn tiền
                               </span>
                             ) : (
-                              <span className="text-xs text-gray-500">Chưa ghi nhận</span>
+                              <span className="text-xs text-[#1E4752]/65">Chưa ghi nhận</span>
                             )}
                           </div>
 
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-xl font-bold text-red-600 mr-2">
-                              {Number(booking.estimatedTotal).toLocaleString('vi-VN')} ₫
+                            <span className="text-xl font-black text-[#1E4752] mr-2 tabular-nums">
+                              {Number(booking.estimatedTotal).toLocaleString('vi-VN')} <span className="text-[#E8A700]">₫</span>
                             </span>
 
                             {/* Đợt 4: Nút Liên hệ khách sạn / Yêu cầu hỗ trợ */}
@@ -615,7 +618,7 @@ export default function BookingHistory() {
                                 <button
                                   type="button"
                                   onClick={() => handleOpenSupportModal(booking)}
-                                  className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-teal-200 bg-teal-50 text-teal-700 hover:bg-teal-100 transition cursor-pointer"
+                                  className="lux-press px-3.5 py-2 text-xs font-bold rounded-xl border border-[#1E4752]/20 bg-white text-[#1E4752] hover:bg-[#1E4752]/5 transition cursor-pointer"
                                 >
                                   💬 Liên hệ / Hỗ trợ
                                 </button>
@@ -629,7 +632,7 @@ export default function BookingHistory() {
                               <button
                                 type="button"
                                 onClick={() => setRatingModalBooking(booking)}
-                                className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 transition cursor-pointer"
+                                className="lux-press px-3.5 py-2 text-xs font-extrabold rounded-xl border border-[#E8A700] bg-[#E8A700]/15 text-[#1E4752] hover:bg-[#E8A700]/25 transition cursor-pointer"
                               >
                                 ★ Đánh giá nhân viên
                               </button>
@@ -645,10 +648,10 @@ export default function BookingHistory() {
                                       ? 'Đơn đã đến hoặc qua giờ nhận phòng nên không thể yêu cầu hủy/hoàn'
                                       : 'Gửi yêu cầu hủy và hoàn tiền'
                                   }
-                                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg shadow-xs transition ${
+                                  className={`lux-press px-3.5 py-2 text-xs font-bold rounded-xl shadow-xs transition ${
                                     new Date() >= new Date(booking.checkInAt)
-                                      ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
-                                      : 'border border-red-200 text-red-600 hover:bg-red-50 cursor-pointer'
+                                      ? 'bg-[#1E4752]/5 text-[#1E4752]/35 border border-[#1E4752]/10 cursor-not-allowed'
+                                      : 'border border-[#1E4752]/25 text-[#1E4752] hover:bg-[#1E4752]/5 cursor-pointer'
                                   }`}
                                 >
                                   Yêu cầu hủy
@@ -662,7 +665,7 @@ export default function BookingHistory() {
                               <button
                                 onClick={() => handleRetryPayment(booking.id)}
                                 disabled={retryingId === booking.id}
-                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg shadow-xs transition"
+                                className="lux-press px-4 py-2 bg-[#E8A700] hover:bg-[#E8A700]/90 disabled:opacity-50 text-[#1E4752] text-sm font-extrabold rounded-xl shadow-xs transition cursor-pointer"
                               >
                                 {retryingId === booking.id
                                   ? 'Đang xử lý...'
@@ -685,29 +688,29 @@ export default function BookingHistory() {
 
       {/* MODAL YÊU CẦU HỦY & HOÀN TIỀN */}
       {cancelModal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-bold text-gray-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1E4752]/55 p-4 backdrop-blur-xs">
+          <div className="lux-scale-in w-full max-w-md rounded-3xl border border-[#1E4752]/15 bg-white p-6 shadow-xl">
+            <h3 className="font-display text-lg font-bold text-[#1E4752]">
               Yêu Cầu Hủy Đơn & Hoàn Tiền
             </h3>
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-[#1E4752]/70">
               Mã đơn: <strong className="font-mono">{cancelModal.booking?.bookingCode || cancelModal.booking?.id}</strong>
             </p>
 
-            <div className="mt-4 rounded-xl bg-amber-50 p-3 text-xs text-amber-800 border border-amber-200">
+            <div className="mt-4 rounded-xl bg-[#E8A700]/15 p-3 text-xs text-[#1E4752] border border-[#E8A700]/40">
               Lưu ý: Yêu cầu của bạn sẽ được gửi tới khách sạn để duyệt hoàn tiền theo chính sách. Số tiền hoàn sẽ được hoàn qua cổng thanh toán VNPay.
             </div>
 
             <div className="mt-4 space-y-1">
-              <label className="block text-xs font-semibold text-gray-700">
-                Lý do hủy đặt phòng <span className="text-red-500">*</span>:
+              <label className="block text-xs font-bold text-[#1E4752]">
+                Lý do hủy đặt phòng <span className="text-[#E8A700]">*</span>:
               </label>
               <textarea
                 rows={3}
                 value={cancelModal.reason}
                 onChange={(e) => setCancelModal((prev) => ({ ...prev, reason: e.target.value }))}
                 placeholder="Nhập lý do chi tiết..."
-                className="w-full rounded-xl border border-gray-300 p-2.5 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full rounded-xl border border-[#1E4752]/20 p-2.5 text-xs text-[#1E4752] focus:outline-none focus:ring-2 focus:ring-[#E8A700]/45"
               />
             </div>
 
@@ -716,7 +719,7 @@ export default function BookingHistory() {
                 type="button"
                 disabled={cancelModal.submitting}
                 onClick={() => setCancelModal((prev) => ({ ...prev, isOpen: false }))}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                className="lux-press rounded-xl border border-[#1E4752]/20 px-4 py-2 text-xs font-bold text-[#1E4752] hover:bg-[#1E4752]/5 cursor-pointer"
               >
                 Đóng
               </button>
@@ -724,7 +727,7 @@ export default function BookingHistory() {
                 type="button"
                 disabled={!cancelModal.reason.trim() || cancelModal.submitting}
                 onClick={handleSubmitCancel}
-                className="rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+                className="lux-press rounded-xl bg-[#1E4752] px-4 py-2 text-xs font-extrabold text-white hover:bg-[#1E4752]/90 disabled:opacity-50 cursor-pointer"
               >
                 {cancelModal.submitting ? 'Đang gửi...' : 'Gửi Yêu Cầu'}
               </button>
@@ -735,23 +738,23 @@ export default function BookingHistory() {
 
       {/* MODAL BÁO DỰ KIẾN ĐẾN MUỘN (ARRIVAL INTENT) */}
       {lateNoticeModal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1E4752]/55 p-4 backdrop-blur-xs">
+          <div className="lux-scale-in w-full max-w-md rounded-3xl border border-[#1E4752]/15 bg-white p-6 shadow-xl">
+            <h3 className="font-display text-lg font-bold text-[#1E4752] flex items-center gap-2">
               <span>⏰</span> Báo Dự Kiến Đến Muộn
             </h3>
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-[#1E4752]/70">
               Mã đơn: <strong className="font-mono">{lateNoticeModal.booking?.bookingCode || lateNoticeModal.booking?.id}</strong>
             </p>
 
-            <div className="mt-4 rounded-xl bg-blue-50 p-3 text-xs text-blue-800 border border-blue-200 leading-relaxed">
+            <div className="mt-4 rounded-xl bg-[#1E4752]/5 p-3 text-xs text-[#1E4752] border border-[#1E4752]/15 leading-relaxed">
               Khách sạn luôn giữ phòng cho bạn trong toàn bộ kỳ lưu trú đã thanh toán. Thông báo này giúp lễ tân chuẩn bị phòng chu đáo nhất khi bạn tới nhận phòng.
             </div>
 
             <div className="mt-4 space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Thời gian dự kiến bạn sẽ tới khách sạn <span className="text-red-500">*</span>:
+                <label className="block text-xs font-bold text-[#1E4752] mb-1">
+                  Thời gian dự kiến bạn sẽ tới khách sạn <span className="text-[#E8A700]">*</span>:
                 </label>
                 <input
                   type="datetime-local"
@@ -759,12 +762,12 @@ export default function BookingHistory() {
                   min={lateNoticeModal.booking ? toLocalDatetimeInput(lateNoticeModal.booking.checkInAt) : undefined}
                   max={lateNoticeModal.booking ? toLocalDatetimeInput(lateNoticeModal.booking.checkOutAt) : undefined}
                   onChange={(e) => setLateNoticeModal((prev) => ({ ...prev, expectedArrivalAt: e.target.value }))}
-                  className="w-full rounded-xl border border-gray-300 p-2.5 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-xl border border-[#1E4752]/20 p-2.5 text-xs text-[#1E4752] focus:outline-none focus:ring-2 focus:ring-[#E8A700]/45"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label className="block text-xs font-bold text-[#1E4752] mb-1">
                   Ghi chú cho quầy lễ tân (tùy chọn):
                 </label>
                 <textarea
@@ -772,7 +775,7 @@ export default function BookingHistory() {
                   value={lateNoticeModal.note}
                   onChange={(e) => setLateNoticeModal((prev) => ({ ...prev, note: e.target.value }))}
                   placeholder="Ví dụ: Chuyến bay bị delay 2 tiếng, tôi sẽ tới nhận phòng khoảng nửa đêm..."
-                  className="w-full rounded-xl border border-gray-300 p-2.5 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded-xl border border-[#1E4752]/20 p-2.5 text-xs text-[#1E4752] focus:outline-none focus:ring-2 focus:ring-[#E8A700]/45"
                 />
               </div>
             </div>
@@ -782,7 +785,7 @@ export default function BookingHistory() {
                 type="button"
                 disabled={lateNoticeModal.submitting}
                 onClick={() => setLateNoticeModal((prev) => ({ ...prev, isOpen: false }))}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                className="lux-press rounded-xl border border-[#1E4752]/20 px-4 py-2 text-xs font-bold text-[#1E4752] hover:bg-[#1E4752]/5 cursor-pointer"
               >
                 Đóng
               </button>
@@ -790,7 +793,7 @@ export default function BookingHistory() {
                 type="button"
                 disabled={!lateNoticeModal.expectedArrivalAt || lateNoticeModal.submitting}
                 onClick={handleSubmitLateNotice}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+                className="lux-press rounded-xl bg-[#E8A700] px-4 py-2 text-xs font-extrabold text-[#1E4752] hover:bg-[#E8A700]/90 disabled:opacity-50 cursor-pointer"
               >
                 {lateNoticeModal.submitting ? 'Đang gửi...' : 'Gửi Thông Báo'}
               </button>
@@ -801,21 +804,21 @@ export default function BookingHistory() {
 
       {/* MODAL ĐÁNH GIÁ NHÂN VIÊN PHỤC VỤ THEO GIAI ĐOẠN (ĐỢT 5) */}
       {ratingModalBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1E4752]/55 p-4 backdrop-blur-xs">
+          <div className="lux-scale-in w-full max-w-lg rounded-3xl border border-[#1E4752]/15 bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <h3 className="text-lg font-bold text-gray-900">
+                <h3 className="font-display text-lg font-bold text-[#1E4752]">
                   Đánh Giá Nhân Viên Phục Vụ (1–5 Sao)
                 </h3>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-[#1E4752]/70">
                   Mã đơn: <strong className="font-mono">{ratingModalBooking.bookingCode || ratingModalBooking.id}</strong>
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setRatingModalBooking(null)}
-                className="rounded-lg border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                className="lux-press rounded-xl border border-[#1E4752]/20 px-3 py-1.5 text-xs font-bold text-[#1E4752] hover:bg-[#1E4752]/5 cursor-pointer"
               >
                 Đóng
               </button>
@@ -827,31 +830,31 @@ export default function BookingHistory() {
 
       {/* MODAL LIÊN HỆ KHÁCH SẠN / YÊU CẦU HỖ TRỢ (ĐỢT 4 - KHÔNG DÙNG APP CHAT RIÊNG) */}
       {supportModal.isOpen && supportModal.booking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
-            <div className="flex items-center justify-between border-b pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1E4752]/55 p-4 backdrop-blur-xs">
+          <div className="lux-scale-in w-full max-w-lg rounded-3xl border border-[#1E4752]/15 bg-white p-6 shadow-xl">
+            <div className="flex items-center justify-between border-b border-[#1E4752]/10 pb-3">
               <div>
-                <h3 className="text-base font-bold text-gray-900">
+                <h3 className="font-display text-base font-bold text-[#1E4752]">
                   💬 Liên Hệ Khách Sạn / Yêu Cầu Hỗ Trợ
                 </h3>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs text-[#1E4752]/70 mt-0.5">
                   Đơn đặt phòng: <strong className="font-mono">{supportModal.booking.bookingCode || supportModal.booking.id}</strong> • {supportModal.booking.hotelName}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setSupportModal((prev) => ({ ...prev, isOpen: false }))}
-                className="rounded-lg border border-gray-300 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                className="lux-press rounded-xl border border-[#1E4752]/20 px-3 py-1.5 text-xs font-bold text-[#1E4752] hover:bg-[#1E4752]/5 cursor-pointer"
               >
                 Đóng
               </button>
             </div>
 
-            <div className="mt-4 max-h-64 overflow-y-auto space-y-2.5 rounded-xl bg-gray-50 p-3 border border-gray-200">
+            <div className="mt-4 max-h-64 overflow-y-auto space-y-2.5 rounded-2xl bg-[#1E4752]/4 p-3 border border-[#1E4752]/15">
               {supportModal.loading ? (
-                <p className="text-xs text-gray-400 text-center py-6">Đang tải lịch sử trao đổi...</p>
+                <p className="text-xs text-[#1E4752]/60 text-center py-6">Đang tải lịch sử trao đổi...</p>
               ) : supportModal.messages.length === 0 ? (
-                <p className="text-xs text-gray-500 text-center py-6">
+                <p className="text-xs text-[#1E4752]/70 text-center py-6">
                   Chưa có tin nhắn nào. Hãy gửi yêu cầu hỗ trợ hoặc lời nhắn cho quầy lễ tân bên dưới.
                 </p>
               ) : (
@@ -860,16 +863,16 @@ export default function BookingHistory() {
                     key={m.id}
                     className={`p-3 rounded-xl text-xs ${
                       m.senderRole === 'CUSTOMER'
-                        ? 'bg-blue-600 text-white ml-8'
-                        : 'bg-white border border-gray-200 text-gray-800 mr-8'
+                        ? 'bg-[#1E4752] text-white ml-8'
+                        : 'bg-white border border-[#1E4752]/15 text-[#1E4752] mr-8'
                     }`}
                   >
                     <div
                       className={`flex items-center justify-between text-[11px] mb-1 ${
-                        m.senderRole === 'CUSTOMER' ? 'text-blue-100' : 'text-gray-500'
+                        m.senderRole === 'CUSTOMER' ? 'text-[#E8A700]' : 'text-[#1E4752]/65'
                       }`}
                     >
-                      <span className="font-semibold">
+                      <span className="font-bold">
                         {m.senderRole === 'CUSTOMER' ? 'Bạn' : 'Lễ tân khách sạn'}
                       </span>
                       <span>{formatDate(m.sentAt)}</span>
@@ -886,13 +889,13 @@ export default function BookingHistory() {
                 value={supportModal.body}
                 onChange={(e) => setSupportModal((prev) => ({ ...prev, body: e.target.value }))}
                 placeholder="Nhập yêu cầu hỗ trợ (VD: Cần thêm khăn tắm, hỏi thông tin nhận phòng...)"
-                className="flex-1 rounded-xl border border-gray-300 px-3.5 py-2.5 text-xs text-gray-800 focus:outline-none focus:ring-1 focus:ring-teal-600"
+                className="flex-1 rounded-xl border border-[#1E4752]/20 px-3.5 py-2.5 text-xs text-[#1E4752] focus:outline-none focus:ring-2 focus:ring-[#E8A700]/45"
               />
               <button
                 type="button"
                 disabled={supportModal.sending || !supportModal.body.trim()}
                 onClick={handleSendCustomerMessage}
-                className="rounded-xl bg-teal-600 px-4 py-2.5 text-xs font-semibold text-white hover:bg-teal-700 disabled:opacity-50"
+                className="lux-press rounded-xl bg-[#E8A700] px-4 py-2.5 text-xs font-extrabold text-[#1E4752] hover:bg-[#E8A700]/90 disabled:opacity-50 cursor-pointer"
               >
                 {supportModal.sending ? 'Đang gửi...' : 'Gửi Yêu Cầu'}
               </button>
@@ -901,7 +904,7 @@ export default function BookingHistory() {
         </div>
       )}
 
-      <div className="mt-16 bg-white shadow-md">
+      <div className="mt-16 bg-white border-t border-[#1E4752]/10">
         <Footer />
       </div>
     </main>
@@ -927,69 +930,69 @@ function BookingStatus({ status }: { status: string }) {
   > = {
     PAYMENT_PENDING: {
       label: 'Chờ thanh toán VNPay',
-      bg: 'bg-amber-50',
-      text: 'text-amber-700',
+      bg: 'bg-[#E8A700]/20',
+      text: 'text-[#1E4752]',
     },
     PENDING: {
       label: 'Đang chờ khách sạn duyệt',
-      bg: 'bg-blue-50',
-      text: 'text-blue-700',
+      bg: 'bg-[#E8A700]/20',
+      text: 'text-[#1E4752]',
     },
     CONFIRMED: {
       label: 'Khách sạn đã xác nhận',
-      bg: 'bg-emerald-50',
-      text: 'text-emerald-700',
+      bg: 'bg-[#1E4752]',
+      text: 'text-white',
     },
     REJECTED: {
       label: 'Đã từ chối',
-      bg: 'bg-rose-50',
-      text: 'text-rose-700',
+      bg: 'bg-[#1E4752]/12',
+      text: 'text-[#1E4752]',
     },
     CHECKED_IN: {
       label: 'Đã nhận phòng',
-      bg: 'bg-indigo-50',
-      text: 'text-indigo-700',
+      bg: 'bg-[#1E4752]',
+      text: 'text-[#E8A700]',
     },
     COMPLETED: {
       label: 'Hoàn thành',
-      bg: 'bg-teal-50',
-      text: 'text-teal-700',
+      bg: 'bg-[#1E4752]',
+      text: 'text-white',
     },
     CANCELLED: {
       label: 'Đã hủy',
-      bg: 'bg-gray-100',
-      text: 'text-gray-700',
+      bg: 'bg-[#1E4752]/10',
+      text: 'text-[#1E4752]/75',
     },
     PAYMENT_EXPIRED: {
       label: 'Hết hạn thanh toán',
-      bg: 'bg-rose-50',
-      text: 'text-rose-700',
+      bg: 'bg-[#1E4752]/12',
+      text: 'text-[#1E4752]',
     },
     PAYMENT_REVIEW: {
       label: 'Cần kiểm tra hoàn tiền',
-      bg: 'bg-purple-50',
-      text: 'text-purple-700',
+      bg: 'bg-[#E8A700]/25',
+      text: 'text-[#1E4752]',
     },
     NO_SHOW: {
       label: 'Chưa nhận phòng (Đang giữ phòng)',
-      bg: 'bg-amber-100',
-      text: 'text-amber-800',
+      bg: 'bg-[#E8A700]/25',
+      text: 'text-[#1E4752]',
     },
     CLOSED_NO_SHOW: {
       label: 'Hết hạn nhận phòng (Vắng mặt)',
-      bg: 'bg-gray-100',
-      text: 'text-gray-700',
+      bg: 'bg-[#1E4752]/10',
+      text: 'text-[#1E4752]/75',
     },
   };
 
   const config = statusConfig[status] ?? {
     label: status,
-    bg: 'bg-gray-50',
-    text: 'text-gray-700',
+    bg: 'bg-[#1E4752]/10',
+    text: 'text-[#1E4752]',
   };
 
   return (
-    <span className={`rounded-full px-3 py-1 text-sm font-medium ${config.bg} ${config.text}`}>
+    <span className={`rounded-full px-3.5 py-1 text-xs font-extrabold ${config.bg} ${config.text}`}>
       {config.label}
     </span>
   );

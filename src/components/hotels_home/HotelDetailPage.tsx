@@ -259,19 +259,19 @@ function HotelRoomCard({
             {/* Inclusions & Highlights */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 text-xs font-semibold text-[#1E4752]">
               <div className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+                <Check className="h-4 w-4 text-[#E8A700] shrink-0" />
                 <span>Bảo chứng giữ phòng ngay sau thanh toán</span>
               </div>
               <div className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+                <Check className="h-4 w-4 text-[#E8A700] shrink-0" />
                 <span>Hỗ trợ nhận phòng tại quầy 24/7</span>
               </div>
               <div className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+                <Check className="h-4 w-4 text-[#E8A700] shrink-0" />
                 <span>Thanh toán online VNPay bảo mật</span>
               </div>
               <div className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-emerald-600 shrink-0" />
+                <Check className="h-4 w-4 text-[#E8A700] shrink-0" />
                 <span>Hủy phòng theo chính sách khách sạn</span>
               </div>
             </div>
@@ -541,7 +541,7 @@ function HotelDetailContent({ hotelId }: { hotelId: string }) {
                   Tiêu chuẩn {stars} sao
                 </span>
               </div>
-              <h1 className="text-2xl sm:text-4xl font-extrabold text-[#1E4752] tracking-tight">
+              <h1 className="font-display text-2xl sm:text-4xl font-bold text-[#1E4752] tracking-tight">
                 {hotel.name}
               </h1>
               {hotel.address && (

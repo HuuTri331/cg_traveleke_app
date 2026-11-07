@@ -115,7 +115,9 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
           ? localStorage.getItem('traveleke_token')
           : null;
       updateSocketAuthToken(token);
-      subscribeStaffChannel();
+      if (staffUser.role === 'ADMIN') {
+        subscribeStaffChannel();
+      }
 
       if ((staffUser as any).hotelId) {
         subscribeHotelRoom((staffUser as any).hotelId);

@@ -33,7 +33,7 @@ export default function LuxurySectionHeader({
             {eyebrow}
           </p>
         )}
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#1E4752] tracking-tight leading-tight">
+        <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold text-[#1E4752] tracking-tight leading-tight">
           {title}
         </h2>
         {subtitle && (

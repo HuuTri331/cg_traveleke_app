@@ -91,6 +91,36 @@ export default function RoomBoardPage() {
                 <div>Loại phòng ID: #{u.roomTypeId}</div>
                 <div>Tầng: {u.floor || '—'}</div>
                 <div>Trạng thái vận hành: {u.operationalStatus}</div>
+                <div className="mt-1 flex items-center justify-between">
+                  <span>
+                    Kiểm định:{' '}
+                    <strong
+                      className={
+                        u.verificationStatus === 'VERIFIED'
+                          ? 'text-emerald-700'
+                          : 'text-amber-700'
+                      }
+                    >
+                      {u.verificationStatus || 'UNVERIFIED'}
+                    </strong>
+                  </span>
+                  {u.verificationStatus !== 'VERIFIED' && (
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          await roomUnitsApi.verifyRoomUnit(u.id);
+                          await loadUnits(hotelId);
+                        } catch (err: any) {
+                          setError(err?.message || 'Không thể xác minh phòng vật lý.');
+                        }
+                      }}
+                      className="rounded bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700"
+                    >
+                      Xác minh phòng
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}

@@ -65,15 +65,22 @@ export const usersApi = {
   },
 
   /**
-   * Lấy danh sách tất cả khách hàng (Admin & Employee)
+   * Lấy danh sách khách hàng (Admin toàn sàn; Employee chỉ xem khách có booking tại khách sạn ACTIVE của mình)
    */
-  getAllCustomers: async (): Promise<UserProfile[]> => {
-    const res = await apiClient.get<ApiResponse<UserProfile[]>>('/users/customers');
+  getAllCustomers: async (params?: {
+    hotelId?: string;
+    search?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<UserProfile[]> => {
+    const res = await apiClient.get<ApiResponse<UserProfile[]>>('/users/customers', {
+      params,
+    });
     return res.data.data;
   },
 
   /**
-   * Khoá / Mở khoá tài khoản khách hàng (Admin & Employee)
+   * Khoá / Mở khoá tài khoản khách hàng toàn sàn (Chỉ Admin)
    */
   updateCustomerStatus: async (id: string, dto: UpdateStatusDto): Promise<UserProfile> => {
     const res = await apiClient.patch<ApiResponse<UserProfile>>(`/users/customers/${id}/status`, dto);

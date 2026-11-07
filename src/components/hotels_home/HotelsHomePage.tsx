@@ -164,7 +164,7 @@ function HotelsListContent() {
                 <span>/</span>
                 <span className="text-[#1E4752] font-bold">Danh sách khách sạn</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1E4752] tracking-tight">
+              <h1 className="font-display text-2xl sm:text-3xl font-bold text-[#1E4752] tracking-tight">
                 {bookingParams.keyword ? `Khách sạn tại "${bookingParams.keyword}"` : 'Bộ Sưu Tập Khách Sạn'}
               </h1>
             </div>

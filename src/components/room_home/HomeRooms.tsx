@@ -326,36 +326,37 @@ export default function HomeRooms({
   };
 
   return (
-    <>
+    <div className="luxury-site min-h-screen bg-white text-[#1E4752]">
       {/* ====================================================== */}
       {/* HEADER */}
       {/* ====================================================== */}
 
-      <div className="sticky top-0 z-50 w-full bg-white shadow-md">
-        <Header />
-      </div>
+      <Header />
 
       {/* ====================================================== */}
       {/* MAIN */}
       {/* ====================================================== */}
 
-      <main className="min-h-screen bg-gray-50">
+      <main className="min-h-screen bg-white">
         <section className="mx-auto max-w-7xl px-4 py-10">
           {/* ================================================== */}
           {/* TITLE */}
           {/* ================================================== */}
 
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">
+          <div className="lux-fade-up mb-8 border-b border-[#1E4752]/10 pb-6">
+            <span className="inline-flex items-center gap-2 rounded-full bg-[#E8A700]/15 px-3.5 py-1 text-xs font-extrabold uppercase tracking-widest text-[#1E4752] mb-2">
+              Traveleke Curated Collection
+            </span>
+            <h1 className="font-display text-3xl sm:text-4xl font-bold text-[#1E4752]">
               {hotelId
                 ? 'Danh sách phòng của khách sạn'
-                : 'Tìm kiếm phòng'}
+                : 'Khám phá bộ sưu tập phòng nghỉ'}
             </h1>
 
-            <p className="mt-2 text-gray-500">
+            <p className="mt-2 text-sm font-medium text-[#1E4752]/75">
               Tìm phòng phù hợp với
               nhu cầu và ngân sách của
-              bạn.
+              quý khách.
             </p>
           </div>
 
@@ -365,13 +366,13 @@ export default function HomeRooms({
 
           <form
             onSubmit={handleSearch}
-            className="mb-10 rounded-2xl border bg-white p-6 shadow-sm"
+            className="lux-fade-up lux-delay-1 mb-10 rounded-3xl border border-[#1E4752]/15 bg-white p-6 shadow-[0_14px_38px_rgba(30,71,82,0.06)]"
           >
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               {/* KEYWORD */}
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#1E4752]/80">
                   Từ khóa
                 </label>
 
@@ -384,14 +385,14 @@ export default function HomeRooms({
                     )
                   }
                   placeholder="Tên phòng, loại giường..."
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className="w-full rounded-xl border border-[#1E4752]/20 bg-white px-4 py-3 text-sm font-medium text-[#1E4752] outline-none transition focus:border-[#E8A700] focus:ring-2 focus:ring-[#E8A700]/20"
                 />
               </div>
 
               {/* MIN PRICE */}
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#1E4752]/80">
                   Giá từ
                 </label>
 
@@ -405,14 +406,14 @@ export default function HomeRooms({
                     )
                   }
                   placeholder="500000"
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className="tabular-nums w-full rounded-xl border border-[#1E4752]/20 bg-white px-4 py-3 text-sm font-medium text-[#1E4752] outline-none transition focus:border-[#E8A700] focus:ring-2 focus:ring-[#E8A700]/20"
                 />
               </div>
 
               {/* MAX PRICE */}
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#1E4752]/80">
                   Giá đến
                 </label>
 
@@ -426,14 +427,14 @@ export default function HomeRooms({
                     )
                   }
                   placeholder="2000000"
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className="tabular-nums w-full rounded-xl border border-[#1E4752]/20 bg-white px-4 py-3 text-sm font-medium text-[#1E4752] outline-none transition focus:border-[#E8A700] focus:ring-2 focus:ring-[#E8A700]/20"
                 />
               </div>
 
               {/* BED TYPE */}
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#1E4752]/80">
                   Loại giường
                 </label>
 
@@ -446,14 +447,14 @@ export default function HomeRooms({
                     )
                   }
                   placeholder="Giường Đôi"
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className="w-full rounded-xl border border-[#1E4752]/20 bg-white px-4 py-3 text-sm font-medium text-[#1E4752] outline-none transition focus:border-[#E8A700] focus:ring-2 focus:ring-[#E8A700]/20"
                 />
               </div>
 
               {/* ADULTS */}
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#1E4752]/80">
                   Người lớn
                 </label>
 
@@ -467,14 +468,14 @@ export default function HomeRooms({
                     )
                   }
                   placeholder="2"
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className="tabular-nums w-full rounded-xl border border-[#1E4752]/20 bg-white px-4 py-3 text-sm font-medium text-[#1E4752] outline-none transition focus:border-[#E8A700] focus:ring-2 focus:ring-[#E8A700]/20"
                 />
               </div>
 
               {/* CHILDREN */}
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#1E4752]/80">
                   Trẻ em
                 </label>
 
@@ -488,14 +489,14 @@ export default function HomeRooms({
                     )
                   }
                   placeholder="0"
-                  className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className="tabular-nums w-full rounded-xl border border-[#1E4752]/20 bg-white px-4 py-3 text-sm font-medium text-[#1E4752] outline-none transition focus:border-[#E8A700] focus:ring-2 focus:ring-[#E8A700]/20"
                 />
               </div>
 
               {/* RATING */}
 
               <div>
-                <label className="mb-2 block text-sm font-semibold text-gray-700">
+                <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-[#1E4752]/80">
                   Đánh giá tối thiểu
                 </label>
 
@@ -506,7 +507,7 @@ export default function HomeRooms({
                       e.target.value,
                     )
                   }
-                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                  className="w-full rounded-xl border border-[#1E4752]/20 bg-white px-4 py-3 text-sm font-medium text-[#1E4752] outline-none transition focus:border-[#E8A700] focus:ring-2 focus:ring-[#E8A700]/20"
                 >
                   <option value="">
                     Tất cả
@@ -541,18 +542,18 @@ export default function HomeRooms({
               <button
                 type="submit"
                 disabled={loading}
-                className="rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="lux-press rounded-xl bg-[#E8A700] px-6 py-3 text-sm font-extrabold text-[#1E4752] transition hover:bg-[#E8A700]/90 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer shadow-xs"
               >
                 {loading
                   ? 'Đang tìm...'
-                  : 'Tìm kiếm'}
+                  : 'Tìm kiếm phòng'}
               </button>
 
               <button
                 type="button"
                 onClick={handleReset}
                 disabled={loading}
-                className="rounded-xl border border-gray-300 bg-white px-6 py-3 font-semibold text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+                className="lux-press rounded-xl border border-[#1E4752]/25 bg-white px-6 py-3 text-sm font-bold text-[#1E4752] transition hover:bg-[#1E4752]/5 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
               >
                 Đặt lại
               </button>
@@ -567,16 +568,16 @@ export default function HomeRooms({
             !error &&
             rooms.length > 0 && (
               <div className="mb-6 flex items-center justify-between">
-                <p className="text-gray-600">
+                <p className="text-sm font-medium text-[#1E4752]/80">
                   Tìm thấy{' '}
-                  <strong className="text-gray-900">
+                  <strong className="font-extrabold text-[#1E4752] tabular-nums">
                     {total}
                   </strong>{' '}
                   phòng phù hợp.
                 </p>
 
                 {totalPages > 0 && (
-                  <p className="text-sm text-gray-500">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#1E4752]/65 tabular-nums">
                     Trang {page} /{' '}
                     {totalPages}
                   </p>
@@ -589,8 +590,9 @@ export default function HomeRooms({
           {/* ================================================== */}
 
           {loading && (
-            <div className="rounded-xl bg-white py-16 text-center shadow-sm">
-              <p className="text-gray-500">
+            <div className="rounded-3xl border border-[#1E4752]/10 bg-white py-16 text-center shadow-xs">
+              <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-4 border-[#1E4752]/15 border-t-[#E8A700]" />
+              <p className="text-sm font-semibold text-[#1E4752]/75">
                 Đang tìm kiếm phòng...
               </p>
             </div>
@@ -601,7 +603,7 @@ export default function HomeRooms({
           {/* ================================================== */}
 
           {!loading && error && (
-            <div className="rounded-xl bg-red-50 px-4 py-10 text-center text-red-600">
+            <div className="rounded-2xl border border-[#1E4752]/20 bg-[#E8A700]/15 px-4 py-8 text-center text-sm font-semibold text-[#1E4752]">
               {error}
             </div>
           )}
@@ -613,7 +615,7 @@ export default function HomeRooms({
           {!loading &&
             !error &&
             rooms.length === 0 && (
-              <div className="rounded-xl border bg-white py-16 text-center text-gray-500">
+              <div className="rounded-3xl border border-[#1E4752]/15 bg-white py-16 text-center text-sm font-semibold text-[#1E4752]/75">
                 Không tìm thấy phòng phù
                 hợp với điều kiện tìm
                 kiếm.
@@ -635,16 +637,16 @@ export default function HomeRooms({
                     return (
                       <article
                         key={room.id}
-                        className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+                        className="lux-card-hover group flex flex-col justify-between overflow-hidden rounded-3xl border border-[#1E4752]/15 bg-white shadow-xs"
                       >
                         {/* IMAGE */}
-                        <div className="relative h-56 w-full overflow-hidden bg-gray-100">
+                        <div className="relative h-56 w-full overflow-hidden bg-[#1E4752]/5">
                           <img
                             src={getImageUrl(
                               room.coverImageUrl,
                             )}
                             alt={room.name}
-                            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                            className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
                             onError={(e) => {
                               e.currentTarget.src =
                                 PLACEHOLDER_IMAGE;
@@ -652,14 +654,14 @@ export default function HomeRooms({
                           />
 
                           {/* Top-left Specs Badge */}
-                          <div className="absolute left-3 top-3 flex items-center gap-1 rounded-md bg-traveloka-navy/85 backdrop-blur-xs px-2.5 py-1 text-xs font-semibold text-white shadow-sm">
-                            <Maximize2 className="h-3.5 w-3.5 text-white" />
+                          <div className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-[#1E4752] px-3 py-1 text-xs font-bold text-white shadow-xs tabular-nums">
+                            <Maximize2 className="h-3.5 w-3.5 text-[#E8A700]" />
                             <span>{room.roomSize ? `${room.roomSize} m²` : '18 m²'}</span>
                           </div>
 
                           {/* Top-right Rating */}
-                          <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-yellow-700 shadow-sm">
-                            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                          <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-xs font-extrabold text-[#1E4752] shadow-xs border border-[#1E4752]/10 tabular-nums">
+                            <Star className="h-3.5 w-3.5 fill-[#E8A700] text-[#E8A700]" />
                             <span>{Number(room.rating || 4.5).toFixed(1)}</span>
                           </div>
                         </div>
@@ -667,56 +669,56 @@ export default function HomeRooms({
                         {/* CONTENT */}
                         <div className="flex flex-1 flex-col justify-between p-5">
                           <div>
-                            <h2 className="text-lg font-bold text-gray-900 group-hover:text-traveloka-blue transition-colors line-clamp-1">
+                            <h2 className="font-display text-lg font-bold text-[#1E4752] transition-colors line-clamp-1">
                               {room.name}
                             </h2>
 
                             {room.description && (
-                              <p className="mt-1 line-clamp-2 text-xs leading-5 text-gray-500">
+                              <p className="mt-1 line-clamp-2 text-xs leading-5 text-[#1E4752]/75">
                                 {room.description}
                               </p>
                             )}
 
                             {/* ROOM INFO */}
-                            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-gray-600">
-                              <span className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-1 font-medium">
-                                <BedDouble className="h-3.5 w-3.5 text-gray-500" />
+                            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-[#1E4752]">
+                              <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#1E4752]/15 bg-[#1E4752]/5 px-2.5 py-1 font-semibold">
+                                <BedDouble className="h-3.5 w-3.5 text-[#1E4752]" />
                                 <span>{room.bedCount} {room.bedType || 'giường'}</span>
                               </span>
-                              <span className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-1 font-medium">
-                                <User className="h-3.5 w-3.5 text-gray-500" />
+                              <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#1E4752]/15 bg-[#1E4752]/5 px-2.5 py-1 font-semibold">
+                                <User className="h-3.5 w-3.5 text-[#1E4752]" />
                                 <span>{room.maxAdults} người lớn</span>
                               </span>
                               {Number(room.maxChildren) > 0 && (
-                                <span className="inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-2.5 py-1 font-medium">
-                                  <Users className="h-3.5 w-3.5 text-gray-500" />
+                                <span className="inline-flex items-center gap-1.5 rounded-lg border border-[#1E4752]/15 bg-[#1E4752]/5 px-2.5 py-1 font-semibold">
+                                  <Users className="h-3.5 w-3.5 text-[#1E4752]" />
                                   <span>{room.maxChildren} trẻ em</span>
                                 </span>
                               )}
                             </div>
 
                             {/* CANCELLATION */}
-                            <p className="mt-2.5 flex items-center gap-1 text-xs font-semibold text-emerald-600">
-                              <Check className="h-3.5 w-3.5 text-emerald-600" />
+                            <p className="mt-2.5 flex items-center gap-1 text-xs font-bold text-[#1E4752]">
+                              <Check className="h-3.5 w-3.5 text-[#E8A700]" />
                               <span>Miễn phí huỷ phòng</span>
                             </p>
                           </div>
 
                           {/* PRICE & ACTION */}
-                          <div className="mt-4 border-t border-gray-100 pt-3 flex items-end justify-between gap-2">
+                          <div className="mt-4 border-t border-[#1E4752]/10 pt-3 flex items-end justify-between gap-2">
                             <div>
-                              <div className="flex items-baseline gap-1">
-                                <span className="text-xl font-black text-traveloka-orange">
+                              <div className="flex items-baseline gap-1 tabular-nums">
+                                <span className="text-xl font-black text-[#1E4752]">
                                   {new Intl.NumberFormat('vi-VN').format(priceNum)}
                                 </span>
-                                <span className="text-xs font-bold text-traveloka-orange">
+                                <span className="text-xs font-extrabold text-[#E8A700]">
                                   VND
                                 </span>
                               </div>
-                              <p className="text-xs text-gray-500">/ phòng / đêm</p>
+                              <p className="text-xs text-[#1E4752]/65">/ phòng / đêm</p>
                               {room.availableRooms <= 5 && room.availableRooms > 0 && (
-                                <p className="text-xs-plus font-bold text-red-500 mt-0.5">
-                                  Còn {room.availableRooms} phòng!
+                                <p className="text-xs font-extrabold text-[#1E4752] mt-0.5">
+                                  Chỉ còn {room.availableRooms} phòng!
                                 </p>
                               )}
                             </div>
@@ -724,7 +726,7 @@ export default function HomeRooms({
                             <button
                               type="button"
                               onClick={() => handleBookRoom(room)}
-                              className="rounded-xl bg-traveloka-blue hover:bg-traveloka-blue-hover px-5 py-2.5 text-xs font-bold text-white shadow-xs transition-colors cursor-pointer"
+                              className="lux-press rounded-xl bg-[#E8A700] hover:bg-[#E8A700]/90 px-5 py-2.5 text-xs font-extrabold text-[#1E4752] shadow-xs transition-colors cursor-pointer"
                             >
                               Đặt ngay
                             </button>
@@ -747,12 +749,12 @@ export default function HomeRooms({
                         handlePreviousPage
                       }
                       disabled={page <= 1}
-                      className="rounded-xl border bg-white px-5 py-3 font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="lux-press rounded-xl border border-[#1E4752]/20 bg-white px-5 py-3 text-sm font-bold text-[#1E4752] transition hover:bg-[#1E4752]/5 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
                     >
                       ← Trang trước
                     </button>
 
-                    <span className="rounded-xl bg-white px-5 py-3 text-sm font-semibold text-gray-700 shadow-sm">
+                    <span className="tabular-nums rounded-xl bg-[#1E4752] px-5 py-3 text-sm font-bold text-white shadow-xs">
                       {page} /{' '}
                       {totalPages}
                     </span>
@@ -766,7 +768,7 @@ export default function HomeRooms({
                         page >=
                         totalPages
                       }
-                      className="rounded-xl border bg-white px-5 py-3 font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="lux-press rounded-xl border border-[#1E4752]/20 bg-white px-5 py-3 text-sm font-bold text-[#1E4752] transition hover:bg-[#1E4752]/5 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
                     >
                       Trang sau →
                     </button>
@@ -781,9 +783,9 @@ export default function HomeRooms({
       {/* FOOTER */}
       {/* ====================================================== */}
 
-      <div className="mt-16 bg-white shadow-md">
+      <div className="mt-16 bg-white border-t border-[#1E4752]/10">
         <Footer />
       </div>
-    </>
+    </div>
   );
 }

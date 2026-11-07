@@ -54,12 +54,12 @@ export default function HomePage() {
           />
 
           {/* 2. Floating Search Bar Overlapping Bottom of Hero */}
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 z-20">
+          <div className="relative max-w-[1620px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 -mt-20 z-20">
             <LuxuryHotelSearch mode="hero" />
           </div>
         </div>
 
-        {/* 3. Verified Platform Trust Strip */}
+        {/* 3. Hotel Strengths Gallery & 01-06 Room Quality Highlights (Directly Below Search Bar) */}
         <LuxuryTrustStrip />
 
         {/* 4. Editorial Brand Story & Pillars */}
@@ -75,13 +75,8 @@ export default function HomePage() {
           <TopMonthHotelsSection />
         </div>
 
-        {/* 7. Platform Standard Premium Services 01 - 06 */}
-        <div className="border-t border-[#1E4752]/8 bg-white">
-          <TravelokeLayout />
-        </div>
-
-        {/* 8. Luxury Destinations (Inspiration from Real Hotels) */}
-        <div className="border-t border-[#1E4752]/8 bg-[#1E4752]/2">
+        {/* 7. Traveleke Hotel Strengths & Room Quality Showcase */}
+        <div className="bg-white">
           <TravelDestinations />
         </div>
 

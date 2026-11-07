@@ -6,7 +6,7 @@ import { ArrowRight, CheckCircle2, Star } from 'lucide-react';
 
 export default function LuxuryIntroSection() {
   return (
-    <section id="luxury-intro" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
+    <section id="luxury-intro" className="max-w-[1620px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 py-16 sm:py-24">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
         {/* Left Column: Editorial Image Collage */}
         <div className="lg:col-span-6 relative">

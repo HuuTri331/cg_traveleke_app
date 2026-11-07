@@ -81,8 +81,134 @@ nextjs-portal,
   --lux-ink-border: rgba(30, 71, 82, 0.12);
   --lux-gold-subtle: rgba(232, 167, 0, 0.08);
   --lux-gold-border: rgba(232, 167, 0, 0.3);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   background-color: #ffffff;
   color: #1e4752;
-  min-height: 100vh;
+}
+
+.font-display {
+  font-family: var(--font-display), Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes luxFadeUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes luxScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+}
+
+@keyframes luxShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes luxPulseRing {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(232, 167, 0, 0.5);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(232, 167, 0, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(232, 167, 0, 0);
+  }
+}
+
+.lux-fade-up {
+  animation: luxFadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.lux-scale-in {
+  animation: luxScaleIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.lux-stagger-1 {
+  animation-delay: 60ms;
+}
+.lux-stagger-2 {
+  animation-delay: 120ms;
+}
+.lux-stagger-3 {
+  animation-delay: 180ms;
+}
+.lux-stagger-4 {
+  animation-delay: 240ms;
+}
+
+.lux-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(30, 71, 82, 0.04) 25%,
+    rgba(232, 167, 0, 0.10) 50%,
+    rgba(30, 71, 82, 0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: luxShimmer 1.8s infinite linear;
+}
+
+.lux-card-hover {
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.lux-card-hover:hover {
+  transform: translate3d(0, -4px, 0);
+  box-shadow: 0 20px 44px -12px rgba(30, 71, 82, 0.12);
+  border-color: rgba(232, 167, 0, 0.45);
+}
+
+.lux-press {
+  transition:
+    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.lux-press:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lux-fade-up,
+  .lux-scale-in,
+  .lux-shimmer {
+    animation: none !important;
+  }
+  .lux-card-hover,
+  .lux-press {
+    transition: none !important;
+    transform: none !important;
+  }
 }
 

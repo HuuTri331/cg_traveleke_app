@@ -129,77 +129,77 @@ function PaymentResultContent() {
     : '0';
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans antialiased text-gray-800">
+    <div className="luxury-site min-h-screen bg-white flex flex-col font-sans antialiased text-[#1E4752]">
       <HeaderCommon />
 
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-12 flex flex-col justify-center">
+      <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-12 flex flex-col justify-center lux-fade-up">
         {paymentStatus === 'CHECKING' && (
-          <div className="bg-white rounded-3xl p-10 shadow-sm border border-slate-100 text-center flex flex-col items-center gap-4">
-            <div className="w-14 h-14 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-            <h2 className="text-xl font-bold text-slate-800">Đang xác thực kết quả thanh toán...</h2>
-            <p className="text-sm text-slate-500 max-w-md">
+          <div className="bg-white rounded-3xl p-10 shadow-xs border border-[#1E4752]/15 text-center flex flex-col items-center gap-4">
+            <div className="w-14 h-14 border-4 border-[#E8A700] border-t-transparent rounded-full animate-spin" />
+            <h2 className="font-display text-xl font-bold text-[#1E4752]">Đang xác thực kết quả thanh toán...</h2>
+            <p className="text-sm text-[#1E4752]/75 max-w-md">
               Hệ thống đang đối soát trạng thái giao dịch với cổng VNPay. Quá trình này có thể mất vài giây.
             </p>
           </div>
         )}
 
         {paymentStatus === 'PAID' && (
-          <div className="bg-white rounded-3xl p-8 sm:p-10 shadow-sm border border-emerald-100 text-center flex flex-col items-center">
-            <div className="w-20 h-20 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mb-5 ring-8 ring-emerald-50/50">
-              <CheckCircle2 className="w-11 h-11" />
+          <div className="bg-white rounded-3xl p-8 sm:p-10 shadow-xs border border-[#1E4752]/15 text-center flex flex-col items-center lux-scale-in">
+            <div className="w-20 h-20 bg-[#E8A700]/15 text-[#1E4752] rounded-full flex items-center justify-center mb-5 ring-8 ring-[#E8A700]/10">
+              <CheckCircle2 className="w-11 h-11 text-[#E8A700]" />
             </div>
 
-            <span className="px-3.5 py-1 bg-emerald-100/80 text-emerald-800 text-xs font-semibold rounded-full uppercase tracking-wider mb-2">
+            <span className="px-3.5 py-1 bg-[#1E4752] text-[#E8A700] text-xs font-extrabold rounded-full uppercase tracking-wider mb-2">
               Giao dịch thành công
             </span>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-[#1E4752] tracking-tight">
               Thanh Toán Đặt Phòng Hoàn Tất!
             </h1>
-            <p className="text-sm text-slate-500 mt-2 max-w-md">
+            <p className="text-sm text-[#1E4752]/75 mt-2 max-w-md">
               Cảm ơn quý khách. Đơn đặt phòng của bạn đã được thanh toán thành công và chuyển tới khách sạn để xác nhận tiếp nhận.
             </p>
 
             {/* Thông tin biên lai thanh toán */}
-            <div className="w-full bg-slate-50 rounded-2xl p-6 my-8 text-left border border-slate-100 divide-y divide-slate-200/60">
+            <div className="w-full bg-[#1E4752]/4 rounded-2xl p-6 my-8 text-left border border-[#1E4752]/15 divide-y divide-[#1E4752]/10">
               <div className="pb-3 flex justify-between items-center text-sm">
-                <span className="text-slate-500">Mã đơn đặt phòng:</span>
-                <span className="font-bold text-slate-900 font-mono text-base">
+                <span className="text-[#1E4752]/70">Mã đơn đặt phòng:</span>
+                <span className="font-bold text-[#1E4752] font-mono text-base tabular-nums">
                   {bookingDetails?.bookingCode || txnRef?.split('-')[0] || '---'}
                 </span>
               </div>
 
               <div className="py-3 flex justify-between items-center text-sm">
-                <span className="text-slate-500">Mã giao dịch VNPay:</span>
-                <span className="font-semibold text-slate-800 font-mono">
+                <span className="text-[#1E4752]/70">Mã giao dịch VNPay:</span>
+                <span className="font-semibold text-[#1E4752] font-mono tabular-nums">
                   {bookingDetails?.payment?.vnpTransactionNo || vnpTransactionNo || '---'}
                 </span>
               </div>
 
               <div className="py-3 flex justify-between items-center text-sm">
-                <span className="text-slate-500">Phương thức:</span>
-                <span className="font-medium text-slate-800 flex items-center gap-1.5">
-                  <CreditCard className="w-4 h-4 text-blue-600" />
+                <span className="text-[#1E4752]/70">Phương thức:</span>
+                <span className="font-semibold text-[#1E4752] flex items-center gap-1.5">
+                  <CreditCard className="w-4 h-4 text-[#E8A700]" />
                   Cổng VNPay Sandbox
                 </span>
               </div>
 
               <div className="pt-3 flex justify-between items-center text-sm">
-                <span className="text-slate-500 font-medium">Tổng tiền thanh toán:</span>
-                <span className="font-extrabold text-blue-600 text-lg">
-                  {amountDisplay} ₫
+                <span className="text-[#1E4752] font-semibold">Tổng tiền thanh toán:</span>
+                <span className="font-extrabold text-[#1E4752] text-lg tabular-nums">
+                  {amountDisplay} <span className="text-[#E8A700]">₫</span>
                 </span>
               </div>
             </div>
 
             {/* Trạng thái nghiệp vụ */}
-            <div className="w-full mb-8 bg-blue-50/60 border border-blue-100 rounded-xl p-4 flex items-start gap-3 text-left">
-              <Clock className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+            <div className="w-full mb-8 bg-[#E8A700]/12 border border-[#E8A700]/35 rounded-xl p-4 flex items-start gap-3 text-left">
+              <Clock className="w-5 h-5 text-[#1E4752] shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm font-semibold text-blue-900">
+                <p className="text-sm font-bold text-[#1E4752]">
                   Trạng thái: Đã thanh toán - Đang chờ khách sạn xác nhận
                 </p>
-                <p className="text-xs text-blue-700/80 mt-0.5">
+                <p className="text-xs text-[#1E4752]/80 mt-0.5">
                   Lễ tân khách sạn sẽ kiểm tra thông tin và gửi thông báo xác nhận phòng qua Email và ứng dụng cho bạn.
                 </p>
               </div>
@@ -208,14 +208,14 @@ function PaymentResultContent() {
             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
               <Link
                 href="/booking-history"
-                className="px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition flex items-center justify-center gap-2 shadow-sm shadow-blue-500/20"
+                className="lux-press px-6 py-3.5 bg-[#E8A700] hover:bg-[#E8A700]/90 text-[#1E4752] font-extrabold rounded-xl transition flex items-center justify-center gap-2 shadow-xs"
               >
                 Xem Lịch Sử Đặt Phòng
                 <ArrowRight className="w-4 h-4" />
               </Link>
               <Link
                 href="/"
-                className="px-6 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition flex items-center justify-center"
+                className="lux-press px-6 py-3.5 bg-white hover:bg-[#1E4752]/5 border border-[#1E4752]/20 text-[#1E4752] font-bold rounded-xl transition flex items-center justify-center"
               >
                 Về Trang Chủ
               </Link>
@@ -224,30 +224,30 @@ function PaymentResultContent() {
         )}
 
         {(paymentStatus === 'FAILED' || paymentStatus === 'EXPIRED') && (
-          <div className="bg-white rounded-3xl p-8 sm:p-10 shadow-sm border border-rose-100 text-center flex flex-col items-center">
-            <div className="w-20 h-20 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mb-5 ring-8 ring-rose-50/50">
-              <XCircle className="w-11 h-11" />
+          <div className="bg-white rounded-3xl p-8 sm:p-10 shadow-xs border border-[#1E4752]/20 text-center flex flex-col items-center lux-scale-in">
+            <div className="w-20 h-20 bg-[#1E4752]/8 text-[#1E4752] rounded-full flex items-center justify-center mb-5 ring-8 ring-[#1E4752]/5">
+              <XCircle className="w-11 h-11 text-[#1E4752]" />
             </div>
 
-            <span className="px-3.5 py-1 bg-rose-100/80 text-rose-800 text-xs font-semibold rounded-full uppercase tracking-wider mb-2">
+            <span className="px-3.5 py-1 bg-[#E8A700]/20 text-[#1E4752] text-xs font-extrabold rounded-full uppercase tracking-wider mb-2">
               {paymentStatus === 'EXPIRED' ? 'Hết hạn thanh toán' : 'Giao dịch thất bại'}
             </span>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-[#1E4752] tracking-tight">
               {paymentStatus === 'EXPIRED' ? 'Phiên Thanh Toán Đã Hết Hạn' : 'Thanh Toán Không Thành Công'}
             </h1>
-            <p className="text-sm text-slate-500 mt-2 max-w-md">
+            <p className="text-sm text-[#1E4752]/75 mt-2 max-w-md">
               {errorMessage || 'Rất tiếc, giao dịch chưa được xác nhận bởi cổng thanh toán VNPay hoặc bạn đã hủy giao dịch.'}
             </p>
 
-            <div className="w-full bg-slate-50 rounded-2xl p-6 my-8 text-left border border-slate-100 text-sm space-y-2">
+            <div className="w-full bg-[#1E4752]/4 rounded-2xl p-6 my-8 text-left border border-[#1E4752]/15 text-sm space-y-2">
               <div className="flex justify-between">
-                <span className="text-slate-500">Mã tham chiếu:</span>
-                <span className="font-mono font-medium text-slate-800">{txnRef || '---'}</span>
+                <span className="text-[#1E4752]/70">Mã tham chiếu:</span>
+                <span className="font-mono font-bold text-[#1E4752] tabular-nums">{txnRef || '---'}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Mã phản hồi VNPay:</span>
-                <span className="font-mono font-medium text-slate-800">{vnpResponseCode || '---'}</span>
+                <span className="text-[#1E4752]/70">Mã phản hồi VNPay:</span>
+                <span className="font-mono font-bold text-[#1E4752] tabular-nums">{vnpResponseCode || '---'}</span>
               </div>
             </div>
 
@@ -255,14 +255,14 @@ function PaymentResultContent() {
               <button
                 onClick={handleRetryPayment}
                 disabled={isRetrying}
-                className="px-6 py-3.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold rounded-xl transition flex items-center justify-center gap-2 shadow-sm shadow-blue-500/20"
+                className="lux-press px-6 py-3.5 bg-[#E8A700] hover:bg-[#E8A700]/90 disabled:opacity-50 text-[#1E4752] font-extrabold rounded-xl transition flex items-center justify-center gap-2 shadow-xs cursor-pointer"
               >
                 <RotateCcw className={`w-4 h-4 ${isRetrying ? 'animate-spin' : ''}`} />
                 {isRetrying ? 'Đang tạo phiên mới...' : 'Thanh Toán Lại'}
               </button>
               <Link
                 href="/booking-history"
-                className="px-6 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition flex items-center justify-center"
+                className="lux-press px-6 py-3.5 bg-white hover:bg-[#1E4752]/5 border border-[#1E4752]/20 text-[#1E4752] font-bold rounded-xl transition flex items-center justify-center"
               >
                 Về Lịch Sử Đặt Phòng
               </Link>
@@ -271,22 +271,22 @@ function PaymentResultContent() {
         )}
 
         {paymentStatus === 'PENDING' && (
-          <div className="bg-white rounded-3xl p-8 sm:p-10 shadow-sm border border-amber-100 text-center flex flex-col items-center">
-            <div className="w-20 h-20 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mb-5 ring-8 ring-amber-50/50">
-              <AlertTriangle className="w-11 h-11" />
+          <div className="bg-white rounded-3xl p-8 sm:p-10 shadow-xs border border-[#E8A700]/40 text-center flex flex-col items-center lux-scale-in">
+            <div className="w-20 h-20 bg-[#E8A700]/15 text-[#1E4752] rounded-full flex items-center justify-center mb-5 ring-8 ring-[#E8A700]/10">
+              <AlertTriangle className="w-11 h-11 text-[#E8A700]" />
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-[#1E4752] tracking-tight">
               Giao Dịch Đang Được Xử Lý
             </h1>
-            <p className="text-sm text-slate-500 mt-2 max-w-md">
+            <p className="text-sm text-[#1E4752]/75 mt-2 max-w-md">
               Hệ thống đang chờ thông báo chính thức từ ngân hàng. Trạng thái sẽ được tự động đồng bộ trong ít phút.
             </p>
 
             <div className="flex gap-3 mt-8">
               <Link
                 href="/booking-history"
-                className="px-6 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition"
+                className="lux-press px-6 py-3.5 bg-[#E8A700] hover:bg-[#E8A700]/90 text-[#1E4752] font-extrabold rounded-xl transition"
               >
                 Kiểm Tra Tại Lịch Sử Đặt Phòng
               </Link>
@@ -304,8 +304,8 @@ export default function PaymentResultPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <div className="min-h-screen bg-white flex items-center justify-center">
+          <div className="w-10 h-10 border-4 border-[#E8A700] border-t-transparent rounded-full animate-spin" />
         </div>
       }
     >

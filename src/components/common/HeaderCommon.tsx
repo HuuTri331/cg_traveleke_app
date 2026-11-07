@@ -64,6 +64,7 @@ export default function HeaderCommon() {
   const [isSupportOpen, setIsSupportOpen] = useState(false);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   const { customer, isCustomerAuthenticated, isCustomerLoading, customerLogout } = useCustomerAuth();
 
@@ -80,11 +81,24 @@ export default function HeaderCommon() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   const avatarUrl = customer ? getAvatarUrl(customer.avatarUrl) : null;
 
   return (
-    <header className="relative w-full bg-white border-b border-[#1E4752]/10 transition-colors z-40">
-      <div className="mx-auto max-w-screen-xl px-4 py-2.5 sm:py-3">
+    <header
+      className={`sticky top-0 w-full bg-white/95 backdrop-blur-md transition-all duration-300 z-40 ${
+        scrolled
+          ? 'border-b border-[#1E4752]/15 shadow-[0_10px_30px_rgba(30,71,82,0.06)]'
+          : 'border-b border-[#1E4752]/10'
+      }`}
+    >
+      <div className="mx-auto max-w-[1620px] px-4 sm:px-8 lg:px-12 xl:px-16 py-2.5 sm:py-3">
         {/* ===== TOP HEADER ===== */}
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
@@ -204,7 +218,7 @@ export default function HeaderCommon() {
 
                 {/* Dropdown */}
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-[#1E4752]/15 bg-white shadow-2xl">
+                  <div className="lux-scale-in absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-[#1E4752]/15 bg-white shadow-2xl">
                     {/* User info */}
                     <div className="flex items-center gap-3 border-b border-[#1E4752]/10 px-4 py-3 bg-[#1E4752]/3">
                       <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full ring-1 ring-[#E8A700]">
@@ -251,7 +265,7 @@ export default function HeaderCommon() {
               <div className="flex items-center gap-2 ml-2">
                 <Link
                   href="/customer-login"
-                  className="flex items-center gap-1.5 rounded-xl border border-[#1E4752] px-3.5 py-1.5 text-xs font-bold text-[#1E4752] transition-colors hover:bg-[#1E4752]/5"
+                  className="lux-press flex items-center gap-1.5 rounded-xl border border-[#1E4752] px-3.5 py-1.5 text-xs font-bold text-[#1E4752] transition-colors hover:bg-[#1E4752]/5"
                 >
                   <User className="h-3.5 w-3.5 text-[#1E4752] shrink-0" />
                   <span>Đăng nhập</span>
@@ -259,7 +273,7 @@ export default function HeaderCommon() {
 
                 <Link
                   href="/register"
-                  className="rounded-xl bg-[#E8A700] hover:bg-[#E8A700]/90 px-4 py-1.5 text-xs font-extrabold text-[#1E4752] transition-colors shadow-xs"
+                  className="lux-press rounded-xl bg-[#E8A700] hover:bg-[#E8A700]/90 px-4 py-1.5 text-xs font-extrabold text-[#1E4752] transition-colors shadow-xs"
                 >
                   Đăng ký
                 </Link>
@@ -271,14 +285,16 @@ export default function HeaderCommon() {
         {/* ===== BOTTOM NAVIGATION MENU ===== */}
         <nav className="mt-2.5 flex flex-wrap items-center gap-1 border-t border-[#1E4752]/10 pt-2 text-xs font-bold text-[#1E4752]">
           {mainMenu.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive =
+              item.href !== '#' &&
+              (pathname === item.href || pathname?.startsWith(`${item.href}/`));
             return (
               <Link
                 key={item.label}
                 href={item.href}
                 className={`relative px-3 py-1.5 rounded-lg transition-colors ${
                   isActive
-                    ? 'text-[#E8A700] bg-[#1E4752]/5 font-extrabold'
+                    ? 'text-[#1E4752] bg-[#E8A700]/12 font-extrabold'
                     : 'text-[#1E4752]/90 hover:text-[#E8A700] hover:bg-[#1E4752]/5'
                 }`}
               >
@@ -298,11 +314,15 @@ export default function HeaderCommon() {
               className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-[#1E4752]/90 transition-colors hover:text-[#E8A700] hover:bg-[#1E4752]/5 cursor-pointer"
             >
               <span>Thêm dịch vụ</span>
-              <ChevronDown className="h-3.5 w-3.5 text-[#1E4752]/50" />
+              <ChevronDown
+                className={`h-3.5 w-3.5 text-[#1E4752]/50 transition-transform duration-200 ${
+                  isMoreOpen ? 'rotate-180' : ''
+                }`}
+              />
             </button>
 
             {isMoreOpen && (
-              <div className="absolute left-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl border border-[#1E4752]/15 bg-white shadow-xl">
+              <div className="lux-scale-in absolute left-0 top-full z-50 mt-2 w-56 overflow-hidden rounded-xl border border-[#1E4752]/15 bg-white shadow-xl">
                 {moreMenu.map((item) => {
                   const ItemIcon = item.icon;
                   return (

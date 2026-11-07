@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Playfair_Display } from 'next/font/google';
 import './globals.css';
 
 import { ToastProvider } from '@/components/ui/Toast';
@@ -14,10 +14,17 @@ const inter = Inter({
   variable: '--font-inter',
 });
 
+const playfair = Playfair_Display({
+  subsets: ['latin', 'vietnamese'],
+  display: 'swap',
+  weight: ['500', '600', '700'],
+  variable: '--font-display',
+});
+
 export const metadata: Metadata = {
-  title: 'Traveleke - Đặt Phòng Khách Sạn & Tour Du Lịch',
+  title: 'Traveleke — Bộ Sưu Tập Khách Sạn & Nghỉ Dưỡng Tuyển Chọn',
   description:
-    'Nền tảng đặt phòng khách sạn, tour du lịch và lập kế hoạch du lịch cá nhân ứng dụng AI.',
+    'Nền tảng đặt phòng khách sạn, khu nghỉ dưỡng cao cấp và trợ lý du lịch cá nhân hóa ứng dụng AI.',
 };
 
 export default function RootLayout({
@@ -26,7 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi" className={inter.variable} suppressHydrationWarning>
+    <html lang="vi" className={`${inter.variable} ${playfair.variable}`} suppressHydrationWarning>
       <head>
         {/* Critical Rendering Path Preconnect & DNS-Prefetch Optimization */}
         <link rel="preconnect" href="http://localhost:3001" />

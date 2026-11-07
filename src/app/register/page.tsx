@@ -249,29 +249,29 @@ export default function RegisterPage() {
     { value: 'FEMALE', label: 'Nữ' },
   ];
 
-  const inputClass = `w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 ${
-    isLocked ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-gray-50'
+  const inputClass = `w-full rounded-xl border border-[#1E4752]/20 px-4 py-3 text-sm text-[#1E4752] placeholder-[#1E4752]/40 outline-none transition focus:border-[#E8A700] focus:bg-white focus:ring-2 focus:ring-[#E8A700]/25 ${
+    isLocked ? 'bg-gray-100 cursor-not-allowed opacity-60' : 'bg-white'
   }`;
 
-  const labelClass = 'block text-sm font-semibold text-gray-700 mb-1.5';
+  const labelClass = 'block text-sm font-semibold text-[#1E4752] mb-1.5';
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div className="luxury-site min-h-screen flex bg-white">
       {/* Left panel */}
-      <div className="hidden lg:flex lg:w-5/12 flex-col items-center justify-center relative overflow-hidden bg-gradient-to-br from-indigo-600 to-blue-700 p-12">
-        <div className="absolute -top-24 -right-24 h-80 w-80 rounded-full bg-white/10" />
-        <div className="absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-white/10" />
+      <div className="hidden lg:flex lg:w-5/12 flex-col items-center justify-center relative overflow-hidden bg-[#1E4752] p-12 border-r border-[#E8A700]/25">
+        <div className="absolute -top-24 -right-24 h-80 w-80 rounded-full bg-[#E8A700]/10 blur-2xl" />
+        <div className="absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-[#E8A700]/10 blur-2xl" />
 
         <div className="relative z-10 text-center">
-          <div className="mb-8 inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-white/20 backdrop-blur-sm text-white">
-            <Plane className="h-10 w-10 text-white" />
+          <div className="mb-8 inline-flex h-20 w-20 items-center justify-center rounded-3xl bg-[#E8A700]/15 border border-[#E8A700]/35 backdrop-blur-sm text-[#E8A700]">
+            <Plane className="h-10 w-10 text-[#E8A700]" />
           </div>
-          <h1 className="text-4xl font-extrabold text-white leading-tight mb-4">
+          <h1 className="font-display text-4xl font-bold text-white leading-tight mb-4">
             Khám phá thế giới
             <br />
-            <span className="text-blue-200">cùng Traveleke!</span>
+            <span className="text-[#E8A700]">cùng Traveleke!</span>
           </h1>
-          <p className="text-blue-100 text-lg max-w-sm mx-auto leading-relaxed">
+          <p className="text-white/80 text-lg max-w-sm mx-auto leading-relaxed">
             Tạo tài khoản để tận hưởng không gian nghỉ dưỡng sang trọng và những hành trình tour độc đáo nhất.
           </p>
 
@@ -301,12 +301,12 @@ export default function RegisterPage() {
               const BIcon = b.icon;
               return (
                 <div key={b.title} className="flex items-start gap-3.5 text-white">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 backdrop-blur-xs text-white">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/8 border border-white/15 backdrop-blur-xs text-[#E8A700]">
                     <BIcon className="h-5 w-5" />
                   </span>
                   <div>
                     <div className="text-sm font-bold text-white">{b.title}</div>
-                    <div className="text-xs text-blue-100/90 leading-relaxed">{b.desc}</div>
+                    <div className="text-xs text-white/75 leading-relaxed">{b.desc}</div>
                   </div>
                 </div>
               );
@@ -316,15 +316,15 @@ export default function RegisterPage() {
       </div>
 
       {/* Right panel */}
-      <div className="flex flex-1 items-center justify-center px-6 py-8 overflow-y-auto">
-        <div className="w-full max-w-lg">
+      <div className="flex flex-1 items-center justify-center px-6 py-8 overflow-y-auto bg-white">
+        <div className="lux-fade-up w-full max-w-lg">
           {/* Logo */}
           <div className="mb-6 flex flex-col items-center">
             <Link href="/home">
               <Image src={logo} alt="Traveleke" className="h-12 w-auto object-contain mb-3" priority />
             </Link>
-            <h2 className="text-2xl font-extrabold text-gray-900">Tạo tài khoản mới</h2>
-            <p className="mt-1 text-sm text-gray-500">Điền thông tin chính xác để kích hoạt tài khoản</p>
+            <h2 className="font-display text-2xl font-bold text-[#1E4752]">Tạo tài khoản mới</h2>
+            <p className="mt-1 text-sm text-[#1E4752]/70">Điền thông tin chính xác để kích hoạt tài khoản</p>
           </div>
 
           {/* BANNER KHÓA PHÒNG NGỪA SPAM (10 PHÚT HOẶC 10 GIỜ) */}
@@ -353,10 +353,10 @@ export default function RegisterPage() {
 
           {/* Step indicator */}
           <div className="mb-6 flex items-center gap-3">
-            <div className={`flex-1 h-1.5 rounded-full transition-colors ${step >= 1 ? 'bg-blue-500' : 'bg-gray-200'}`} />
-            <div className={`flex-1 h-1.5 rounded-full transition-colors ${step >= 2 ? 'bg-blue-500' : 'bg-gray-200'}`} />
+            <div className={`flex-1 h-1.5 rounded-full transition-colors ${step >= 1 ? 'bg-[#E8A700]' : 'bg-[#1E4752]/15'}`} />
+            <div className={`flex-1 h-1.5 rounded-full transition-colors ${step >= 2 ? 'bg-[#E8A700]' : 'bg-[#1E4752]/15'}`} />
           </div>
-          <p className="mb-6 text-xs text-gray-400 font-semibold uppercase tracking-wider">
+          <p className="mb-6 text-xs text-[#1E4752]/65 font-semibold uppercase tracking-wider">
             Bước {step} / 2 — {step === 1 ? 'Thông tin tài khoản' : 'Thông tin cá nhân & Avatar'}
           </p>
 
@@ -368,8 +368,8 @@ export default function RegisterPage() {
             </div>
           )}
           {successMsg && (
-            <div className="mb-4 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-              <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0 mt-0.5" />
+            <div className="mb-4 flex items-start gap-3 rounded-xl border border-[#E8A700]/40 bg-[#E8A700]/12 px-4 py-3 text-sm text-[#1E4752]">
+              <CheckCircle2 className="h-5 w-5 text-[#E8A700] shrink-0 mt-0.5" />
               <span>{successMsg}</span>
             </div>
           )}
@@ -380,10 +380,10 @@ export default function RegisterPage() {
                 {/* Full name */}
                 <div>
                   <label className={labelClass}>
-                    Họ và tên <span className="text-red-500">*</span>
+                    Họ và tên <span className="text-[#E8A700]">*</span>
                   </label>
                   <div className="relative">
-                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1E4752]/50 pointer-events-none" />
                     <input
                       id="register-fullname"
                       name="fullName"
@@ -405,10 +405,10 @@ export default function RegisterPage() {
                 {/* Email with real-time validation */}
                 <div>
                   <label className={labelClass}>
-                    Email Gmail chính thống <span className="text-red-500">*</span>
+                    Email Gmail chính thống <span className="text-[#E8A700]">*</span>
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1E4752]/50 pointer-events-none" />
                     <input
                       type="email"
                       disabled={isLocked}
@@ -421,11 +421,11 @@ export default function RegisterPage() {
                     />
                     {isValidatingEmail && (
                       <div className="absolute right-3.5 top-1/2 -translate-y-1/2">
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#E8A700] border-t-transparent" />
                       </div>
                     )}
                   </div>
-                  <p className="mt-1 text-xs-plus text-gray-400">
+                  <p className="mt-1 text-xs-plus text-[#1E4752]/65">
                     Hệ thống sẽ tự động đối soát DNS và từ chối mọi email không tồn tại hoặc thô tục.
                   </p>
                 </div>
@@ -433,10 +433,10 @@ export default function RegisterPage() {
                 {/* Password */}
                 <div>
                   <label className={labelClass}>
-                    Mật khẩu <span className="text-red-500">*</span>
+                    Mật khẩu <span className="text-[#E8A700]">*</span>
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1E4752]/50 pointer-events-none" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       disabled={isLocked}
@@ -450,7 +450,7 @@ export default function RegisterPage() {
                       type="button"
                       disabled={isLocked}
                       onClick={() => setShowPassword((p) => !p)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 flex items-center justify-center"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#1E4752]/50 hover:text-[#1E4752] flex items-center justify-center"
                     >
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -460,10 +460,10 @@ export default function RegisterPage() {
                 {/* Confirm password */}
                 <div>
                   <label className={labelClass}>
-                    Xác nhận mật khẩu <span className="text-red-500">*</span>
+                    Xác nhận mật khẩu <span className="text-[#E8A700]">*</span>
                   </label>
                   <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1E4752]/50 pointer-events-none" />
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
                       disabled={isLocked}
@@ -477,7 +477,7 @@ export default function RegisterPage() {
                       type="button"
                       disabled={isLocked}
                       onClick={() => setShowConfirmPassword((p) => !p)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 flex items-center justify-center"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#1E4752]/50 hover:text-[#1E4752] flex items-center justify-center"
                     >
                       {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
@@ -494,10 +494,10 @@ export default function RegisterPage() {
                 <button
                   type="submit"
                   disabled={isLocked || isValidatingEmail}
-                  className={`w-full rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg transition-all ${
+                  className={`lux-press w-full rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_24px_-8px_rgba(30,71,82,0.4)] transition-all ${
                     isLocked
                       ? 'bg-gray-400 cursor-not-allowed shadow-none'
-                      : 'bg-gradient-to-r from-blue-500 to-indigo-600 shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-700'
+                      : 'bg-[#1E4752] hover:bg-[#E8A700] hover:text-[#1E4752] cursor-pointer'
                   }`}
                 >
                   {isLocked ? (
@@ -521,14 +521,14 @@ export default function RegisterPage() {
                       type="button"
                       disabled={isLocked}
                       onClick={() => fileInputRef.current?.click()}
-                      className={`h-24 w-24 overflow-hidden rounded-full bg-gradient-to-tr from-blue-100 to-indigo-100 flex items-center justify-center border-4 border-white shadow-md transition ${
+                      className={`h-24 w-24 overflow-hidden rounded-full bg-[#1E4752]/8 flex items-center justify-center border-4 border-[#E8A700]/35 shadow-md transition ${
                         isLocked ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:scale-105'
                       }`}
                     >
                       {avatarPreview ? (
                         <img src={avatarPreview} alt="Avatar" className="h-full w-full object-cover" />
                       ) : (
-                        <User className="h-10 w-10 text-blue-500" />
+                        <User className="h-10 w-10 text-[#1E4752]" />
                       )}
                     </button>
                     {avatarPreview && !isLocked && (
@@ -552,7 +552,7 @@ export default function RegisterPage() {
                     className="hidden"
                     onChange={handleAvatarChange}
                   />
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-[#1E4752]/70">
                     Ảnh đại diện avatar (tuỳ chọn, tối đa 5MB)
                   </span>
                 </div>
@@ -561,7 +561,7 @@ export default function RegisterPage() {
                 <div>
                   <label className={labelClass}>Số điện thoại</label>
                   <div className="relative">
-                    <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                    <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1E4752]/50 pointer-events-none" />
                     <input
                       type="tel"
                       disabled={isLocked}
@@ -577,7 +577,7 @@ export default function RegisterPage() {
                 <div>
                   <label className={labelClass} htmlFor="register-address">Địa chỉ</label>
                   <div className="relative">
-                    <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#1E4752]/50" />
                     <input
                       id="register-address"
                       name="address"
@@ -631,7 +631,7 @@ export default function RegisterPage() {
                     type="button"
                     disabled={isLocked || isLoading}
                     onClick={() => setStep(1)}
-                    className="flex-1 rounded-xl border border-gray-200 py-3.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 disabled:opacity-50"
+                    className="flex-1 rounded-xl border border-[#1E4752]/20 py-3.5 text-sm font-semibold text-[#1E4752] transition hover:bg-[#1E4752]/5 disabled:opacity-50"
                   >
                     ← Quay lại
                   </button>
@@ -639,10 +639,10 @@ export default function RegisterPage() {
                   <button
                     type="submit"
                     disabled={isLocked || isLoading}
-                    className={`flex-2 w-full rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-lg transition-all ${
+                    className={`lux-press flex-2 w-full rounded-xl px-6 py-3.5 text-sm font-bold text-white shadow-[0_10px_24px_-8px_rgba(30,71,82,0.4)] transition-all ${
                       isLocked
                         ? 'bg-gray-400 cursor-not-allowed shadow-none'
-                        : 'bg-gradient-to-r from-blue-500 to-indigo-600 shadow-blue-500/30 hover:from-blue-600 hover:to-indigo-700'
+                        : 'bg-[#1E4752] hover:bg-[#E8A700] hover:text-[#1E4752] cursor-pointer'
                     }`}
                   >
                     {isLocked ? (
@@ -665,9 +665,9 @@ export default function RegisterPage() {
           </form>
 
           {/* Login link */}
-          <p className="mt-6 text-center text-sm text-gray-500">
+          <p className="mt-6 text-center text-sm text-[#1E4752]/75">
             Đã có tài khoản?{' '}
-            <Link href="/customer-login" className="font-semibold text-blue-600 hover:underline">
+            <Link href="/customer-login" className="font-bold text-[#1E4752] hover:text-[#E8A700] transition-colors">
               Đăng nhập ngay
             </Link>
           </p>

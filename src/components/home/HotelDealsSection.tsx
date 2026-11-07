@@ -107,7 +107,7 @@ export default function HotelDealsSection() {
   };
 
   return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+    <section className="max-w-[1620px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 py-12 sm:py-16">
       {/* Editorial Section Header */}
       <LuxurySectionHeader
         eyebrow="BỘ SƯU TẬP NỔI BẬT"
@@ -203,7 +203,7 @@ export default function HotelDealsSection() {
                   className="group flex flex-col h-full rounded-2xl bg-white border border-[#1E4752]/12 overflow-hidden shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                 >
                   {/* Hotel Image with Subtle Overlay */}
-                  <div className="relative h-52 w-full overflow-hidden bg-[#1E4752]/5">
+                  <div className="relative h-56 sm:h-60 w-full overflow-hidden bg-[#1E4752]/5">
                     <img
                       src={getImageUrl(hotel.coverImageUrl)}
                       alt={hotel.name}

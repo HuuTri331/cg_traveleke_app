@@ -116,38 +116,41 @@ apiClient.interceptors.response.use(
         }
         isRefreshing = true;
 
-        const storedRefreshToken =
-          typeof window !== 'undefined'
-            ? localStorage.getItem('traveleke_refresh_token') ||
-              localStorage.getItem('traveleke_customer_refresh_token')
-            : null;
-
         try {
-          // Gọi API refresh token (HttpOnly Cookie được tự động gửi kèm nhờ withCredentials: true)
+          // Gọi API refresh token (HttpOnly Cookie được tự động gửi kèm nhờ withCredentials: true; truyền X-Auth-Context tách biệt Staff/Customer)
           const refreshRes = await axios.post(
             `${BASE_URL}/auth/refresh`,
-            { refreshToken: storedRefreshToken || undefined },
-            { withCredentials: true, timeout: 10000 }
+            {},
+            {
+              withCredentials: true,
+              timeout: 10000,
+              headers: {
+                'X-Auth-Context': isCustomerPath ? 'customer' : 'staff',
+              },
+            }
           );
 
           const newTokenData = refreshRes.data?.data;
           const newAccessToken = newTokenData?.access_token;
-          const newRefreshToken = newTokenData?.refresh_token;
+          const refreshedRole = newTokenData?.user?.role;
+
+          if (
+            refreshedRole &&
+            ((isCustomerPath && refreshedRole !== 'CUSTOMER') ||
+              (!isCustomerPath && refreshedRole === 'CUSTOMER'))
+          ) {
+            throw new Error('AUTH_AUDIENCE_MISMATCH: Phiên làm mới không khớp ngữ cảnh cổng truy cập.');
+          }
 
           if (newAccessToken && typeof window !== 'undefined') {
             if (isCustomerPath) {
               localStorage.setItem('traveleke_customer_token', newAccessToken);
-              if (newRefreshToken) {
-                localStorage.setItem('traveleke_customer_refresh_token', newRefreshToken);
-              }
+              localStorage.removeItem('traveleke_customer_refresh_token');
             } else {
               localStorage.setItem('traveleke_token', newAccessToken);
-              if (newRefreshToken) {
-                localStorage.setItem('traveleke_refresh_token', newRefreshToken);
-              }
+              localStorage.removeItem('traveleke_refresh_token');
             }
 
-            apiClient.defaults.headers.common.Authorization = `Bearer ${newAccessToken}`;
             if (originalRequest?.headers) {
               originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
             }

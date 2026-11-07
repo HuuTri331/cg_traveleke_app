@@ -3,7 +3,7 @@
 import {
   Bot,
   LoaderCircle,
-  MessageCircle,
+  Sparkles,
   Send,
   User,
   X,
@@ -15,6 +15,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { usePathname } from 'next/navigation';
 
 import { sendChatMessage } from '@/services/api/chat.api';
 import type { ChatHotelResult } from '@/types/chat';
@@ -32,10 +33,17 @@ const INITIAL_MESSAGE: ChatMessage = {
   id: 1,
   role: 'assistant',
   content:
-    'Xin chào! Tôi là trợ lý tìm khách sạn của Traveleke. Bạn muốn tìm khách sạn ở đâu?',
+    'Xin chào quý khách! Tôi là Trợ lý Concierge AI của Traveleke. Quý khách đang tìm kiếm khách sạn tại điểm đến nào hay cần gợi ý phòng nghỉ phù hợp ngân sách?',
 };
 
+const QUICK_PROMPTS = [
+  'Khách sạn 5 sao tại Đà Nẵng',
+  'Phòng cho 2 người dưới 2 triệu',
+  'Resort nghỉ dưỡng gần biển',
+];
+
 export default function ChatBox() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -56,14 +64,18 @@ export default function ChatBox() {
     });
   }, [messages, isLoading, isOpen]);
 
+  if (pathname?.startsWith('/dashboard') || pathname === '/login') {
+    return null;
+  }
+
   const createMessageId = () => {
     const id = messageIdRef.current;
     messageIdRef.current += 1;
     return id;
   };
 
-  const handleSubmit = async () => {
-    const message = input.trim();
+  const handleSubmit = async (customPrompt?: string) => {
+    const message = (customPrompt ?? input).trim();
 
     if (!message || isLoading) {
       return;
@@ -78,7 +90,9 @@ export default function ChatBox() {
       },
     ]);
 
-    setInput('');
+    if (!customPrompt) {
+      setInput('');
+    }
     setIsLoading(true);
 
     try {
@@ -97,7 +111,7 @@ export default function ChatBox() {
       const errorMessage =
         error instanceof Error
           ? error.message
-          : 'Không thể kết nối với trợ lý. Vui lòng thử lại.';
+          : 'Không thể kết nối với trợ lý Concierge. Vui lòng thử lại.';
 
       setMessages((current) => [
         ...current,
@@ -131,28 +145,31 @@ export default function ChatBox() {
       {isOpen && (
         <section
           className="
-            fixed bottom-24 right-4 z-[9999]
-            flex h-[min(650px,calc(100vh-120px))]
+            lux-scale-in fixed bottom-24 right-4 z-[9999]
+            flex h-[min(640px,calc(100vh-120px))]
             w-[calc(100vw-32px)] max-w-[400px]
             flex-col overflow-hidden rounded-3xl
-            border border-slate-200 bg-white
-            shadow-2xl
+            border border-[#1E4752]/18 bg-white
+            shadow-[0_24px_60px_rgba(30,71,82,0.24)]
             sm:right-6
           "
         >
-          <header className="flex items-center justify-between bg-blue-600 px-4 py-3 text-white">
+          <header className="flex items-center justify-between bg-[#1E4752] px-5 py-4 text-white border-b border-[#E8A700]/30">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E8A700] text-[#1E4752] shadow-xs">
                 <Bot className="h-5 w-5" />
               </div>
 
               <div>
-                <h2 className="text-sm font-semibold">
-                  Traveleke Assistant
-                </h2>
+                <div className="flex items-center gap-1.5">
+                  <h2 className="text-sm font-bold tracking-wide text-white">
+                    Traveleke Concierge
+                  </h2>
+                  <span className="h-2 w-2 rounded-full bg-[#E8A700] animate-pulse" />
+                </div>
 
-                <p className="text-xs text-blue-100">
-                  Trợ lý tìm khách sạn
+                <p className="text-[11px] text-white/75">
+                  Tư vấn khách sạn & kỳ nghỉ bằng AI 24/7
                 </p>
               </div>
             </div>
@@ -161,13 +178,13 @@ export default function ChatBox() {
               type="button"
               onClick={() => setIsOpen(false)}
               aria-label="Đóng chat"
-              className="rounded-full p-2 transition hover:bg-white/15"
+              className="lux-press rounded-full p-2 text-white/80 transition hover:bg-white/15 hover:text-white cursor-pointer"
             >
               <X className="h-5 w-5" />
             </button>
           </header>
 
-          <div className="custom-scrollbar flex-1 space-y-4 overflow-y-auto bg-slate-50 p-4">
+          <div className="custom-scrollbar flex-1 space-y-4 overflow-y-auto bg-[#1E4752]/[0.02] p-4">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -180,15 +197,15 @@ export default function ChatBox() {
                 <div
                   className={
                     message.role === 'user'
-                      ? 'flex max-w-[85%] flex-row-reverse items-start gap-2'
-                      : 'flex w-full items-start gap-2'
+                      ? 'flex max-w-[85%] flex-row-reverse items-start gap-2.5'
+                      : 'flex w-full items-start gap-2.5'
                   }
                 >
                   <div
                     className={
                       message.role === 'user'
-                        ? 'flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white'
-                        : 'flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-200 text-blue-600'
+                        ? 'flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E8A700]/20 text-[#1E4752] border border-[#E8A700]/50'
+                        : 'flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1E4752] text-[#E8A700] border border-[#E8A700]/40'
                     }
                   >
                     {message.role === 'user' ? (
@@ -201,13 +218,13 @@ export default function ChatBox() {
                   <div
                     className={
                       message.role === 'user'
-                        ? 'max-w-full rounded-2xl rounded-tr-sm bg-blue-600 px-3.5 py-2.5 text-sm text-white'
+                        ? 'max-w-full rounded-2xl rounded-tr-xs bg-[#1E4752] px-4 py-2.5 text-sm text-white shadow-xs'
                         : 'min-w-0 flex-1'
                     }
                   >
                     {message.role === 'assistant' ? (
                       <>
-                        <div className="inline-block rounded-2xl rounded-tl-sm border border-slate-200 bg-white px-3.5 py-2.5 text-sm leading-6 text-slate-700 shadow-sm">
+                        <div className="inline-block rounded-2xl rounded-tl-xs border border-[#1E4752]/12 bg-white px-4 py-3 text-sm leading-relaxed text-[#1E4752] shadow-xs">
                           {message.content}
                         </div>
 
@@ -233,15 +250,35 @@ export default function ChatBox() {
               </div>
             ))}
 
+            {messages.length === 1 && !isLoading && (
+              <div className="pt-1 space-y-2">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[#1E4752]/60 px-1">
+                  Gợi ý tìm kiếm nhanh
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {QUICK_PROMPTS.map((prompt) => (
+                    <button
+                      key={prompt}
+                      type="button"
+                      onClick={() => void handleSubmit(prompt)}
+                      className="lux-press rounded-full border border-[#1E4752]/15 bg-white px-3 py-1.5 text-xs font-semibold text-[#1E4752] hover:border-[#E8A700] hover:bg-[#E8A700]/10 transition cursor-pointer"
+                    >
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {isLoading && (
-              <div className="flex items-start gap-2">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-200 text-blue-600">
+              <div className="flex items-start gap-2.5">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1E4752] text-[#E8A700]">
                   <Bot className="h-4 w-4" />
                 </div>
 
-                <div className="flex items-center gap-2 rounded-2xl rounded-tl-sm border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500 shadow-sm">
-                  <LoaderCircle className="h-4 w-4 animate-spin" />
-                  <span>Đang tìm kiếm...</span>
+                <div className="flex items-center gap-2 rounded-2xl rounded-tl-xs border border-[#1E4752]/12 bg-white px-4 py-3 text-xs font-semibold text-[#1E4752]/80 shadow-xs">
+                  <LoaderCircle className="h-4 w-4 animate-spin text-[#E8A700]" />
+                  <span>Concierge đang tìm kiếm khách sạn...</span>
                 </div>
               </div>
             )}
@@ -251,9 +288,9 @@ export default function ChatBox() {
 
           <form
             onSubmit={handleFormSubmit}
-            className="border-t border-slate-200 bg-white p-3"
+            className="border-t border-[#1E4752]/10 bg-white p-3.5"
           >
-            <div className="flex items-end gap-2 rounded-2xl border border-slate-300 bg-slate-50 px-3 py-2 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+            <div className="flex items-end gap-2 rounded-2xl border border-[#1E4752]/20 bg-[#1E4752]/[0.02] px-3.5 py-2 focus-within:border-[#E8A700] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#E8A700]/20 transition">
               <textarea
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
@@ -261,15 +298,15 @@ export default function ChatBox() {
                 disabled={isLoading}
                 rows={1}
                 maxLength={1000}
-                placeholder="Nhập yêu cầu tìm khách sạn..."
-                className="max-h-24 min-h-6 flex-1 resize-none bg-transparent text-sm text-slate-800 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed"
+                placeholder="VD: Tìm khách sạn tại Đà Nẵng cho 2 người..."
+                className="max-h-24 min-h-6 flex-1 resize-none bg-transparent text-sm font-medium text-[#1E4752] outline-none placeholder:text-[#1E4752]/45 disabled:cursor-not-allowed"
               />
 
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
                 aria-label="Gửi tin nhắn"
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                className="lux-press flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#E8A700] text-[#1E4752] transition hover:bg-[#E8A700]/90 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
               >
                 {isLoading ? (
                   <LoaderCircle className="h-4 w-4 animate-spin" />
@@ -279,8 +316,8 @@ export default function ChatBox() {
               </button>
             </div>
 
-            <p className="mt-1.5 text-center text-[10px] text-slate-400">
-              AI hỗ trợ tìm kiếm dựa trên dữ liệu của Traveleke
+            <p className="mt-1.5 text-center text-[10px] font-medium text-[#1E4752]/55">
+              Concierge AI gợi ý trực tiếp từ hệ thống dữ liệu Traveleke
             </p>
           </form>
         </section>
@@ -291,18 +328,29 @@ export default function ChatBox() {
         onClick={() => setIsOpen((current) => !current)}
         aria-label={isOpen ? 'Đóng trợ lý' : 'Mở trợ lý'}
         className="
-          fixed bottom-5 right-4 z-[9999]
-          flex h-14 w-14 items-center justify-center
-          rounded-full bg-blue-600 text-white
-          shadow-lg transition
-          hover:scale-105 hover:bg-blue-700
-          sm:right-6
+          lux-press group fixed bottom-5 right-4 z-[9999]
+          flex items-center gap-2.5
+          rounded-full bg-[#1E4752] px-4 py-3 text-white
+          border border-[#E8A700]/45
+          shadow-[0_14px_34px_rgba(30,71,82,0.28)]
+          transition-all duration-300
+          hover:-translate-y-0.5 hover:border-[#E8A700]
+          sm:right-6 cursor-pointer
         "
       >
         {isOpen ? (
-          <X className="h-6 w-6" />
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white">
+            <X className="h-5 w-5" />
+          </span>
         ) : (
-          <MessageCircle className="h-6 w-6" />
+          <>
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#E8A700] text-[#1E4752] shadow-xs transition-transform duration-300 group-hover:rotate-12">
+              <Sparkles className="h-4 w-4" />
+            </span>
+            <span className="pr-1 text-xs font-extrabold uppercase tracking-wider text-white">
+              Concierge AI
+            </span>
+          </>
         )}
       </button>
     </>

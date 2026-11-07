@@ -39,7 +39,7 @@ export default function LuxuryHero({
       />
 
       {/* Hero Content */}
-      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center text-white pb-24 pt-16">
+      <div className="lux-fade-up relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center text-white pb-24 pt-16">
         {/* Eyebrow */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-[#E8A700]/40 text-[#E8A700] text-xs font-extrabold uppercase tracking-[0.22em] mb-6 shadow-sm">
           <Sparkles className="w-3.5 h-3.5 text-[#E8A700]" />
@@ -47,7 +47,7 @@ export default function LuxuryHero({
         </div>
 
         {/* Headline */}
-        <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.15] text-white">
+        <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.15] text-white">
           {bannerTitle || 'Kỳ nghỉ xứng tầm,\ntrải nghiệm đáng nhớ.'}
         </h1>
 
