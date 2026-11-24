@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { authApi } from '@/services/api/auth.api';
+import { setInMemoryAccessToken } from '@/services/api/client';
+import { disconnectSocket } from '@/lib/socket';
 import { LoginDto, UserProfile } from '@/types/auth';
 
 interface AuthContextType {
@@ -78,10 +80,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const storedUser = typeof window !== 'undefined' ? localStorage.getItem('traveleke_user') : null;
 
       if (!storedToken) {
+        setInMemoryAccessToken('staff', null);
         setIsLoading(false);
         return;
       }
 
+      setInMemoryAccessToken('staff', storedToken);
       setToken(storedToken);
       if (storedUser) {
         try {
@@ -162,6 +166,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           );
         }
 
+        setInMemoryAccessToken('staff', data.access_token);
         localStorage.setItem('traveleke_token', data.access_token);
         localStorage.removeItem('traveleke_refresh_token');
         localStorage.setItem('traveleke_user', JSON.stringify(data.user));
@@ -180,6 +185,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await authApi.logout();
     } finally {
+      setInMemoryAccessToken('staff', null);
+      disconnectSocket();
       localStorage.removeItem('traveleke_token');
       localStorage.removeItem('traveleke_refresh_token');
       localStorage.removeItem('traveleke_user');

@@ -10,11 +10,23 @@ import { io, Socket } from 'socket.io-client';
  * 3. Hỗ trợ Room Multiplexing: hotel:<hotelId>, user:<userId>, staff:notifications.
  */
 
-const SOCKET_URL =
-  process.env.NEXT_PUBLIC_SOCKET_URL ||
-  (process.env.NEXT_PUBLIC_API_URL
-    ? process.env.NEXT_PUBLIC_API_URL.replace('/api', '')
-    : 'http://localhost:3001');
+function resolveSocketUrl(): string {
+  if (process.env.NEXT_PUBLIC_SOCKET_URL) {
+    return process.env.NEXT_PUBLIC_SOCKET_URL;
+  }
+  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+    return process.env.NEXT_PUBLIC_API_BASE_URL.replace(/\/api\/?$/, '');
+  }
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '');
+  }
+  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
+    return window.location.origin;
+  }
+  return 'http://localhost:3001';
+}
+
+const SOCKET_URL = resolveSocketUrl();
 
 let socketInstance: Socket | null = null;
 
@@ -87,6 +99,15 @@ export function getSocket(): Socket | null {
     return null;
   }
 
+  const currentToken =
+    localStorage.getItem('traveleke_token') ||
+    localStorage.getItem('traveleke_customer_token') ||
+    '';
+
+  if (!currentToken) {
+    return null;
+  }
+
   if (!socketInstance) {
     socketInstance = io(SOCKET_URL, {
       transports: ['websocket', 'polling'],
@@ -139,6 +160,21 @@ export function updateSocketAuthToken(token?: string | null) {
     if (socketInstance.connected) {
       socketInstance.disconnect().connect();
     }
+  }
+}
+
+/**
+ * Ngắt kết nối và hủy singleton Socket khi người dùng đăng xuất (Vấn đề 01 & 23)
+ */
+export function disconnectSocket() {
+  if (socketInstance) {
+    try {
+      socketInstance.removeAllListeners();
+      socketInstance.disconnect();
+    } catch {
+      // ignore
+    }
+    socketInstance = null;
   }
 }
 

@@ -2,7 +2,8 @@
 
 import React, { createContext, useCallback, useContext, useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { apiClient } from '@/services/api/client';
+import { apiClient, setInMemoryAccessToken } from '@/services/api/client';
+import { disconnectSocket } from '@/lib/socket';
 import type { UserProfile, LoginDto } from '@/types/auth';
 
 interface CustomerAuthContextType {
@@ -56,6 +57,7 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
       const storedUser = localStorage.getItem(USER_KEY);
 
       if (storedToken) {
+        setInMemoryAccessToken('customer', storedToken);
         setCustomerToken(storedToken);
         if (storedUser) {
           try {
@@ -68,6 +70,7 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
           const profile = await fetchCustomerProfile(storedToken);
           // Only allow CUSTOMER role
           if (profile.role !== 'CUSTOMER') {
+            setInMemoryAccessToken('customer', null);
             localStorage.removeItem(TOKEN_KEY);
             localStorage.removeItem(USER_KEY);
             setCustomerToken(null);
@@ -77,6 +80,7 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
           setCustomer(profile);
           localStorage.setItem(USER_KEY, JSON.stringify(profile));
         } catch {
+          setInMemoryAccessToken('customer', null);
           localStorage.removeItem(TOKEN_KEY);
           localStorage.removeItem(USER_KEY);
           setCustomerToken(null);
@@ -106,6 +110,7 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
           );
         }
 
+        setInMemoryAccessToken('customer', access_token);
         localStorage.setItem(TOKEN_KEY, access_token);
         localStorage.removeItem(REFRESH_TOKEN_KEY);
         localStorage.setItem(USER_KEY, JSON.stringify(user));
@@ -133,6 +138,8 @@ export function CustomerAuthProvider({ children }: { children: React.ReactNode }
     } catch {
       // Bỏ qua lỗi backend khi logout, luôn xoá phiên ở client
     } finally {
+      setInMemoryAccessToken('customer', null);
+      disconnectSocket();
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(REFRESH_TOKEN_KEY);
       localStorage.removeItem(USER_KEY);

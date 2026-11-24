@@ -60,9 +60,16 @@ function PaymentResultContent() {
 
         setBookingDetails(data);
         const pStatus = data.paymentStatus || data.payment?.status;
+        const hStatus = data.holdStatus || data.hold?.status;
 
-        if (pStatus === 'PAID') {
+        // Vấn đề 14 (Section 12 & 26): Chỉ báo thành công khi server xác nhận cả PAID và giữ chỗ COMMITTED
+        if (pStatus === 'PAID' && (!hStatus || hStatus === 'COMMITTED')) {
           setPaymentStatus('PAID');
+        } else if (pStatus === 'PAID_REQUIRES_REVIEW' || (pStatus === 'PAID' && hStatus && hStatus !== 'COMMITTED')) {
+          setPaymentStatus('PENDING');
+          setErrorMessage(
+            'Giao dịch thanh toán đang trong quá trình đối soát tồn phòng (Reconciliation). Bộ phận lễ tân sẽ thông báo kết quả ngay khi hoàn tất.',
+          );
         } else if (pStatus === 'FAILED') {
           setPaymentStatus('FAILED');
           setErrorMessage('Giao dịch thanh toán không thành công hoặc đã bị hủy.');

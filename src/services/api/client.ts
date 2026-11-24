@@ -1,6 +1,32 @@
 import axios from 'axios';
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api';
+function resolveApiBaseUrl(): string {
+  if (process.env.NEXT_PUBLIC_API_BASE_URL) {
+    return process.env.NEXT_PUBLIC_API_BASE_URL;
+  }
+  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'production') {
+    return `${window.location.origin}/api`;
+  }
+  return 'http://localhost:3001/api';
+}
+
+const BASE_URL = resolveApiBaseUrl();
+
+// In-memory Access Token store (ưu tiên đọc từ bộ nhớ RAM trước khi fallback, hạn chế phơi nhiễm)
+let inMemoryCustomerToken: string | null = null;
+let inMemoryStaffToken: string | null = null;
+
+export function setInMemoryAccessToken(context: 'customer' | 'staff', token: string | null) {
+  if (context === 'customer') {
+    inMemoryCustomerToken = token;
+  } else {
+    inMemoryStaffToken = token;
+  }
+}
+
+export function getInMemoryAccessToken(context: 'customer' | 'staff'): string | null {
+  return context === 'customer' ? inMemoryCustomerToken : inMemoryStaffToken;
+}
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -49,13 +75,17 @@ apiClient.interceptors.request.use(
         currentPath.startsWith('/customer-');
 
       if (isCustomerPath) {
-        const customerToken = localStorage.getItem('traveleke_customer_token');
+        const customerToken =
+          inMemoryCustomerToken || localStorage.getItem('traveleke_customer_token');
         if (customerToken && config.headers) {
+          inMemoryCustomerToken = customerToken;
           config.headers.Authorization = `Bearer ${customerToken}`;
         }
       } else {
-        const staffToken = localStorage.getItem('traveleke_token');
+        const staffToken =
+          inMemoryStaffToken || localStorage.getItem('traveleke_token');
         if (staffToken && config.headers) {
+          inMemoryStaffToken = staffToken;
           config.headers.Authorization = `Bearer ${staffToken}`;
         }
       }
@@ -144,9 +174,11 @@ apiClient.interceptors.response.use(
 
           if (newAccessToken && typeof window !== 'undefined') {
             if (isCustomerPath) {
+              inMemoryCustomerToken = newAccessToken;
               localStorage.setItem('traveleke_customer_token', newAccessToken);
               localStorage.removeItem('traveleke_customer_refresh_token');
             } else {
+              inMemoryStaffToken = newAccessToken;
               localStorage.setItem('traveleke_token', newAccessToken);
               localStorage.removeItem('traveleke_refresh_token');
             }
@@ -164,6 +196,7 @@ apiClient.interceptors.response.use(
           // Refresh thất bại: Xóa session và chuyển hướng về trang đăng nhập
           if (typeof window !== 'undefined') {
             if (isCustomerPath) {
+              inMemoryCustomerToken = null;
               localStorage.removeItem('traveleke_customer_token');
               localStorage.removeItem('traveleke_customer_refresh_token');
               localStorage.removeItem('traveleke_customer_user');
@@ -175,6 +208,7 @@ apiClient.interceptors.response.use(
                 window.location.replace(`/customer-login?redirect=${redirect}`);
               }
             } else if (!currentPath.startsWith('/login')) {
+              inMemoryStaffToken = null;
               localStorage.removeItem('traveleke_token');
               localStorage.removeItem('traveleke_refresh_token');
               localStorage.removeItem('traveleke_user');

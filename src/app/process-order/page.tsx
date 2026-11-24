@@ -165,9 +165,16 @@ function ProcessOrderContent() {
         const cachedStr = sessionStorage.getItem('traveleke_pending_order');
         if (cachedStr) {
           const parsed = JSON.parse(cachedStr);
-          if (parsed && (!roomIdParam || String(parsed.roomId) === String(roomIdParam))) {
+          const roomMatches = !roomIdParam || String(parsed?.roomId) === String(roomIdParam);
+          const hotelMatches = !hotelIdParam || String(parsed?.hotelId) === String(hotelIdParam);
+          if (parsed && roomMatches && hotelMatches && parsed.roomId) {
             setBookingData(parsed);
             loadedFromSession = true;
+          } else {
+            // Luồng 1 bước 7: Không ghép sessionStorage của khách sạn A với URL khách sạn B
+            sessionStorage.removeItem('traveleke_pending_order');
+            sessionStorage.removeItem('traveleke_checkout_idempotency_key');
+            sessionStorage.removeItem('traveleke_checkout_idempotency_context');
           }
         }
       } catch (err) {
@@ -183,17 +190,20 @@ function ProcessOrderContent() {
       ])
         .then(([hotelDetail, roomsList]) => {
           const selectedRoom = Array.isArray(roomsList)
-            ? roomsList.find((r) => String(r.id) === String(roomIdParam)) || roomsList[0]
+            ? roomIdParam
+              ? roomsList.find((r) => String(r.id) === String(roomIdParam)) || null
+              : roomsList[0] || null
             : null;
 
           const h = hotelDetail as HotelDetail | null;
+          const resolvedRoomId = selectedRoom?.id ?? roomIdParam ?? undefined;
           const fallbackData: PendingBookingData = {
             hotelId: h?.id || hotelIdParam,
             hotelName: h?.name || 'Khách sạn liên kết',
             hotelAddress: h?.address || 'Việt Nam',
             hotelStar: h?.starRating || 5,
             hotelImage: h?.images?.[0]?.imageUrl || h?.coverImageUrl || null,
-            roomId: selectedRoom?.id || roomIdParam || '1',
+            roomId: resolvedRoomId ? String(resolvedRoomId) : undefined,
             roomName: selectedRoom?.name || 'Phòng nghỉ cao cấp',
             roomPrice: selectedRoom?.pricePerNight || 0,
             bedCount: selectedRoom?.bedCount || 1,
@@ -357,6 +367,17 @@ function ProcessOrderContent() {
       return;
     }
 
+    const resolvedRoomIdValue = bookingData?.roomId || roomIdParam;
+    if (!resolvedRoomIdValue || String(resolvedRoomIdValue).trim() === '') {
+      alert('Không xác định được mã loại phòng hợp lệ. Vui lòng quay lại trang khách sạn để chọn phòng.');
+      if (hotelIdParam || bookingData?.hotelId) {
+        router.push(`/hotels_home/${hotelIdParam || bookingData?.hotelId}`);
+      } else {
+        router.push('/hotels_home');
+      }
+      return;
+    }
+
     setIsSubmitting(true);
 
     const effectiveCheckIn = bookingData?.checkInAt || checkInParam || checkInDateObj.toISOString();
@@ -372,7 +393,7 @@ function ProcessOrderContent() {
       .filter(Boolean)
       .join(', ');
 
-    const effectiveRoomId = String(bookingData?.roomId || roomIdParam || '1');
+    const effectiveRoomId = String(resolvedRoomIdValue).trim();
     const quoteHashPart = serverQuote?.priceHash || 'noquote';
     const idempotencyContext = `${effectiveRoomId}_${effectiveCheckIn}_${effectiveCheckOut}_${effectiveRoomCount}_${quoteHashPart}`;
     let stableIdempotencyKey = '';
@@ -868,7 +889,7 @@ function ProcessOrderContent() {
                         src={
                           bookingData.hotelImage.startsWith('http')
                             ? bookingData.hotelImage
-                            : `http://localhost:3001${bookingData.hotelImage}`
+                            : `${(process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_SOCKET_URL || '').replace(/\/api\/?$/, '')}${bookingData.hotelImage}`
                         }
                         alt={bookingData.hotelName || 'Khách sạn'}
                         className="w-full h-full object-cover"
